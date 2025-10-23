@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HouseMajor - Real Estate Management",
-  description: "Manage your real estate portfolio with HouseMajor",
+  title: "HouseMajor - story ",
+  description: "story of house major",
 };
 
 export default function RootLayout({
