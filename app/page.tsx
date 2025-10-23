@@ -77,7 +77,7 @@ export default function Home() {
       <section className="min-h-screen flex items-center justify-center pt-32">
         <div className="container mx-auto px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Welcome to Story Book
+            Welcome to StoryBook
           </h1>
           <p className="text-gray-600 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
             This is still under development 
