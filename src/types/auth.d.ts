@@ -30,9 +30,9 @@ export interface AuthUser {
   user: User;
 }
 
-export interface LoginResponse extends ApiResponse<AuthUser> {}
+export interface LoginResponse extends AuthUser {}
 
-export interface SignupResponse extends ApiResponse<AuthUser> {}
+export interface SignupResponse extends AuthUser {}
 
 export interface AuthError extends ApiResponse {
   success: false;

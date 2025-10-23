@@ -9,7 +9,7 @@ export const authService = {
 
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
     // Remove confirmPassword before sending to API
-    const { confirmPassword, ...apiCredentials } = credentials;
+    const { confirmPassword: _, ...apiCredentials } = credentials;
     const response = await axiosInstance.post('/auth/register', apiCredentials);
     return response.data;
   },

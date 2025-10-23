@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { UnderDevelopment } from '@/components/shared';
 
 export default function Home() {
   return (
@@ -73,17 +74,11 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content Section - Centered */}
-      <section className="min-h-screen flex items-center justify-center pt-32">
-        <div className="container mx-auto px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Welcome to StoryBook
-          </h1>
-          <p className="text-gray-600 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-            This Page is Under Development 
-          </p>
-        </div>
-      </section>
+          {/* Main Content Section */}
+          <UnderDevelopment 
+            title="Welcome to StoryBook"
+            subtitle="This page is under development"
+          />
  </div>
   );
 }

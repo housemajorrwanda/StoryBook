@@ -13,7 +13,6 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = (values: SignupCredentials) => {
-    console.log('Form values:', values);
     signupMutation.mutate(values);
   };
 

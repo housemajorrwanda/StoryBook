@@ -14,13 +14,13 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (credentials: LoginCredentials) => authService.login(credentials),
     onSuccess: (data) => {
-      if (data.success && data.data) {
-        setAuthToken(data.data.token);
-        queryClient.setQueryData(['user'], data.data.user);
+      if (data.access_token && data.user) {
+        setAuthToken(data.access_token);
+        queryClient.setQueryData(['user'], data.user);
         toast.success('Login successful!');
         router.push('/dashboard');
       } else {
-        toast.error(data.message || 'Login failed');
+        toast.error('Login failed');
       }
     },
     onError: (error: any) => {
@@ -37,13 +37,13 @@ export const useSignup = () => {
   return useMutation({
     mutationFn: (credentials: SignupCredentials) => authService.signup(credentials),
     onSuccess: (data) => {
-      if (data.success && data.data) {
-        setAuthToken(data.data.token);
-        queryClient.setQueryData(['user'], data.data.user);
+      if (data.access_token && data.user) {
+        setAuthToken(data.access_token);
+        queryClient.setQueryData(['user'], data.user);
         toast.success('Account created successfully!');
         router.push('/dashboard');
       } else {
-        toast.error(data.message || 'Signup failed');
+        toast.error('Signup failed');
       }
     },
     onError: (error: any) => {
