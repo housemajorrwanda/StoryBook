@@ -80,7 +80,7 @@ export default function Home() {
             Welcome to StoryBook
           </h1>
           <p className="text-gray-600 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-            This is still under development 
+            This Page is Under Development 
           </p>
         </div>
       </section>
