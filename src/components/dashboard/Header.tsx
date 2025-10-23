@@ -32,6 +32,7 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
         </div>
 
         {/* Center - Search bar */}
+        {/*}
         <div className="flex-1 max-w-lg mx-8 hidden md:block">
           <div className="relative">
             <input
@@ -46,7 +47,7 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
             </div>
           </div>
         </div>
-
+        */}
         {/* Right side */}
         <div className="flex items-center space-x-4">
           {/* Welcome message */}
@@ -60,13 +61,14 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
           </div>
 
           {/* Notifications */}
+          {/*
           <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg relative">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 102.828 2.828l6.414 6.414a2 2 0 01-2.828 2.828L4.828 7z" />
             </svg>
-            {/* Red dot indicator */}
             <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
           </button>
+          */}
 
           {/* User profile dropdown */}
           <div className="relative">

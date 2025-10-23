@@ -84,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200">
+          <div className="flex items-center justify-center h-16 px-6">
             <h1 className="text-xl font-bold text-gray-900">HTFC</h1>
           </div>
 
@@ -148,7 +148,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </nav>
 
           {/* Logout */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-6">
             <button
               onClick={handleLogout}
               disabled={logoutMutation.isPending}
