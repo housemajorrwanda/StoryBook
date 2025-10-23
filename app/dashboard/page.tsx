@@ -44,16 +44,16 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Welcome back, {user.firstName}!</p>
+              <p className="text-gray-600">Welcome back, {user.fullName}!</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
                 <p className="text-sm text-gray-500">{user.email}</p>
               </div>
               <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">
-                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                  {user.fullName.split(' ').map(name => name.charAt(0)).join('').toUpperCase()}
                 </span>
               </div>
             </div>
