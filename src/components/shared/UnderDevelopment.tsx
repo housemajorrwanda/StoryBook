@@ -12,10 +12,10 @@ export default function UnderDevelopment({
   return (
     <div className={`flex items-center justify-center h-full ${className}`}>
       <div className="text-center">
-        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
           {title}
         </h1>
-        <p className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto">
+        <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
           {subtitle}
         </p>
       </div>

@@ -13,7 +13,7 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-4 lg:px-6">
+    <header className="bg-white border-b border-gray-200 px-4 py-2 lg:px-6">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Left side */}
         <div className="flex items-center space-x-4">
@@ -28,7 +28,7 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
           </button>
           
           {/* Page title */}
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          <h1 className="text-xl font-bold text-gray-900">{title}</h1>
         </div>
 
         {/* Center - Search bar */}
@@ -52,7 +52,7 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
         <div className="flex items-center space-x-4">
           {/* Welcome message */}
           <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-xs font-medium text-gray-900">
               Welcome back, {user?.firstName && user?.lastName 
                 ? `${user.firstName} ${user.lastName}`
                 : user?.username || user?.email || 'User'

@@ -64,14 +64,14 @@ export default function DashboardLayout({
         />
 
         {/* Main content area - scrollable */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4">
           <div className="max-w-7xl mx-auto h-full">
             {children}
           </div>
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 py-4">
+        <footer className="bg-white border-t border-gray-200 py-2">
           <div className="max-w-7xl mx-auto px-6 text-center">
             <p className="text-sm text-gray-500">
             © 2025 HTFC. All rights reserved. | In memory of over one million lives lost.

@@ -79,20 +79,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
       
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-56 bg-gray-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-6">
-            <h1 className="text-xl font-bold text-gray-900">HTFC</h1>
+          <div className="flex items-center justify-center h-12 px-6">
+            <h1 className="text-lg font-bold text-gray-900">HTFC</h1>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-6">
+          <nav className="flex-1 px-3 py-4 space-y-4">
             {/* Main Menu */}
             <div>
-              <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 Main Menu
               </h3>
               <div className="space-y-1">
@@ -102,7 +102,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      className={`flex items-center px-2 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                         isActive
                           ? 'bg-gray-200 text-gray-900 font-bold'
                           : 'text-gray-600 hover:bg-gray-100'
@@ -120,7 +120,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             {/* General */}
             <div>
-              <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 General
               </h3>
               <div className="space-y-1">
@@ -130,7 +130,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      className={`flex items-center px-2 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                         isActive
                           ? 'bg-gray-200 text-gray-900 font-bold'
                           : 'text-gray-600 hover:bg-gray-100'
@@ -148,7 +148,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </nav>
 
           {/* Logout */}
-          <div className="p-6">
+          <div className="p-2 px-12 py-9 ">
             <button
               onClick={handleLogout}
               disabled={logoutMutation.isPending}
