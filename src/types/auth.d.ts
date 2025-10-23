@@ -1,7 +1,7 @@
 import { ApiResponse, User } from './common';
 
 export interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 

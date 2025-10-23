@@ -88,11 +88,11 @@ export default function LoginPage() {
               <p className="text-gray-600 text-lg">Enter your credentials to access your account</p>
             </div>
 
-          <Formik
-            initialValues={{ email: '', password: '' }}
-            validationSchema={loginValidationSchema}
-            onSubmit={handleSubmit}
-          >
+              <Formik
+                initialValues={{ username: '', password: '' }}
+                validationSchema={loginValidationSchema}
+                onSubmit={handleSubmit}
+              >
             {({ errors, touched }) => (
               <Form className="space-y-6">
                 {/* Google Login Button */}
@@ -119,20 +119,20 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Email Field */}
+                {/* Username Field */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                    Username
                   </label>
                   <Field
-                    type="email"
-                    id="email"
-                    name="email"
+                    type="text"
+                    id="username"
+                    name="username"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                    placeholder="Enter your email."
+                    placeholder="Enter your username."
                   />
-                  {errors.email && touched.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  {errors.username && touched.username && (
+                    <p className="mt-1 text-sm text-red-600">{errors.username}</p>
                   )}
                 </div>
 
