@@ -13,22 +13,22 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-2 lg:px-6">
+    <header className="bg-white border-b border-gray-200 px-4 py-1 lg:px-6">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Left side */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           {/* Mobile menu button */}
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
           
           {/* Page title */}
-          <h1 className="text-xl font-bold text-gray-900">{title}</h1>
+          <h1 className="text-lg font-bold text-gray-900">{title}</h1>
         </div>
 
         {/* Center - Search bar */}
@@ -49,7 +49,7 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
         </div>
         */}
         {/* Right side */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           {/* Welcome message */}
           <div className="text-right">
             <p className="text-xs font-medium text-gray-900">
@@ -74,11 +74,11 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
           <div className="relative">
             <button
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100"
+              className="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-100"
             >
               {/* Avatar */}
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
+              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-medium">
                   {user?.firstName && user?.lastName 
                     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
                     : user?.username 
@@ -91,7 +91,7 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
               </div>
               
               {/* Dropdown arrow */}
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
