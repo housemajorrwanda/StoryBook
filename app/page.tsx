@@ -86,29 +86,29 @@ export default function Home() {
         <div className="container mx-auto px-50 text-center">
           {/* Words Section */}
           <div className="mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight">
               <span className="block">Preserving Memory.</span>
               <span className="block">Connecting Families.</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-2xl text-gray-700 mb-12 max-w-4xl mx-auto leading-relaxed">
               A digital archive dedicated to preserving testimonies from the 1994 genocide against the Tutsi in Rwanda
             </p>
             
             {/* Statistics */}
-            <div className="flex flex-wrap justify-center gap-8 mb-12 text-gray-600">
+            <div className="flex flex-wrap justify-center gap-12 mb-16 text-gray-600">
               <div className="flex items-center">
-                <span className="text-2xl font-bold text-blue-600">8,432+</span>
-                <span className="ml-2">Testimonies</span>
+                <span className="text-4xl font-bold text-gray-800">8,432+</span>
+                <span className="ml-3 text-xl">Testimonies</span>
               </div>
-              <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
+              <div className="hidden sm:block w-px h-10 bg-gray-400"></div>
               <div className="flex items-center">
-                <span className="text-2xl font-bold text-green-600">3,289</span>
-                <span className="ml-2">Families Reunited</span>
+                <span className="text-4xl font-bold text-gray-800">3,289</span>
+                <span className="ml-3 text-xl">Families Reunited</span>
               </div>
-              <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
+              <div className="hidden sm:block w-px h-10 bg-gray-400"></div>
               <div className="flex items-center">
-                <span className="text-2xl font-bold text-purple-600">12,847</span>
-                <span className="ml-2">AI Connections</span>
+                <span className="text-4xl font-bold text-gray-800">12,847</span>
+                <span className="ml-3 text-xl">AI Connections</span>
               </div>
             </div>
           </div>
@@ -136,46 +136,46 @@ export default function Home() {
           </div>
 
           {/* Our Mission Section */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-4xl mx-auto">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
+            <p className="text-sm text-gray-600 mb-6 max-w-3xl mx-auto">
               The Kwibuka Archive serves as a living memorial to preserve testimonies and reconnect families through advanced AI technology
             </p>
             
             {/* Feature Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/40">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Remember</h3>
-                <p className="text-gray-600 text-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Remember</h3>
+                <p className="text-gray-600 text-xs leading-relaxed">
                   Honor the memory of over one million lives lost and preserve their stories for generations to come
                 </p>
               </div>
               
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/40">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Connect</h3>
-                <p className="text-gray-600 text-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Connect</h3>
+                <p className="text-gray-600 text-xs leading-relaxed">
                   Reunite families through AI-powered analysis that identifies connections between testimonies
                 </p>
               </div>
               
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/40">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Preserve</h3>
-                <p className="text-gray-600 text-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Preserve</h3>
+                <p className="text-gray-600 text-xs leading-relaxed">
                   Create a permanent digital archive ensuring these crucial testimonies are never forgotten
                 </p>
               </div>
@@ -184,58 +184,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Mission</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              We help families who have lost relatives reconnect through shared stories. When someone shares their story of a lost family member, others with similar experiences can find connections and potentially reunite with their loved ones.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Share Card */}
-            <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Share</h3>
-              <p className="text-gray-600">
-                Share your story about a lost family member. Include details about where you last saw them, what happened, and any memories you have. Your story could help someone else find their family.
-              </p>
-            </div>
-
-            {/* Connect Card */}
-            <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Connect</h3>
-              <p className="text-gray-600">
-                Search through stories to find connections with your own experience. When you find a similar story, you can reach out to the person who shared it and potentially reconnect with your lost family member.
-              </p>
-            </div>
-
-            {/* Reunite Card */}
-            <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Reunite</h3>
-              <p className="text-gray-600">
-                When stories match and connections are found, families can be reunited. Our platform facilitates these reunions by providing a safe space for families to share and discover each other.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Testimonies Section */}
       <section id="stories" className="py-20 bg-gray-50">
