@@ -4,36 +4,41 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Navigation */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="bg-white relative">
+        {/* Pink border lines on sides */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-pink-200"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-1 bg-pink-200"></div>
+        
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Top banner text - separate section */}
+          <div className="text-left py-3 pl-100">
+            <p className="text-sm text-gray-700 font-medium">Kwibuka • Remember • Preserve • Connect</p>
+          </div>
+          
+          {/* Main navigation section */}
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">HouseMajor</h1>
+              <h1 className="text-3xl font-bold text-black tracking-tight">HTFC</h1>
             </div>
             
-            {/* Top Banner Text */}
-            <div className="hidden md:block text-sm text-gray-500">
-              Remember • Preserve • Connect • Share
-            </div>
-
-            {/* Navigation */}
+            {/* Navigation Links */}
             <nav className="hidden md:flex space-x-8">
-              <Link href="#stories" className="text-gray-700 hover:text-blue-600 font-medium">Browse</Link>
-              <Link href="#connections" className="text-gray-700 hover:text-blue-600 font-medium">Find Connection</Link>
-              <Link href="#archive" className="text-gray-700 hover:text-blue-600 font-medium">Archive</Link>
-              <Link href="#education" className="text-gray-700 hover:text-blue-600 font-medium">Education</Link>
+              <Link href="#stories" className="text-black hover:text-gray-600 font-medium text-sm transition-colors">Browse</Link>
+              <Link href="#connections" className="text-black hover:text-gray-600 font-medium text-sm transition-colors">Find Connection</Link>
+              <Link href="#archive" className="text-black hover:text-gray-600 font-medium text-sm transition-colors">Archive</Link>
+              <Link href="#education" className="text-black hover:text-gray-600 font-medium text-sm transition-colors">Education</Link>
             </nav>
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-4">
-              <button className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center">
-                <span>Share Story</span>
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button className="bg-black text-white px-4 py-2 rounded-md font-medium hover:bg-gray-800 transition-colors flex items-center text-sm">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
                 </svg>
+                Share Story
               </button>
-              <Link href="/login" className="text-gray-700 hover:text-blue-600 font-medium">Sign in</Link>
+              <Link href="/login" className="text-black hover:text-gray-600 font-medium text-sm transition-colors">Sign in</Link>
             </div>
           </div>
         </div>
