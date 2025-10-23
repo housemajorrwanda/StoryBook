@@ -16,7 +16,6 @@ export function decodeAuthToken(key = 'authToken'): JWTPayload | null {
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload as JWTPayload;
   } catch (error) {
-    console.error('Error decoding token:', error);
     localStorage.removeItem(key);
     return null;
   }
