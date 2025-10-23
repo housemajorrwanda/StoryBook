@@ -1,3 +1,5 @@
+import { ApiResponse, User } from './common';
+
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -7,40 +9,27 @@ export interface SignupCredentials {
   email: string;
   password: string;
   confirmPassword: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
 }
 
 export interface JWTPayload {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   role: string;
   iat: number;
   exp: number;
 }
 
-export interface LoginResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    token: string;
-    user: JWTPayload;
-  };
+export interface AuthUser {
+  token: string;
+  user: JWTPayload;
 }
 
-export interface SignupResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    token: string;
-    user: JWTPayload;
-  };
-}
+export interface LoginResponse extends ApiResponse<AuthUser> {}
 
-export interface AuthError {
+export interface SignupResponse extends ApiResponse<AuthUser> {}
+
+export interface AuthError extends ApiResponse {
   success: false;
-  message: string;
-  errors?: Record<string, string[]>;
 }
