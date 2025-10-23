@@ -4,15 +4,15 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Fixed Banner Text - Always visible */}
-      <div className="fixed top-4 w-full left-0 z-50 px-4">
+      <div className="fixed top-4 w-full left-0 z-50 px-8">
         <div className="bg-white/10 border border-white/20 backdrop-blur-sm rounded-full px-6 py-2 shadow-lg mx-auto w-fit">
           <p className="text-sm text-gray-700 font-medium">Kwibuka • Remember • Preserve • Connect</p>
         </div>
       </div>
 
       {/* Scrollable Header Navigation */}
-      <header className="sticky top-20 w-full left-0 z-40 px-4 mb-4">
-        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between bg-white/10 border border-white/20 text-sm text-gray-800 rounded-full backdrop-blur-sm shadow-lg">
+      <header className="sticky top-20 w-full left-0 z-40 px-8 mb-6">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-between bg-white/10 border border-white/20 text-sm text-gray-800 rounded-full backdrop-blur-sm shadow-lg">
           {/* Logo Section */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
@@ -74,7 +74,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 pt-8 pb-20">
+      <section className="relative bg-gradient-to-br from-red-50 to-red-100 pt-50 pb-30 rounded-3xl my-25 mx-25">
         {/* Background Pattern Overlay */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
@@ -83,7 +83,7 @@ export default function Home() {
           }}></div>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="container mx-auto px-50 text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             <span className="block">Finding Lost Families.</span>
             <span className="block">Reconnecting Through Stories.</span>
@@ -136,7 +136,7 @@ export default function Home() {
 
       {/* Mission Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Mission</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
@@ -189,7 +189,7 @@ export default function Home() {
 
       {/* Testimonies Section */}
       <section id="stories" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-12">Family Stories</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -369,7 +369,7 @@ export default function Home() {
 
       {/* Research & Support Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* For Researchers Card */}
             <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-lg transition-shadow">
@@ -408,7 +408,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Company Info */}
             <div className="col-span-1 md:col-span-1">
