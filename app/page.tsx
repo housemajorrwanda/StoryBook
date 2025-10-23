@@ -78,6 +78,7 @@ export default function Home() {
           <UnderDevelopment 
             title="Welcome to StoryBook"
             subtitle="This page is under development"
+            className='mt-50'
           />
  </div>
   );
