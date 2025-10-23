@@ -29,10 +29,12 @@ export interface PaginatedResponse<T> {
 export interface User {
   id: string;
   email: string;
-  fullName: string;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  role?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Story {

@@ -2,14 +2,18 @@
 
 import { Formik, Form, Field } from 'formik';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useSignup } from '@/hooks/auth/use-auth-queries';
 import { signupValidationSchema } from '@/lib/validation/auth.validation';
 import { SignupCredentials } from '@/types/auth';
 
 export default function SignupPage() {
   const signupMutation = useSignup();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = (values: SignupCredentials) => {
+    console.log('Form values:', values);
     signupMutation.mutate(values);
   };
 
@@ -86,16 +90,20 @@ export default function SignupPage() {
             <p className="text-gray-600">Join us in preserving history.</p>
           </div>
 
-          <Formik
-            initialValues={{ 
-              fullName: '', 
-              email: '', 
-              password: '', 
-              confirmPassword: '' 
-            }}
-            validationSchema={signupValidationSchema}
-            onSubmit={handleSubmit}
-          >
+              <Formik
+                key="signup-form"
+                initialValues={{ 
+                  firstName: '', 
+                  lastName: '', 
+                  username: '', 
+                  email: '', 
+                  password: '', 
+                  confirmPassword: '' 
+                }}
+                validationSchema={signupValidationSchema}
+                onSubmit={handleSubmit}
+                enableReinitialize={true}
+              >
             {({ errors, touched }) => (
               <Form className="space-y-6">
                 {/* Google Signup Button */}
@@ -122,20 +130,54 @@ export default function SignupPage() {
                   </div>
                 </div>
 
-                {/* Full Name Field */}
+                {/* First Name Field */}
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name
                   </label>
                   <Field
                     type="text"
-                    id="fullName"
-                    name="fullName"
+                    id="firstName"
+                    name="firstName"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                    placeholder="Enter your Full Name"
+                    placeholder="Enter your first name"
                   />
-                  {errors.fullName && touched.fullName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
+                  {errors.firstName && touched.firstName && (
+                    <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                  )}
+                </div>
+
+                {/* Last Name Field */}
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name
+                  </label>
+                  <Field
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+                    placeholder="Enter your last name"
+                  />
+                  {errors.lastName && touched.lastName && (
+                    <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+                  )}
+                </div>
+
+                {/* Username Field */}
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                    Username
+                  </label>
+                  <Field
+                    type="text"
+                    id="username"
+                    name="username"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+                    placeholder="Choose a username"
+                  />
+                  {errors.username && touched.username && (
+                    <p className="mt-1 text-sm text-red-600">{errors.username}</p>
                   )}
                 </div>
 
@@ -161,13 +203,31 @@ export default function SignupPage() {
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                     Password
                   </label>
-                  <Field
-                    type="password"
-                    id="password"
-                    name="password"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                    placeholder="Enter your password"
-                  />
+                  <div className="relative">
+                    <Field
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      name="password"
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+                      placeholder="Enter your password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {errors.password && touched.password && (
                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                   )}
@@ -178,13 +238,31 @@ export default function SignupPage() {
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm Password
                   </label>
-                  <Field
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                    placeholder="Enter your password"
-                  />
+                  <div className="relative">
+                    <Field
+                      type={showConfirmPassword ? "text" : "password"}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+                      placeholder="Confirm your password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {errors.confirmPassword && touched.confirmPassword && (
                     <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
                   )}

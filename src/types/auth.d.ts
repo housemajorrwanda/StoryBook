@@ -7,23 +7,27 @@ export interface LoginCredentials {
 
 export interface SignupCredentials {
   email: string;
+  username: string;
   password: string;
   confirmPassword: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface JWTPayload {
   id: string;
   email: string;
-  fullName: string;
-  role: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  role?: string;
   iat: number;
   exp: number;
 }
 
 export interface AuthUser {
-  token: string;
-  user: JWTPayload;
+  access_token: string;
+  user: User;
 }
 
 export interface LoginResponse extends ApiResponse<AuthUser> {}
