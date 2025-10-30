@@ -29,19 +29,19 @@ export default function SubmissionTypeStep({
             type: "written" as StoryType,
             icon: LuFileText,
             title: "Written Testimony",
-            desc: "Write your testimony in detail",
+            desc: "Write your testimony",
           },
           {
             type: "audio" as StoryType,
             icon: LuMic,
             title: "Audio Recording",
-            desc: "Record your spoken testimony",
+            desc: "Record your testimony",
           },
           {
             type: "video" as StoryType,
             icon: LuVideo,
             title: "Video Testimony",
-            desc: "Film your video testimony",
+            desc: "Film your testimony",
           },
         ].map((option) => (
           <div
