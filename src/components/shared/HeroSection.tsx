@@ -7,8 +7,8 @@ const HeroSection: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative min-h-screen overflow-hidden mt-20">
-        <div className="absolute inset-20 rounded-4xl overflow-hidden">
+      <div className="relative min-h-screen overflow-hidden">
+        <div className="absolute inset-4 sm:ins-8 md:inset-20 rounded-4xl overflow-hidden">
           {/* Main Background Image */}
           <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
             <Image
@@ -41,76 +41,78 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-20 container mx-auto px-20 pt-36 pb-36">
+        <div className="relative z-20 container mx-auto px-4 sm:px-6 md:px-8 lg:px-20 pt-20 md:pt-28 lg:pt-36 pb-16 md:pb-24 lg:pb-36">
           {/* Main Heading */}
-          <div className="max-w-4xl mb-12">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
+          <div className="max-w-4xl mb-8 md:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-4 md:mb-6 text-center md:text-left">
               Preserving Memory.
               <br />
               <span className="text-gray-200">Connecting Families.</span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-200 max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-200 max-w-2xl leading-relaxed text-center md:text-left mx-auto md:mx-0">
               A digital archive dedicated to preserving testimonies from the
               1994 genocide against the Tutsi in Rwanda
             </p>
           </div>
 
           {/* Simple Stats */}
-          <div className="flex flex-wrap gap-8 mb-16 text-white">
+          <div className="flex flex-wrap justify-center md:justify-start gap-4 sm:gap-6 md:gap-8 mb-12 md:mb-16 text-white">
             <div className="text-center">
-              <p className="text-2xl font-bold text-white">6,843</p>
-              <p className="text-sm text-gray-300">Testimonies</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">6,843</p>
+              <p className="text-xs sm:text-sm text-gray-300">Testimonies</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-white">3,299</p>
-              <p className="text-sm text-gray-300">Families Reunited</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">3,299</p>
+              <p className="text-xs sm:text-sm text-gray-300">
+                Families Reunited
+              </p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-white">12,847</p>
-              <p className="text-sm text-gray-300">Documents</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">12,847</p>
+              <p className="text-xs sm:text-sm text-gray-300">Documents</p>
             </div>
           </div>
 
           {/* Enhanced Search Section */}
-          <div className="max-w-4xl mb-20">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-white/20 hover:shadow-3xl transition-shadow duration-300">
-              <div className="flex items-center">
-                <div className="flex items-center pl-6 pr-4">
-                  <LuSearch className="w-6 h-6 text-gray-500" />
+          <div className="max-w-4xl mb-12 md:mb-20">
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl overflow-hidden border border-white/20 hover:shadow-2xl md:hover:shadow-3xl transition-shadow duration-300">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center">
+                <div className="flex items-center pl-4 sm:pl-6 pr-4 py-4 sm:py-0">
+                  <LuSearch className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="Search by name, location, date, or keywords..."
-                  className="flex-1 py-6 px-4 text-lg text-gray-700 placeholder-gray-500 focus:outline-none bg-transparent focus:ring-0"
+                  className="flex-1 py-4 sm:py-6 px-4 text-base sm:text-lg text-gray-700 placeholder-gray-500 focus:outline-none bg-transparent focus:ring-0 border-b sm:border-b-0 border-gray-200 sm:border-none"
                 />
-                <button className="bg-black hover:bg-gray-800 text-white px-14 py-8 font-semibold transition-all duration-200 hover:shadow-lg cursor-pointer active:scale-95">
+                <button className="bg-black hover:bg-gray-800 text-white px-6 sm:px-8 md:px-14 py-4 sm:py-6 md:py-8 font-semibold transition-all duration-200 hover:shadow-lg cursor-pointer active:scale-95 text-base sm:text-lg">
                   Search
                 </button>
               </div>
             </div>
-            <p className="text-gray-300 text-sm mt-4 text-center">
+            <p className="text-gray-300 text-xs sm:text-sm mt-3 text-center md:text-left">
               Search through thousands of testimonies and documents to find your
               loved ones
             </p>
           </div>
 
           {/* Share Story Call-to-Action */}
-          <div className="max-w-4xl mb-20 mx-auto">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 text-center">
-              <div className="mb-6">
-                <LuShare className="w-12 h-12 text-white mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-white mb-3">
+          <div className="max-w-4xl mb-12 md:mb-20 mx-auto">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl md:rounded-3xl p-6 md:p-8 text-center">
+              <div className="mb-4 md:mb-6">
+                <LuShare className="w-8 h-8 md:w-12 md:h-12 text-white mx-auto mb-3 md:mb-4" />
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 md:mb-3">
                   Have a Story to Share?
                 </h3>
-                <p className="text-gray-200 text-lg max-w-2xl mx-auto">
+                <p className="text-gray-200 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
                   Your testimony matters. Help preserve history and connect
                   families by sharing your experiences from the 1994 genocide
                   against the Tutsi.
                 </p>
               </div>
               <Link href="/share-testimony">
-                <button className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer">
-                  <LuShare className="w-5 h-5" />
+                <button className="inline-flex items-center gap-2 md:gap-3 px-6 md:px-8 py-3 md:py-4 bg-white text-gray-900 font-semibold rounded-xl md:rounded-2xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer text-sm md:text-base">
+                  <LuShare className="w-4 h-4 md:w-5 md:h-5" />
                   Share Your Testimony
                 </button>
               </Link>
@@ -118,22 +120,22 @@ const HeroSection: React.FC = () => {
           </div>
 
           {/* Mission Cards with Images */}
-          <div className="mb-20">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <div className="mb-12 md:mb-20">
+            <div className="text-center mb-8 md:mb-16">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 md:mb-4">
                 Our Mission
               </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4">
                 Three core pillars guide our commitment to preserving history
                 and connecting lives
               </p>
             </div>
 
             <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch">
                 {/* Remember Card */}
                 <div className="group relative">
-                  <div className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 h-80 hover:transform hover:-translate-y-2 overflow-hidden">
+                  <div className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-500 h-auto min-h-[280px] md:h-80 hover:transform hover:-translate-y-1 md:hover:-translate-y-2 overflow-hidden">
                     {/* Card Background Image */}
                     <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
                       <Image
@@ -142,12 +144,13 @@ const HeroSection: React.FC = () => {
                         fill
                         className="object-cover"
                         quality={60}
+                        sizes="(max-width: 768px) 100vw, 33vw"
                       />
                     </div>
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                      <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="absolute -top-3 md:-top-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-800 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg md:shadow-xl group-hover:scale-105 md:group-hover:scale-110 transition-transform duration-300">
                         <svg
-                          className="w-8 h-8 text-white"
+                          className="w-6 h-6 md:w-8 md:h-8 text-white"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >
@@ -155,11 +158,11 @@ const HeroSection: React.FC = () => {
                         </svg>
                       </div>
                     </div>
-                    <div className="relative z-5 pt-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
+                    <div className="relative z-5 pt-8 md:pt-10">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3 text-center">
                         Remember
                       </h3>
-                      <p className="text-gray-600 leading-relaxed text-center text-sm">
+                      <p className="text-gray-600 leading-relaxed text-center text-xs md:text-sm">
                         Preserving precious memories and testimonies of those
                         affected by the genocide against the Tutsi, ensuring
                         their voices echo through generations.
@@ -168,9 +171,9 @@ const HeroSection: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Connect Card*/}
-                <div className="group relative">
-                  <div className="bg-white/98 backdrop-blur-sm border border-gray-300 rounded-3xl p-12 shadow-2xl hover:shadow-3xl transition-all duration-500 h-[420px] transform scale-105 hover:-translate-y-4 overflow-hidden">
+                {/* Connect Card - Featured */}
+                <div className="group relative order-first md:order-0">
+                  <div className="bg-white/98 backdrop-blur-sm border border-gray-300 rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-12 shadow-xl md:shadow-2xl hover:shadow-2xl md:hover:shadow-3xl transition-all duration-500 h-auto min-h-[320px] md:h-[420px] transform scale-100 md:scale-105 hover:-translate-y-2 md:hover:-translate-y-4 overflow-hidden">
                     {/* Card Background Image */}
                     <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
                       <Image
@@ -179,12 +182,13 @@ const HeroSection: React.FC = () => {
                         fill
                         className="object-cover"
                         quality={60}
+                        sizes="(max-width: 768px) 100vw, 33vw"
                       />
                     </div>
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-10">
-                      <div className="w-24 h-24 bg-gray-800 rounded-3xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="absolute -top-4 md:-top-6 lg:-top-8 left-1/2 transform -translate-x-1/2 z-10">
+                      <div className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-gray-800 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-xl md:shadow-2xl group-hover:scale-105 md:group-hover:scale-110 transition-transform duration-300">
                         <svg
-                          className="w-12 h-12 text-white"
+                          className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-white"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >
@@ -192,18 +196,18 @@ const HeroSection: React.FC = () => {
                         </svg>
                       </div>
                     </div>
-                    <div className="relative z-5 pt-10">
-                      <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                    <div className="relative z-5 pt-12 md:pt-14 lg:pt-16">
+                      <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 md:mb-6 text-center">
                         Connect
                       </h3>
-                      <p className="text-gray-700 leading-relaxed text-center text-lg">
+                      <p className="text-gray-700 leading-relaxed text-center text-sm md:text-base lg:text-lg">
                         Leveraging cutting-edge AI technology to identify
                         meaningful connections between testimonies, reuniting
                         families separated by tragedy and revealing shared
                         experiences that bridge time and distance.
                       </p>
-                      <div className="mt-6 text-center">
-                        <div className="inline-flex items-center justify-center w-8 h-1 bg-black rounded-full"></div>
+                      <div className="mt-4 md:mt-6 text-center">
+                        <div className="inline-flex items-center justify-center w-6 md:w-8 h-1 bg-black rounded-full"></div>
                       </div>
                     </div>
                   </div>
@@ -211,7 +215,7 @@ const HeroSection: React.FC = () => {
 
                 {/* Preserve Card */}
                 <div className="group relative">
-                  <div className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 h-80 hover:transform hover:-translate-y-2 overflow-hidden">
+                  <div className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-500 h-auto min-h-[280px] md:h-80 hover:transform hover:-translate-y-1 md:hover:-translate-y-2 overflow-hidden">
                     {/* Card Background Image */}
                     <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
                       <Image
@@ -220,12 +224,13 @@ const HeroSection: React.FC = () => {
                         fill
                         className="object-cover"
                         quality={60}
+                        sizes="(max-width: 768px) 100vw, 33vw"
                       />
                     </div>
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                      <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="absolute -top-3 md:-top-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-800 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg md:shadow-xl group-hover:scale-105 md:group-hover:scale-110 transition-transform duration-300">
                         <svg
-                          className="w-8 h-8 text-white"
+                          className="w-6 h-6 md:w-8 md:h-8 text-white"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >
@@ -233,11 +238,11 @@ const HeroSection: React.FC = () => {
                         </svg>
                       </div>
                     </div>
-                    <div className="relative z-5 pt-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
+                    <div className="relative z-5 pt-8 md:pt-10">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3 text-center">
                         Preserve
                       </h3>
-                      <p className="text-gray-600 leading-relaxed text-center text-sm">
+                      <p className="text-gray-600 leading-relaxed text-center text-xs md:text-sm">
                         Utilizing advanced digital archival systems and AI
                         technology to ensure these crucial historical
                         testimonies are securely preserved for future
@@ -251,21 +256,21 @@ const HeroSection: React.FC = () => {
           </div>
 
           {/* Additional Image Gallery Preview */}
-          <div className="max-w-7xl mx-auto mt-20">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-white mb-4">
+          <div className="max-w-7xl mx-auto mt-12 md:mt-20">
+            <div className="text-center mb-8 md:mb-12">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4">
                 Memory Archive
               </h3>
-              <p className="text-gray-300 max-w-2xl mx-auto">
+              <p className="text-gray-300 text-sm md:text-base max-w-2xl mx-auto px-4">
                 Explore our collection of historical documents, photographs, and
                 testimonies
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="relative aspect-square rounded-2xl overflow-hidden group"
+                  className="relative aspect-square rounded-lg md:rounded-2xl overflow-hidden group"
                 >
                   <Image
                     src={`/images/11994824-6897971-image-a-5_1554708520133.jpg`}
@@ -273,7 +278,7 @@ const HeroSection: React.FC = () => {
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                     quality={80}
-                    sizes="(max-width: 768px) 50vw, 25vw"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 25vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
                 </div>
