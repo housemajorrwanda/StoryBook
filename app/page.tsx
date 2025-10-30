@@ -66,7 +66,7 @@ export default function Home() {
         }}
       >
         <div
-          className={`container mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between text-sm backdrop-blur-lg rounded-lg md:rounded-xl transition-all duration-500 transform ${
+          className={`container mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between text-sm backdrop-blur-lg rounded-lg transition-all duration-500 transform ${
             isScrolled
               ? " border border-gray-100/5 shadow-2xl scale-[0.98] text-gray-900"
               : "bg-white/20 border border-white/30 shadow-xl text-gray-800 scale-100"
@@ -119,16 +119,13 @@ export default function Home() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
-            <button
-              className="inline-flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 bg-black text-white font-medium lg:font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl text-sm lg:text-base"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              <LuShare className="w-4 h-4 lg:w-5 lg:h-5" />
-              <span className="hidden lg:inline">Share Story</span>
-              <span className="lg:hidden">Share</span>
-            </button>
+            <Link href="/share-testimony">
+              <button className="inline-flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2.5 lg:py-3 bg-black hover:bg-gray-800 text-white font-medium lg:font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl text-sm lg:text-base">
+                <LuShare className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="hidden lg:inline">Share Testimony</span>
+                <span className="lg:hidden">Share</span>
+              </button>
+            </Link>
 
             <Link href="/login">
               <button
@@ -204,13 +201,15 @@ export default function Home() {
 
             {/* Action Buttons */}
             <div className="space-y-3 pt-5">
-              <button
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black active:bg-black text-white text-lg font-semibold rounded-2xl transition-all duration-200 active:scale-[0.98] min-h-[56px] shadow-lg"
+              <Link
+                href="/share-testimony"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <LuShare className="w-5 h-5" />
-                <span>Share Your Story</span>
-              </button>
+                <button className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black hover:bg-gray-800 active:bg-gray-900 text-white text-lg font-semibold rounded-2xl transition-all duration-200 active:scale-[0.98] min-h-[56px] shadow-lg">
+                  <LuShare className="w-5 h-5" />
+                  <span>Share Your Testimony</span>
+                </button>
+              </Link>
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                 <button className="w-full px-6 py-4 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-800 hover:text-gray-900 text-lg font-semibold rounded-2xl transition-all duration-200 active:scale-[0.98] min-h-[56px] active:bg-gray-50">
                   Sign in
