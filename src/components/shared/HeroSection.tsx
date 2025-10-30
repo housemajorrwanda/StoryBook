@@ -8,7 +8,7 @@ const HeroSection: React.FC = () => {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="relative min-h-screen overflow-hidden mt-20">
-        <div className="absolute inset-8 rounded-4xl overflow-hidden">
+        <div className="absolute inset-20 rounded-4xl overflow-hidden">
           {/* Main Background Image */}
           <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
             <Image
@@ -41,7 +41,7 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-20 container mx-auto px-6 pt-32 pb-20">
+        <div className="relative z-20 container mx-auto px-20 pt-36 pb-36">
           {/* Main Heading */}
           <div className="max-w-4xl mb-12">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
@@ -109,7 +109,7 @@ const HeroSection: React.FC = () => {
                 </p>
               </div>
               <Link href="/share-testimony">
-                <button className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                <button className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer">
                   <LuShare className="w-5 h-5" />
                   Share Your Testimony
                 </button>

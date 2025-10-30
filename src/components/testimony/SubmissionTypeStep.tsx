@@ -14,13 +14,10 @@ export default function SubmissionTypeStep({
   return (
     <div className="space-y-10">
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-200 rounded-2xl mb-6">
-          <LuFileText className="w-8 h-8 text-gray-700" />
-        </div>
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
           Choose Submission Type
         </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-base text-gray-600 max-w-2xl mx-auto">
           Select the format that feels most comfortable for sharing your
           important testimony
         </p>

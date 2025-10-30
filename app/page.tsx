@@ -66,7 +66,7 @@ export default function Home() {
         }}
       >
         <div
-          className={`container mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between text-sm backdrop-blur-lg rounded-lg transition-all duration-500 transform ${
+          className={`container mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between text-sm backdrop-blur-lg rounded-2xl transition-all duration-500 transform ${
             isScrolled
               ? " border border-gray-100/5 shadow-2xl scale-[0.98] text-gray-900"
               : "bg-white/20 border border-white/30 shadow-xl text-gray-800 scale-100"
