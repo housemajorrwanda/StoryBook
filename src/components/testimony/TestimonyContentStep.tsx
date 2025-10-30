@@ -88,10 +88,10 @@ export default function TestimonyContentStep({
         },
       }),
       Placeholder.configure({
-        placeholder: `Share your story, memories, and experiences in detail...
+        placeholder: `Share your testimony, memories, and experiences in detail...
 
 You can use the formatting tools above to:
-• Add headings to organize your story
+• Add headings to organize your testimony
 • Use bold or italic for emphasis  
 • Create lists for key points
 • Add quotes using the blockquote tool
