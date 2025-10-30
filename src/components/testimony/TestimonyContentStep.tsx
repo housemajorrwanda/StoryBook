@@ -1,7 +1,9 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
-import { LuMic, LuVideo, LuUpload, LuX } from "react-icons/lu";
+import { LuMic, LuVideo, LuUpload, LuX, LuCheck } from "react-icons/lu";
 import { FormData } from "@/types/testimonies";
+import AudioRecorderModal from "@/components/recording/AudioRecorderModal";
+import VideoRecorderModal from "@/components/recording/VideoRecorderModal";
 
 interface TestimonyContentStepProps {
   formData: FormData;
@@ -12,6 +14,10 @@ export default function TestimonyContentStep({
   formData,
   setFormData,
 }: TestimonyContentStepProps) {
+  // Modal state
+  const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   // File input refs
   const imageInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +56,38 @@ export default function TestimonyContentStep({
         videoFile: file,
       }));
     }
+  };
+
+  const handleAudioRecordingComplete = (audioBlob: Blob) => {
+    // Convert blob to File object
+    const audioFile = new File(
+      [audioBlob],
+      `audio-recording-${Date.now()}.webm`,
+      {
+        type: audioBlob.type,
+      }
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      audioFile: audioFile,
+    }));
+  };
+
+  const handleVideoRecordingComplete = (videoBlob: Blob) => {
+    // Convert blob to File object
+    const videoFile = new File(
+      [videoBlob],
+      `video-recording-${Date.now()}.webm`,
+      {
+        type: videoBlob.type,
+      }
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      videoFile: videoFile,
+    }));
   };
 
   const removeImage = (index: number) => {
@@ -94,7 +132,7 @@ export default function TestimonyContentStep({
             }))
           }
           placeholder="Brief summary of the event (e.g., 'Attack on Nyanza Church', 'Rescue at roadblock')"
-          className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors duration-200 text-gray-900"
+          className="w-full px-4 py-4 border-2 border-gray-200 outline-none rounded-xl focus:border-black focus:outline-none transition-colors duration-200 text-gray-900"
         />
       </div>
 
@@ -120,50 +158,70 @@ export default function TestimonyContentStep({
       )}
 
       {formData.type === "audio" && (
-        <div className="space-y-6">
+        <div className="space-y-8">
+          {/* Record Audio Section */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               Audio Recording
             </label>
-            <div className="border-2 border-gray-300 rounded-xl p-8 text-center">
+            <div className="border border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
+              <LuMic className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">
+                Record Audio Testimony
+              </h4>
+              <p className="text-gray-600 text-sm mb-6">
+                Use your microphone to record your testimony
+              </p>
               <button
                 type="button"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 text-lg cursor-pointer"
-                onClick={() => {
-                  alert(
-                    "Audio recording functionality would be implemented here"
-                  );
-                }}
+                onClick={() => setIsAudioModalOpen(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
               >
-                <div className="w-3 h-3 bg-white rounded-full"></div>
-                Start Audio Recording
+                <LuMic className="w-5 h-5" />
+                Start Recording
               </button>
             </div>
           </div>
 
           <div className="text-center text-gray-500 font-medium">or</div>
 
+          {/* Upload Audio Section */}
           <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Upload Audio File
+            </label>
             <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
               <LuMic className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-semibold text-gray-700 mb-2 cursor-pointer">
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">
                 Upload audio file
               </h4>
               <p className="text-gray-500 text-sm">MP3, WAV up to 50MB</p>
               {formData.audioFile ? (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-700 font-medium">
-                    Selected: {formData.audioFile.name}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({ ...prev, audioFile: null }))
-                    }
-                    className="mt-2 text-red-600 hover:text-red-700 text-sm cursor-pointer"
-                  >
-                    Remove file
-                  </button>
+                <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                      <LuMic className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        Audio recording ready
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {formData.audioFile.name.includes("recording")
+                          ? "Recorded audio"
+                          : formData.audioFile.name}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, audioFile: null }))
+                      }
+                      className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                    >
+                      <LuX className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <button
@@ -187,33 +245,72 @@ export default function TestimonyContentStep({
       )}
 
       {formData.type === "video" && (
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
-            Video Recording
-          </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
-            <LuVideo className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h4 className="text-lg font-semibold text-gray-700 mb-2">
-              Upload video file
-            </h4>
-            <p className="text-gray-500 text-sm mb-6">MP4, MOV up to 200MB</p>
-            {formData.videoFile ? (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700 font-medium mb-2">
-                  Selected: {formData.videoFile.name}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, videoFile: null }))
-                  }
-                  className="text-red-600 hover:text-red-700 text-sm cursor-pointer"
-                >
-                  Remove file
-                </button>
-              </div>
-            ) : (
-              <div className="flex justify-center gap-4">
+        <div className="space-y-8">
+          {/* Record Video Section */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Video Recording
+            </label>
+            <div className="border border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
+              <LuVideo className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">
+                Record Video Testimony
+              </h4>
+              <p className="text-gray-600 text-sm mb-6">
+                Use your camera and microphone to record your testimony
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
+              >
+                <LuVideo className="w-5 h-5" />
+                Start Recording
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center text-gray-500 font-medium">or</div>
+
+          {/* Upload Video Section */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Upload Video File
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
+              <LuVideo className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">
+                Upload video file
+              </h4>
+              <p className="text-gray-500 text-sm mb-6">MP4, MOV up to 200MB</p>
+              {formData.videoFile ? (
+                <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                      <LuVideo className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        Video recording ready
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {formData.videoFile.name.includes("recording")
+                          ? "Recorded video"
+                          : formData.videoFile.name}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, videoFile: null }))
+                      }
+                      className="text-gray-500 hover:text-gray-700 transition-colors duration-200 cursor-pointer"
+                    >
+                      <LuX className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
                 <button
                   type="button"
                   onClick={() => videoInputRef.current?.click()}
@@ -221,26 +318,15 @@ export default function TestimonyContentStep({
                 >
                   Upload Video
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    alert(
-                      "Video recording functionality would be implemented here"
-                    );
-                  }}
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 transition-colors duration-200 cursor-pointer"
-                >
-                  Record Now
-                </button>
-              </div>
-            )}
-            <input
-              ref={videoInputRef}
-              type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-            />
+              )}
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                className="hidden"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -320,24 +406,40 @@ export default function TestimonyContentStep({
       </div>
 
       {/* Consent & Terms */}
-      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-        <div className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            id="consent"
-            checked={formData.consent || false}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                consent: e.target.checked,
-              }))
-            }
-            className="mt-1 w-5 h-5 text-black border-2 border-gray-300 rounded focus:ring-black focus:ring-2"
-          />
+      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
+        <div className="flex items-start gap-4">
+          <div className="relative flex items-start">
+            <input
+              type="checkbox"
+              id="consent"
+              checked={formData.consent || false}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  consent: e.target.checked,
+                }))
+              }
+              className="sr-only"
+            />
+            <label
+              htmlFor="consent"
+              className="relative flex items-center cursor-pointer group focus-within:ring-2 focus-within:ring-black focus-within:ring-offset-2 rounded-lg"
+            >
+              <div
+                className={`flex items-center justify-center w-6 h-6 rounded-lg border-2 transition-all duration-200 group-hover:scale-105 ${
+                  formData.consent
+                    ? "bg-black border-black shadow-md group-hover:shadow-lg"
+                    : "bg-white border-gray-300 hover:border-gray-400 group-hover:shadow-sm"
+                }`}
+              >
+                {formData.consent && <LuCheck className="w-4 h-4 text-white" />}
+              </div>
+            </label>
+          </div>
           <div>
             <label
               htmlFor="consent"
-              className="text-sm font-semibold text-gray-900 mb-2 block cursor-pointer"
+              className="text-sm font-semibold text-gray-900 mb-2 block cursor-pointer hover:text-black transition-colors duration-200"
             >
               Consent & Terms
             </label>
@@ -356,6 +458,19 @@ export default function TestimonyContentStep({
           </div>
         </div>
       </div>
+
+      {/* Recording Modals */}
+      <AudioRecorderModal
+        isOpen={isAudioModalOpen}
+        onClose={() => setIsAudioModalOpen(false)}
+        onRecordingComplete={handleAudioRecordingComplete}
+      />
+
+      <VideoRecorderModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        onRecordingComplete={handleVideoRecordingComplete}
+      />
     </div>
   );
 }
