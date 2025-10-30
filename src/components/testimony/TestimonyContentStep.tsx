@@ -51,7 +51,7 @@ const ToolbarButton = ({
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
+    className={`p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-all duration-200 cursor-pointer min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] flex items-center justify-center ${
       isActive
         ? "bg-gray-900 text-white shadow-md cursor-pointer"
         : disabled
@@ -73,7 +73,7 @@ export default function TestimonyContentStep({
 
   // Tiptap editor configuration
   const editor = useEditor({
-    immediatelyRender: false, // Fix SSR hydration issues
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       TextStyle,
@@ -295,19 +295,19 @@ You can use the formatting tools above to:
         }
       `}</style>
 
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div className="text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3 px-2">
             Your Testimony
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 leading-relaxed">
             Share your story in your own words
           </p>
         </div>
 
         {/* Event Title - Required for all types */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
             Event Title *
           </label>
           <input
@@ -320,23 +320,23 @@ You can use the formatting tools above to:
               }))
             }
             placeholder="Brief summary of the event (e.g., 'Attack on Nyanza Church', 'Rescue at roadblock')"
-            className="w-full px-4 py-4 border-2 border-gray-200 outline-none rounded-xl focus:border-black focus:outline-none transition-colors duration-200 text-gray-900"
+            className="w-full px-3 sm:px-4 py-3 sm:py-4 border-2 border-gray-200 outline-none rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-colors duration-200 text-gray-900 text-sm sm:text-base"
           />
         </div>
 
         {/* Type-specific content */}
         {formData.type === "written" && (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
               Full Testimony *
             </label>
-            <div className="border-2 border-gray-200 rounded-xl overflow-hidden focus-within:border-black transition-colors duration-200">
+            <div className="border-2 border-gray-200 rounded-lg sm:rounded-xl overflow-hidden focus-within:border-black transition-colors duration-200">
               {editor && (
                 <>
                   {/* Custom Toolbar */}
-                  <div className="border-b border-gray-200 bg-gray-50 p-4 flex flex-wrap gap-2">
+                  <div className="border-b border-gray-200 bg-gray-50 p-2 sm:p-3 md:p-4 flex flex-wrap gap-1 sm:gap-2">
                     {/* Text Formatting */}
-                    <div className="flex gap-1 border-r border-gray-300 pr-3 mr-3 cursor-pointer">
+                    <div className="flex gap-0.5 sm:gap-1 border-r border-gray-300 pr-2 sm:pr-3 mr-2 sm:mr-3 cursor-pointer">
                       <ToolbarButton
                         onClick={() =>
                           editor.chain().focus().toggleBold().run()
@@ -344,7 +344,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("bold")}
                         title="Bold"
                       >
-                        <LuBold className="w-4 h-4" />
+                        <LuBold className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -353,7 +353,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("italic")}
                         title="Italic"
                       >
-                        <LuItalic className="w-4 h-4" />
+                        <LuItalic className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -362,12 +362,12 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("strike")}
                         title="Strikethrough"
                       >
-                        <LuUnderline className="w-4 h-4" />
+                        <LuUnderline className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                     </div>
 
                     {/* Headings */}
-                    <div className="flex gap-1 border-r border-gray-300 pr-3 mr-3 cursor-pointer">
+                    <div className="flex gap-0.5 sm:gap-1 border-r border-gray-300 pr-2 sm:pr-3 mr-2 sm:mr-3 cursor-pointer">
                       <ToolbarButton
                         onClick={() =>
                           editor
@@ -379,7 +379,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("heading", { level: 1 })}
                         title="Heading 1"
                       >
-                        <span className="text-sm font-bold">H1</span>
+                        <span className="text-xs sm:text-sm font-bold">H1</span>
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -392,7 +392,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("heading", { level: 2 })}
                         title="Heading 2"
                       >
-                        <span className="text-sm font-bold">H2</span>
+                        <span className="text-xs sm:text-sm font-bold">H2</span>
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -405,12 +405,12 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("heading", { level: 3 })}
                         title="Heading 3"
                       >
-                        <span className="text-sm font-bold">H3</span>
+                        <span className="text-xs sm:text-sm font-bold">H3</span>
                       </ToolbarButton>
                     </div>
 
                     {/* Lists */}
-                    <div className="flex gap-1 border-r border-gray-300 pr-3 mr-3">
+                    <div className="flex gap-0.5 sm:gap-1 border-r border-gray-300 pr-2 sm:pr-3 mr-2 sm:mr-3">
                       <ToolbarButton
                         onClick={() =>
                           editor.chain().focus().toggleBulletList().run()
@@ -418,7 +418,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("bulletList")}
                         title="Bullet List"
                       >
-                        <LuList className="w-4 h-4" />
+                        <LuList className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -427,7 +427,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("orderedList")}
                         title="Numbered List"
                       >
-                        <LuListOrdered className="w-4 h-4" />
+                        <LuListOrdered className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -436,12 +436,12 @@ You can use the formatting tools above to:
                         isActive={editor.isActive("blockquote")}
                         title="Quote"
                       >
-                        <LuQuote className="w-4 h-4" />
+                        <LuQuote className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                     </div>
 
-                    {/* Alignment */}
-                    <div className="flex gap-1">
+                    {/* Alignment - Hidden on small screens to save space */}
+                    <div className="hidden sm:flex gap-0.5 sm:gap-1">
                       <ToolbarButton
                         onClick={() =>
                           editor.chain().focus().setTextAlign("left").run()
@@ -449,7 +449,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive({ textAlign: "left" })}
                         title="Align Left"
                       >
-                        <LuAlignLeft className="w-4 h-4" />
+                        <LuAlignLeft className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -458,7 +458,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive({ textAlign: "center" })}
                         title="Align Center"
                       >
-                        <LuAlignCenter className="w-4 h-4" />
+                        <LuAlignCenter className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                       <ToolbarButton
                         onClick={() =>
@@ -467,7 +467,7 @@ You can use the formatting tools above to:
                         isActive={editor.isActive({ textAlign: "right" })}
                         title="Align Right"
                       >
-                        <LuAlignRight className="w-4 h-4" />
+                        <LuAlignRight className="w-3 h-3 sm:w-4 sm:h-4" />
                       </ToolbarButton>
                     </div>
                   </div>
@@ -475,13 +475,13 @@ You can use the formatting tools above to:
                   {/* Editor Content */}
                   <EditorContent
                     editor={editor}
-                    className="bg-white min-h-[350px]"
+                    className="bg-white min-h-[250px] sm:min-h-[300px] md:min-h-[350px]"
                   />
                 </>
               )}
 
               {!editor && (
-                <div className="h-[400px] bg-gray-50 rounded-xl animate-pulse flex items-center justify-center text-gray-500">
+                <div className="h-[250px] sm:h-[300px] md:h-[400px] bg-gray-50 rounded-lg sm:rounded-xl animate-pulse flex items-center justify-center text-gray-500 text-sm sm:text-base">
                   Loading editor...
                 </div>
               )}
@@ -490,44 +490,48 @@ You can use the formatting tools above to:
         )}
 
         {formData.type === "audio" && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Record Audio Section */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                 Audio Recording
               </label>
-              <div className="border border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
-                <LuMic className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-gray-700 mb-2">
+              <div className="border border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 text-center hover:border-gray-400 transition-colors duration-200">
+                <LuMic className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                <h4 className="text-base sm:text-lg font-semibold text-gray-700 mb-1 sm:mb-2">
                   Record Audio Testimony
                 </h4>
-                <p className="text-gray-600 text-sm mb-6">
+                <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-6 px-2">
                   Use your microphone to record your testimony
                 </p>
                 <button
                   type="button"
                   onClick={() => setIsAudioModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-black text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 cursor-pointer text-sm sm:text-base"
                 >
-                  <LuMic className="w-5 h-5" />
+                  <LuMic className="w-4 h-4 sm:w-5 sm:h-5" />
                   Start Recording
                 </button>
               </div>
             </div>
 
-            <div className="text-center text-gray-500 font-medium">or</div>
+            <div className="text-center text-gray-500 font-medium text-sm sm:text-base">
+              or
+            </div>
 
             {/* Upload Audio Section */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                 Upload Audio File
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
-                <LuMic className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-gray-700 mb-2">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 text-center hover:border-gray-400 transition-colors duration-200">
+                <LuMic className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                <h4 className="text-base sm:text-lg font-semibold text-gray-700 mb-1 sm:mb-2">
                   Upload audio file
                 </h4>
-                <p className="text-gray-500 text-sm">MP3, WAV up to 50MB</p>
+                <p className="text-gray-500 text-xs sm:text-sm">
+                  MP3, WAV up to 50MB
+                </p>
                 {formData.audioFile ? (
                   <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex items-center gap-3">
@@ -577,44 +581,46 @@ You can use the formatting tools above to:
         )}
 
         {formData.type === "video" && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Record Video Section */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                 Video Recording
               </label>
-              <div className="border border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
-                <LuVideo className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-gray-700 mb-2">
+              <div className="border border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 text-center hover:border-gray-400 transition-colors duration-200">
+                <LuVideo className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                <h4 className="text-base sm:text-lg font-semibold text-gray-700 mb-1 sm:mb-2">
                   Record Video Testimony
                 </h4>
-                <p className="text-gray-600 text-sm mb-6">
+                <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-6 px-2">
                   Use your camera and microphone to record your testimony
                 </p>
                 <button
                   type="button"
                   onClick={() => setIsVideoModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-black text-white rounded-lg sm:rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-200 cursor-pointer text-sm sm:text-base"
                 >
-                  <LuVideo className="w-5 h-5" />
+                  <LuVideo className="w-4 h-4 sm:w-5 sm:h-5" />
                   Start Recording
                 </button>
               </div>
             </div>
 
-            <div className="text-center text-gray-500 font-medium">or</div>
+            <div className="text-center text-gray-500 font-medium text-sm sm:text-base">
+              or
+            </div>
 
             {/* Upload Video Section */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                 Upload Video File
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-gray-400 transition-colors duration-200">
-                <LuVideo className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-gray-700 mb-2">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 text-center hover:border-gray-400 transition-colors duration-200">
+                <LuVideo className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                <h4 className="text-base sm:text-lg font-semibold text-gray-700 mb-1 sm:mb-2">
                   Upload video file
                 </h4>
-                <p className="text-gray-500 text-sm mb-6">
+                <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-6">
                   MP4, MOV up to 200MB
                 </p>
                 {formData.videoFile ? (
@@ -740,8 +746,8 @@ You can use the formatting tools above to:
         </div>
 
         {/* Consent & Terms */}
-        <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
-          <div className="flex items-start gap-4">
+        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 hover:bg-gray-100 transition-colors duration-200">
+          <div className="flex items-start gap-3 sm:gap-4">
             <div className="relative flex items-start">
               <input
                 type="checkbox"
@@ -760,22 +766,22 @@ You can use the formatting tools above to:
                 className="relative flex items-center cursor-pointer group focus-within:ring-2 focus-within:ring-black focus-within:ring-offset-2 rounded-lg"
               >
                 <div
-                  className={`flex items-center justify-center w-6 h-6 rounded-lg border-2 transition-all duration-200 group-hover:scale-105 ${
+                  className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg border-2 transition-all duration-200 group-hover:scale-105 ${
                     formData.consent
                       ? "bg-black border-black shadow-md group-hover:shadow-lg"
                       : "bg-white border-gray-300 hover:border-gray-400 group-hover:shadow-sm"
                   }`}
                 >
                   {formData.consent && (
-                    <LuCheck className="w-4 h-4 text-white" />
+                    <LuCheck className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   )}
                 </div>
               </label>
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="consent"
-                className="text-sm font-semibold text-gray-900 mb-2 block cursor-pointer hover:text-black transition-colors duration-200"
+                className="text-xs sm:text-sm font-semibold text-gray-900 mb-1 sm:mb-2 block cursor-pointer hover:text-black transition-colors duration-200"
               >
                 Consent & Terms
               </label>

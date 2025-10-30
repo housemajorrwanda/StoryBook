@@ -12,19 +12,19 @@ export default function PersonalDetailsStep({
   setFormData,
 }: PersonalDetailsStepProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div className="text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3 px-2">
           Personal Information
         </h2>
-        <p className="text-lg text-gray-600">
+        <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 leading-relaxed">
           Help us understand your connection to the events
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
             Full Name *
           </label>
           <input
@@ -37,12 +37,12 @@ export default function PersonalDetailsStep({
               }))
             }
             placeholder="Your full name"
-            className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400"
+            className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
             Your Role *
           </label>
           <div className="relative">
@@ -54,7 +54,7 @@ export default function PersonalDetailsStep({
                   relationToEvent: e.target.value,
                 }))
               }
-              className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none text-sm sm:text-base"
             >
               <option value="">Choose your role</option>
               {formData.type === "written" && (
@@ -99,14 +99,14 @@ export default function PersonalDetailsStep({
               )}
             </select>
             {/* Custom dropdown arrow */}
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-              <LuChevronDown className="w-5 h-5 text-gray-500" />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 pointer-events-none">
+              <LuChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
             </div>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
             Location *
           </label>
           <input
@@ -119,12 +119,12 @@ export default function PersonalDetailsStep({
               }))
             }
             placeholder="City, Region, or Specific Place"
-            className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400"
+            className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+          <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
             Date of Event *
           </label>
           <div className="relative">
@@ -137,15 +137,15 @@ export default function PersonalDetailsStep({
                   dateOfEvent: e.target.value,
                 }))
               }
-              className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
             />
-            <LuCalendar className="absolute right-4 top-4 w-5 h-5 text-gray-500 pointer-events-none" />
+            <LuCalendar className="absolute right-3 sm:right-4 top-3 sm:top-4 w-4 h-4 sm:w-5 sm:h-5 text-gray-500 pointer-events-none" />
           </div>
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
+        <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
           Names of Relatives{" "}
           <span className="text-gray-500 font-normal">(optional)</span>
         </label>
@@ -158,8 +158,8 @@ export default function PersonalDetailsStep({
             }))
           }
           placeholder="Names of family members affected (helps with connections)"
-          rows={4}
-          className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 resize-none"
+          rows={3}
+          className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 resize-none text-sm sm:text-base leading-relaxed"
         />
       </div>
     </div>
