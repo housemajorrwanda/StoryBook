@@ -559,26 +559,7 @@ export default function VideoRecorderModal({
                     : "Click Stop when finished"}
                 </p>
               </div>
-            ) : isPreviewMode ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <span className="text-lg font-semibold text-blue-800 block mb-2">
-                  Camera Ready!
-                </span>
-                <p className="text-sm text-blue-600">
-                  You should see yourself in the camera above. Click &quot;Start
-                  Recording&quot; to begin.
-                </p>
-              </div>
-            ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <span className="text-lg font-semibold text-gray-700 block mb-3">
-                  Ready to Record Video Testimony
-                </span>
-                <p className="text-sm text-gray-600">
-                  Click &quot;Start Camera&quot; to begin the recording process
-                </p>
-              </div>
-            )}
+            ) : null}
           </div>
 
           {/* Control Buttons */}
