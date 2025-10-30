@@ -188,7 +188,7 @@ export default function Home() {
 
             <Link href="/login">
               <button
-                className={`inline-flex items-center gap-2 cursor-pointer px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
+                className={`inline-flex items-center gap-2 cursor-pointer px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] border ${
                   isScrolled
                     ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-800 shadow-sm hover:shadow-md"
                     : "bg-white/80 hover:bg-white border-white/60 text-gray-800 backdrop-blur-sm shadow-sm hover:shadow-md"
@@ -205,7 +205,7 @@ export default function Home() {
             className={`md:hidden p-3.5 rounded-2xl transition-all duration-300 min-w-[48px] min-h-[48px] flex items-center justify-center relative z-10 ${
               isMobileMenuOpen
                 ? "bg-black shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
-                : "bg-white/80 hover:bg-white border-2 border-gray-200 shadow-sm"
+                : "bg-white/80 hover:bg-white border border-gray-200 shadow-sm"
             }`}
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
@@ -222,7 +222,7 @@ export default function Home() {
       {/* Redesigned Mobile Menu */}
       {isMobileMenuOpen && (
         <div
-          className="md:hidden fixed top-28 left-4 right-4 z-30 bg-white/95 backdrop-blur-2xl border-2 border-gray-200/50 rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] max-h-[calc(100vh-8rem)] overflow-y-auto"
+          className="top-28 left-0 max-h-[calc(100vh-8rem)] overflow-y-auto mobile-blur-overlay md:hidden relative z-30 mx-4 mb-6 bg-white/95 backdrop-blur-2xl border border-gray-200/50 rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
           style={{
             animation: "slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
@@ -273,7 +273,7 @@ export default function Home() {
               </Link>
 
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <button className="w-full px-6 py-4 bg-white border-2 border-gray-300 hover:border-gray-400 active:border-gray-500 text-gray-800 hover:text-black text-base font-bold rounded-2xl transition-all duration-200 min-h-[56px] active:bg-gray-50 active:scale-[0.98] shadow-sm mt-2">
+                <button className="w-full px-6 py-4 bg-white border border-gray-300 hover:border-gray-400 active:border-gray-500 text-gray-800 hover:text-black text-base font-bold rounded-2xl transition-all duration-200 min-h-[56px] active:bg-gray-50 active:scale-[0.98] shadow-sm mt-2">
                   Sign in
                 </button>
               </Link>
