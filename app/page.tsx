@@ -57,10 +57,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] relative overflow-hidden">
       {/* Animated Background Pattern */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-5">
         {/* Geometric Grid */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage: `
               linear-gradient(to right, #000 1px, transparent 1px),
@@ -93,7 +93,6 @@ export default function Home() {
         />
       </div>
 
-      {/* Sophisticated Banner with Morphing Effect */}
       <div
         className="fixed top-0 w-full left-0 z-50 px-4 py-3 md:py-4"
         style={{
@@ -115,7 +114,7 @@ export default function Home() {
 
       <header className="fixed top-16 md:top-20 w-full left-0 z-40 px-4 sm:px-6 lg:px-8">
         <div
-          className={`container mx-auto px-5 md:px-8 h-16 md:h-20 flex items-center justify-between backdrop-blur-2xl rounded-4xl transition-all duration-700 ease-out relative overflow-hidden ${
+          className={`container mx-auto px-5 md:px-8 h-16 md:h-20 flex items-center justify-between backdrop-blur-2xl rounded-2xl transition-all duration-700 ease-out relative overflow-hidden ${
             isScrolled
               ? "bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08)] scale-[0.96] border border-gray-200/50"
               : "bg-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] scale-100 border border-white/40"
@@ -179,7 +178,7 @@ export default function Home() {
 
           <div className="hidden md:flex items-center gap-3 shrink-0 relative z-10">
             <Link href="/share-testimony">
-              <button className="group relative inline-flex items-center gap-2.5 px-6 py-3 bg-black text-white font-semibold rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:scale-[1.02]">
+              <button className="group relative inline-flex items-center gap-2.5 px-6 py-3 bg-black text-white font-semibold rounded-xl transition-all duration-300 cursor-pointer overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:scale-[1.02]">
                 {/* Shine effect */}
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-linear-to-r from-transparent via-white/20 to-transparent" />
                 <LuShare className="w-4 h-4 relative z-10" />
@@ -189,7 +188,7 @@ export default function Home() {
 
             <Link href="/login">
               <button
-                className={`inline-flex items-center gap-2 cursor-pointer px-6 py-3 font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] border-2 ${
+                className={`inline-flex items-center gap-2 cursor-pointer px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
                   isScrolled
                     ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-800 shadow-sm hover:shadow-md"
                     : "bg-white/80 hover:bg-white border-white/60 text-gray-800 backdrop-blur-sm shadow-sm hover:shadow-md"
