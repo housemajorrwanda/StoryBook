@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
-import { LuSearch } from "react-icons/lu";
+import Link from "next/link";
+import { LuSearch, LuShare } from "react-icons/lu";
 
 const HeroSection: React.FC = () => {
   return (
@@ -91,6 +92,29 @@ const HeroSection: React.FC = () => {
               Search through thousands of testimonies and documents to find your
               loved ones
             </p>
+          </div>
+
+          {/* Share Story Call-to-Action */}
+          <div className="max-w-4xl mb-20 mx-auto">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 text-center">
+              <div className="mb-6">
+                <LuShare className="w-12 h-12 text-white mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  Have a Story to Share?
+                </h3>
+                <p className="text-gray-200 text-lg max-w-2xl mx-auto">
+                  Your testimony matters. Help preserve history and connect
+                  families by sharing your experiences from the 1994 genocide
+                  against the Tutsi.
+                </p>
+              </div>
+              <Link href="/share-testimony">
+                <button className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  <LuShare className="w-5 h-5" />
+                  Share Your Testimony
+                </button>
+              </Link>
+            </div>
           </div>
 
           {/* Mission Cards with Images */}
