@@ -130,7 +130,6 @@ export default function ShareStoryPage() {
 
       toast.loading("Submitting testimony...", { id: "submit-testimony" });
       await createTestimonyMultipart.mutateAsync(fd);
-      // Reset form and redirect
       setTimeout(() => {
         window.location.href = "/";
       }, 2000);
