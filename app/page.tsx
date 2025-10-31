@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { LuMenu, LuShare, LuX } from "react-icons/lu";
 import HeroSection from "@/components/shared/HeroSection";
+import TestimoniesGrid from "@/components/testimonies/TestimoniesGrid";
 
 export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -321,6 +322,22 @@ export default function Home() {
 
       {/* Main Content Section */}
       <HeroSection />
+
+      {/* Published Testimonies Section */}
+      <section id="stories" className="relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
+          <div className="mb-6 sm:mb-10 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900">
+              Published Testimonies
+            </h2>
+            <p className="mt-3 text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl">
+              Explore personal stories that have been reviewed and published.
+            </p>
+          </div>
+
+          <TestimoniesGrid limit={6} showHeader={false} />
+        </div>
+      </section>
     </div>
   );
 }

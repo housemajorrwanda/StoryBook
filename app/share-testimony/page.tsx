@@ -88,7 +88,6 @@ export default function ShareStoryPage() {
 
       // Files
       for (const imageData of formData.images) {
-        // optional per-image validation
         const v = validateFile(
           imageData.file,
           FILE_CONSTRAINTS.image.types,
@@ -131,10 +130,6 @@ export default function ShareStoryPage() {
 
       toast.loading("Submitting testimony...", { id: "submit-testimony" });
       await createTestimonyMultipart.mutateAsync(fd);
-      toast.success("Testimony submitted successfully!", {
-        id: "submit-testimony",
-      });
-
       // Reset form and redirect
       setTimeout(() => {
         window.location.href = "/";
