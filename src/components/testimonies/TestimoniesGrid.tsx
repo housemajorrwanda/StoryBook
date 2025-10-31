@@ -12,6 +12,9 @@ import {
   LuArrowRight,
   LuQuote,
   LuSparkles,
+  LuEye,
+  LuTrendingUp,
+  LuFlame,
 } from "react-icons/lu";
 import { useTestimonies } from "@/hooks/useTestimonies";
 import { Testimony } from "@/types/testimonies";
@@ -113,6 +116,81 @@ export default function TestimoniesGrid({
     });
   };
 
+  const formatImpressions = (impressions: number) => {
+    if (impressions >= 1000000) {
+      return (impressions / 1000000).toFixed(1) + "M";
+    }
+    if (impressions >= 1000) {
+      return (impressions / 1000).toFixed(1) + "K";
+    }
+    return impressions.toString();
+  };
+
+  const getImpressionTier = (impressions: number) => {
+    if (impressions >= 10000) return "viral";
+    if (impressions >= 5000) return "trending";
+    if (impressions >= 1000) return "popular";
+    if (impressions >= 100) return "growing";
+    return "new";
+  };
+
+  const getImpressionConfig = (impressions: number) => {
+    const tier = getImpressionTier(impressions);
+
+    switch (tier) {
+      case "viral":
+        return {
+          icon: LuFlame,
+          color: "text-orange-500",
+          bgColor: "bg-orange-500/10",
+          borderColor: "border-orange-500/20",
+          glowColor: "shadow-orange-500/20",
+          label: "Viral",
+          animation: "animate-pulse",
+        };
+      case "trending":
+        return {
+          icon: LuTrendingUp,
+          color: "text-purple-500",
+          bgColor: "bg-purple-500/10",
+          borderColor: "border-purple-500/20",
+          glowColor: "shadow-purple-500/20",
+          label: "Trending",
+          animation: "animate-bounce",
+        };
+      case "popular":
+        return {
+          icon: LuEye,
+          color: "text-blue-500",
+          bgColor: "bg-blue-500/10",
+          borderColor: "border-blue-500/20",
+          glowColor: "shadow-blue-500/20",
+          label: "Popular",
+          animation: "",
+        };
+      case "growing":
+        return {
+          icon: LuEye,
+          color: "text-green-500",
+          bgColor: "bg-green-500/10",
+          borderColor: "border-green-500/20",
+          glowColor: "shadow-green-500/20",
+          label: "Growing",
+          animation: "",
+        };
+      default:
+        return {
+          icon: LuEye,
+          color: "text-gray-500",
+          bgColor: "bg-gray-500/10",
+          borderColor: "border-gray-500/20",
+          glowColor: "shadow-gray-500/20",
+          label: "New",
+          animation: "",
+        };
+    }
+  };
+
   return (
     <div className="w-full relative">
       {/* Decorative Background Elements */}
@@ -139,123 +217,163 @@ export default function TestimoniesGrid({
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-        {displayedTestimonies.map((testimony: Testimony, index: number) => (
-          <Link
-            key={testimony.id}
-            href={`/testimonies/${testimony.id}`}
-            className="group block animate-fade-in"
-            style={{
-              animationDelay: `${index * 150}ms`,
-            }}
-          >
-            <article className="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-gray-900 transition-all duration-700 h-full flex flex-col group-hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.25)] group-hover:-translate-y-2 relative">
-              {/* Animated Border Effect */}
-              <div className="absolute inset-0 rounded-4xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
-                <div className="absolute inset-0 rounded-4xl animate-pulse bg-gray-900/5" />
-              </div>
+        {displayedTestimonies.map((testimony: Testimony, index: number) => {
+          const impressionConfig = getImpressionConfig(testimony.impressions);
 
-              {/* Image Container */}
-              <div className="relative h-72 bg-gray-900 overflow-hidden">
-                {testimony.images && testimony.images.length > 0 ? (
-                  <>
-                    <Image
-                      src={testimony.images[0].imageUrl}
-                      alt={
-                        testimony.images[0].description || testimony.eventTitle
-                      }
-                      fill
-                      className="object-cover group-hover:scale-125 group-hover:rotate-2 transition-all duration-1000 ease-out"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    />
-                    {/* Dark Overlay on hover */}
-                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-30 transition-opacity duration-700" />
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-full bg-gray-900">
-                    <div className="text-white opacity-30 scale-[2]">
+          return (
+            <Link
+              key={testimony.id}
+              href={`/testimonies/${testimony.id}`}
+              className="group block animate-fade-in"
+              style={{
+                animationDelay: `${index * 150}ms`,
+              }}
+            >
+              <article className="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-gray-900 transition-all duration-700 h-full flex flex-col group-hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.25)] group-hover:-translate-y-2 relative">
+                {/* Animated Border Effect */}
+                <div className="absolute inset-0 rounded-4xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                  <div className="absolute inset-0 rounded-4xl animate-pulse bg-gray-900/5" />
+                </div>
+
+                {/* Image Container */}
+                <div className="relative h-72 bg-gray-900 overflow-hidden">
+                  {testimony.images && testimony.images.length > 0 ? (
+                    <>
+                      <Image
+                        src={testimony.images[0].imageUrl}
+                        alt={
+                          testimony.images[0].description ||
+                          testimony.eventTitle
+                        }
+                        fill
+                        className="object-cover group-hover:scale-125 group-hover:rotate-2 transition-all duration-1000 ease-out"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                      {/* Dark Overlay on hover */}
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-30 transition-opacity duration-700" />
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center h-full bg-gray-900">
+                      <div className="text-white opacity-30 scale-[2]">
+                        {getSubmissionIcon(testimony.submissionType!)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Media Type Badge */}
+                  <div className="absolute top-5 right-5 backdrop-blur-xl">
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-white/95 text-gray-900 text-xs font-black rounded-2xl shadow-2xl border border-white/50 group-hover:scale-110 transition-transform duration-500">
                       {getSubmissionIcon(testimony.submissionType!)}
-                    </div>
-                  </div>
-                )}
-
-                {/* Media Type Badge */}
-                <div className="absolute top-5 right-5 backdrop-blur-xl">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-white/95 text-gray-900 text-xs font-black rounded-2xl shadow-2xl border border-white/50 group-hover:scale-110 transition-transform duration-500">
-                    {getSubmissionIcon(testimony.submissionType!)}
-                    <span className="uppercase tracking-widest">
-                      {testimony.submissionType}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Quote Icon Overlay */}
-                <div className="absolute bottom-5 left-5 opacity-20 group-hover:opacity-40 transition-opacity duration-500">
-                  <LuQuote className="w-16 h-16 text-white" />
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-7 flex-1 flex flex-col relative">
-                <h3 className="text-xl font-black text-gray-900 mb-4 leading-tight group-hover:text-gray-700 transition-colors duration-300 line-clamp-2">
-                  {testimony.eventTitle}
-                </h3>
-
-                <p className="text-sm text-gray-600 mb-6 leading-relaxed line-clamp-3 font-light">
-                  {testimony.fullTestimony.replace(/<[^>]*>/g, "")}
-                </p>
-
-                {/* Metadata */}
-                <div className="space-y-3 mt-auto">
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-10 h-10 bg-gray-900 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      <LuUser className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="font-bold text-gray-900 truncate">
-                        {testimony.identityPreference === "anonymous"
-                          ? "Anonymous"
-                          : testimony.fullName}
-                      </span>
-                      <span className="text-xs text-gray-500 capitalize truncate">
-                        {testimony.relationToEvent}
+                      <span className="uppercase tracking-widest">
+                        {testimony.submissionType}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0">
-                      <LuMapPin className="w-5 h-5 text-gray-900" />
-                    </div>
-                    <span className="font-semibold text-gray-700 truncate">
-                      {testimony.location}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0">
-                      <LuCalendar className="w-5 h-5 text-gray-900" />
-                    </div>
-                    <span className="font-semibold text-gray-700 truncate">
-                      {formatDate(testimony.dateOfEvent)}
-                    </span>
+                  {/* Quote Icon Overlay */}
+                  <div className="absolute bottom-5 left-5 opacity-20 group-hover:opacity-40 transition-opacity duration-500">
+                    <LuQuote className="w-16 h-16 text-white" />
                   </div>
                 </div>
 
-                {/* Read More CTA */}
-                <div className="mt-7 pt-6 border-t-2 border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-gray-900 tracking-widest uppercase">
-                      Read Story
-                    </span>
-                    <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-lg shadow-gray-900/20">
-                      <LuArrowRight className="w-6 h-6 text-white group-hover:translate-x-1 transition-transform duration-300" />
+                {/* Content */}
+                <div className="p-7 flex-1 flex flex-col relative">
+                  <h3 className="text-xl font-black text-gray-900 mb-4 leading-tight group-hover:text-gray-700 transition-colors duration-300 line-clamp-2">
+                    {testimony.eventTitle}
+                  </h3>
+
+                  <p className="text-sm text-gray-600 mb-6 leading-relaxed line-clamp-3 font-light">
+                    {testimony.fullTestimony.replace(/<[^>]*>/g, "")}
+                  </p>
+
+                  {/* Metadata */}
+                  <div className="space-y-3 mt-auto">
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 bg-gray-900 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <LuUser className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-bold text-gray-900 truncate">
+                          {testimony.identityPreference === "anonymous"
+                            ? "Anonymous"
+                            : testimony.fullName}
+                        </span>
+                        <span className="text-xs text-gray-500 capitalize truncate">
+                          {testimony.relationToEvent}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0">
+                        <LuMapPin className="w-5 h-5 text-gray-900" />
+                      </div>
+                      <span className="font-semibold text-gray-700 truncate">
+                        {testimony.location}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0">
+                        <LuCalendar className="w-5 h-5 text-gray-900" />
+                      </div>
+                      <span className="font-semibold text-gray-700 truncate">
+                        {formatDate(testimony.dateOfEvent)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Engagement Bar */}
+                  <div className="mt-6 border-gray-100">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-2 h-2 rounded-full ${impressionConfig.bgColor}`}
+                        />
+                        <span className="font-semibold text-gray-500 uppercase tracking-wider">
+                          Engagement
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <LuEye className="w-3 h-3 text-gray-400" />
+                        <span className="font-black text-gray-900">
+                          {formatImpressions(testimony.impressions)}
+                        </span>
+                        <span className="text-gray-400">views</span>
+                      </div>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${impressionConfig.bgColor
+                          .replace("bg-", "bg-")
+                          .replace("/10", "/60")}`}
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            (testimony.impressions / 10000) * 100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Read More CTA */}
+                  <div className="mt-4 border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-gray-900 tracking-widest uppercase">
+                        Read Story
+                      </span>
+                      <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-lg shadow-gray-900/20">
+                        <LuArrowRight className="w-6 h-6 text-white group-hover:translate-x-1 transition-transform duration-300" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          </Link>
-        ))}
+              </article>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Show More Link */}
