@@ -324,14 +324,15 @@ export default function Home() {
       <HeroSection />
 
       {/* Published Testimonies Section */}
-      <section id="stories" className="relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
+      <section id="stories" className="relative z-10 bg-[#fafafa]">
+        <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-12 md:py-14 bg-[#fafafa]">
           <div className="mb-6 sm:mb-10 md:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900">
-              Published Testimonies
+            <h2 className="text-xl sm:text-xl md:text-3xl font-extrabold tracking-tight text-gray-900">
+              Stories & Testimonies
             </h2>
-            <p className="mt-3 text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl">
-              Explore personal stories that have been reviewed and published.
+            <p className="mt-2 text-xs md:text-sm text-gray-600 max-w-2xl">
+              Discover powerful stories of resilience, courage, and remembrance
+              shared by our community.
             </p>
           </div>
 

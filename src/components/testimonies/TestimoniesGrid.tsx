@@ -57,12 +57,6 @@ export default function TestimoniesGrid({
         <div className="text-gray-500">
           <p className="text-lg font-semibold mb-2">No testimonies found</p>
           <p className="text-sm">Be the first to share your story</p>
-          <Link
-            href="/share-testimony"
-            className="inline-block mt-4 px-6 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors duration-200"
-          >
-            Share Your Testimony
-          </Link>
         </div>
       </div>
     );
