@@ -18,6 +18,7 @@ import {
 } from "react-icons/lu";
 import { useTestimonies } from "@/hooks/useTestimonies";
 import { Testimony } from "@/types/testimonies";
+import { generateTestimonySlug } from "@/utils/testimony.utils";
 
 interface TestimoniesGridProps {
   limit?: number;
@@ -223,7 +224,10 @@ export default function TestimoniesGrid({
           return (
             <Link
               key={testimony.id}
-              href={`/testimonies/${testimony.id}`}
+              href={`/testimonies/${generateTestimonySlug(
+                testimony.id,
+                testimony.eventTitle
+              )}`}
               className="group block animate-fade-in"
               style={{
                 animationDelay: `${index * 150}ms`,
