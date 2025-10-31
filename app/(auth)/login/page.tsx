@@ -89,7 +89,7 @@ export default function LoginPage() {
             </div>
 
               <Formik
-                initialValues={{ username: '', password: '' }}
+                initialValues={{ email: '', password: '' }}
                 validationSchema={loginValidationSchema}
                 onSubmit={handleSubmit}
               >
@@ -119,20 +119,20 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Username Field */}
+                {/* Email Field */}
                 <div>
-                  <label htmlFor="username" className="block text-xs font-medium text-gray-700 mb-1">
-                    Username
+                  <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1">
+                    Email
                   </label>
                   <Field
-                    type="text"
-                    id="username"
-                    name="username"
+                    type="email"
+                    id="email"
+                    name="email"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent text-sm"
-                    placeholder="Enter your username."
+                    placeholder="Enter your email address"
                   />
-                  {errors.username && touched.username && (
-                    <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+                  {errors.email && touched.email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
                   )}
                 </div>
 
