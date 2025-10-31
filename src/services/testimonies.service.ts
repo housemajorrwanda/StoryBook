@@ -53,11 +53,9 @@ export const testimoniesService = {
   // Create testimony via single multipart endpoint
   async createTestimonyMultipart(fd: FormData): Promise<Testimony> {
     try {
-      const response = await uploadApi.post<Testimony>(
-        "/testimonies/multipart",
-        fd,
-        { timeout: 300000 }
-      );
+      const response = await uploadApi.post<Testimony>("/testimonies", fd, {
+        timeout: 300000,
+      });
       return response.data;
     } catch (error) {
       throw error;
