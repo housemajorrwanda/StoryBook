@@ -1,8 +1,6 @@
 import axios from "axios";
-import axiosInstance from "@/config/axiosInstance";
 import {
   Testimony,
-  CreateTestimonyRequest,
   ImageUploadResponse,
   AudioUploadResponse,
 } from "@/types/testimonies";
@@ -65,14 +63,6 @@ export const testimoniesService = {
       throw error;
     }
   },
-  async createTestimony(data: CreateTestimonyRequest): Promise<Testimony> {
-    try {
-      const response = await publicApi.post<Testimony>("/testimonies", data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
 
   // Get all published testimonies
   async getTestimonies(): Promise<Testimony[]> {
@@ -80,33 +70,10 @@ export const testimoniesService = {
     return response.data.filter((testimony) => testimony.isPublished);
   },
 
-  // Get all testimonies
-  async getAllTestimonies(): Promise<Testimony[]> {
-    const response = await axiosInstance.get<Testimony[]>("/testimonies/all");
-    return response.data;
-  },
-
   // Get a single testimony by ID
   async getTestimonyById(id: number): Promise<Testimony> {
     const response = await publicApi.get<Testimony>(`/testimonies/${id}`);
     return response.data;
-  },
-
-  // Update a testimony
-  async updateTestimony(
-    id: number,
-    data: Partial<CreateTestimonyRequest>
-  ): Promise<Testimony> {
-    const response = await axiosInstance.put<Testimony>(
-      `/testimonies/${id}`,
-      data
-    );
-    return response.data;
-  },
-
-  // Delete a testimony
-  async deleteTestimony(id: number): Promise<void> {
-    await axiosInstance.delete(`/testimonies/${id}`);
   },
 
   // Upload single image to Cloudinary with retry logic
@@ -156,8 +123,6 @@ export const testimoniesService = {
         return this.uploadImage(file, retryCount + 1);
       }
 
-      // For timeout errors, check if upload might have succeeded
-      // by checking the response data if available
       if (
         errorCode === "ECONNABORTED" &&
         error &&
@@ -165,7 +130,6 @@ export const testimoniesService = {
         "response" in error &&
         error.response
       ) {
-        // If we have response data despite timeout, the upload might have succeeded
         const axiosError = error as {
           response?: { data?: ImageUploadResponse };
         };
@@ -230,7 +194,7 @@ export const testimoniesService = {
     }
   },
 
-  // Upload video to Cloudinary
+  // Upload video
   async uploadVideo(file: File): Promise<AudioUploadResponse> {
     const maxSize = 100 * 1024 * 1024; // 100MB limit for video
 
@@ -267,14 +231,10 @@ export const testimoniesService = {
     if (files.length === 0) {
       return [];
     }
-
-    // Backend only supports individual uploads to /upload/image with field name "file"
-    // Use Promise.allSettled to continue even if some uploads fail
     const uploadPromises = files.map((file) => this.uploadImage(file));
 
     const results = await Promise.allSettled(uploadPromises);
 
-    // Extract successful and failed uploads
     const successfulUploads: ImageUploadResponse[] = [];
     const failedUploads: Array<{ fileName: string; error: unknown }> = [];
 
@@ -286,16 +246,10 @@ export const testimoniesService = {
           fileName: files[index].name,
           error: result.reason,
         });
-        console.error(
-          `❌ Failed to upload ${files[index].name}:`,
-          result.reason
-        );
+        console.error(`Failed to upload ${files[index].name}:`, result.reason);
       }
     });
 
-    // silently continue even if some fail
-
-    // Only throw error if ALL uploads failed
     if (successfulUploads.length === 0 && failedUploads.length > 0) {
       const error = new Error(
         `Failed to upload all images: ${failedUploads
@@ -304,9 +258,6 @@ export const testimoniesService = {
       );
       throw error;
     }
-
-    // Return successful uploads (partial success is acceptable)
-    // proceed with successful uploads
 
     return successfulUploads;
   },
