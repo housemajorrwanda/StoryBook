@@ -69,7 +69,7 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
             The testimony you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link
-            href="/testimonies"
+            href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors duration-200"
           >
             <LuArrowLeft className="w-4 h-4" />
@@ -94,7 +94,7 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
           <Link
-            href="/testimonies"
+            href="/"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
           >
             <LuArrowLeft className="w-4 h-4" />
