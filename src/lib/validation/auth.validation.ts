@@ -39,12 +39,6 @@ export const signupValidationSchema = Yup.object({
     )
     .required("Password is required"),
   confirmPassword: Yup.string()
-<<<<<<< HEAD
     .oneOf([Yup.ref("password")], "Passwords must match")
     .required("Please confirm your password"),
-=======
-    .oneOf([Yup.ref('password')], 'Passwords must match')
-    .required('Please confirm your password'),
-  residentPlace: Yup.string().optional(),
->>>>>>> 856e9d1 (auth)
 });
