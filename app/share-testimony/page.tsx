@@ -2,14 +2,27 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LuChevronLeft, LuChevronRight, LuArrowLeft } from "react-icons/lu";
+import {
+  LuChevronLeft,
+  LuChevronRight,
+  LuArrowLeft,
+  LuLoader,
+} from "react-icons/lu";
+import { toast } from "react-hot-toast";
 import SubmissionTypeStep from "@/components/testimony/SubmissionTypeStep";
 import PersonalDetailsStep from "@/components/testimony/PersonalDetailsStep";
 import TestimonyContentStep from "@/components/testimony/TestimonyContentStep";
 import { FormData } from "@/types/testimonies";
+import { useCreateTestimonyMultipart } from "@/hooks/useTestimonies";
+import {
+  validateFormData,
+  validateFile,
+  FILE_CONSTRAINTS,
+} from "@/utils/testimony.utils";
 
 export default function ShareStoryPage() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     type: null,
     identity: null,
@@ -25,6 +38,9 @@ export default function ShareStoryPage() {
     audioFile: null,
     videoFile: null,
   });
+
+  // TanStack Query hooks
+  const createTestimonyMultipart = useCreateTestimonyMultipart();
 
   const steps = [
     { number: 1, label: "Type", title: "Choose Submission Type" },
@@ -44,9 +60,103 @@ export default function ShareStoryPage() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Form submitted:", formData);
-    window.location.href = "/";
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+
+      // Validate form data
+      const validationErrors = validateFormData(formData);
+      if (validationErrors.length > 0) {
+        validationErrors.forEach((error) => toast.error(error));
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Build multipart FormData for single endpoint
+      const fd = new window.FormData();
+      fd.append("submissionType", String(formData.type));
+      fd.append("identityPreference", String(formData.identity));
+      fd.append("fullName", formData.fullName);
+      fd.append("relationToEvent", formData.relationToEvent);
+      fd.append("nameOfRelative", formData.relativesNames);
+      fd.append("location", formData.location);
+      fd.append("dateOfEvent", formData.dateOfEvent);
+      fd.append("eventTitle", formData.eventTitle);
+      fd.append("eventDescription", "");
+      fd.append("fullTestimony", formData.testimony);
+      fd.append("agreedToTerms", String(formData.consent));
+
+      // Files
+      for (const imageData of formData.images) {
+        // optional per-image validation
+        const v = validateFile(
+          imageData.file,
+          FILE_CONSTRAINTS.image.types,
+          FILE_CONSTRAINTS.image.maxSize
+        );
+        if (!v.isValid) {
+          toast.error(`Image ${imageData.file.name}: ${v.error}`);
+          setIsSubmitting(false);
+          return;
+        }
+        fd.append("images", imageData.file);
+        fd.append("imagesDescriptions", imageData.description || "");
+      }
+      if (formData.audioFile) {
+        const v = validateFile(
+          formData.audioFile,
+          FILE_CONSTRAINTS.audio.types,
+          FILE_CONSTRAINTS.audio.maxSize
+        );
+        if (!v.isValid) {
+          toast.error(`Audio: ${v.error}`);
+          setIsSubmitting(false);
+          return;
+        }
+        fd.append("audio", formData.audioFile);
+      }
+      if (formData.videoFile) {
+        const v = validateFile(
+          formData.videoFile,
+          FILE_CONSTRAINTS.video.types,
+          FILE_CONSTRAINTS.video.maxSize
+        );
+        if (!v.isValid) {
+          toast.error(`Video: ${v.error}`);
+          setIsSubmitting(false);
+          return;
+        }
+        fd.append("video", formData.videoFile);
+      }
+
+      toast.loading("Submitting testimony...", { id: "submit-testimony" });
+      await createTestimonyMultipart.mutateAsync(fd);
+      toast.success("Testimony submitted successfully!", {
+        id: "submit-testimony",
+      });
+
+      // Reset form and redirect
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error &&
+        "response" in error &&
+        typeof error.response === "object" &&
+        error.response &&
+        "data" in error.response &&
+        typeof error.response.data === "object" &&
+        error.response.data &&
+        "message" in error.response.data
+          ? String(error.response.data.message)
+          : error instanceof Error
+          ? error.message
+          : "Failed to submit testimony. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isStepValid = () => {
@@ -70,8 +180,6 @@ export default function ShareStoryPage() {
             break;
           case "audio":
           case "video":
-            // For now, we'll consider these valid if the basic fields are filled
-            // In a real app, you'd check if audio/video files are uploaded
             hasContent = true;
             break;
           default:
@@ -229,10 +337,17 @@ export default function ShareStoryPage() {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={!isStepValid()}
-                className="px-6 sm:px-8 py-2.5 sm:py-3 bg-black text-white font-semibold rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base w-full sm:w-auto order-1 sm:order-2"
+                disabled={!isStepValid() || isSubmitting}
+                className="flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-black text-white font-semibold rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base w-full sm:w-auto order-1 sm:order-2"
               >
-                Submit Testimony
+                {isSubmitting ? (
+                  <>
+                    <LuLoader className="w-4 h-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Testimony"
+                )}
               </button>
             )}
           </div>

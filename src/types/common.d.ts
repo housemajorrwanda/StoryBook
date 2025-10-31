@@ -11,7 +11,7 @@ export interface PaginationParams {
   page: number;
   limit: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface PaginatedResponse<T> {
@@ -52,7 +52,7 @@ export interface Connection {
   id: string;
   requester: User;
   receiver: User;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: "pending" | "accepted" | "rejected";
   message?: string;
   createdAt: string;
   updatedAt: string;
@@ -61,16 +61,16 @@ export interface Connection {
 export interface FormFieldProps {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'password' | 'textarea';
+  type?: "text" | "email" | "password" | "textarea";
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
 }
 
 export interface ButtonProps {
-  type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  type?: "button" | "submit" | "reset";
+  variant?: "primary" | "secondary" | "outline" | "ghost";
+  size?: "sm" | "md" | "lg";
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactNode;

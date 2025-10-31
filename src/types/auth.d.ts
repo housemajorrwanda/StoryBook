@@ -1,4 +1,4 @@
-import { ApiResponse, User } from './common';
+import { ApiResponse, User } from "./common";
 
 export interface LoginCredentials {
   username: string;
@@ -30,9 +30,9 @@ export interface AuthUser {
   user: User;
 }
 
-export interface LoginResponse extends AuthUser {}
+export type LoginResponse = AuthUser;
 
-export interface SignupResponse extends AuthUser {}
+export type SignupResponse = AuthUser;
 
 export interface AuthError extends ApiResponse {
   success: false;
