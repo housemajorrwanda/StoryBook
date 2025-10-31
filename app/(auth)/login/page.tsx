@@ -129,7 +129,11 @@ export default function LoginPage() {
                     id="email"
                     name="email"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent text-sm"
+<<<<<<< HEAD
                     placeholder="Enter your email address"
+=======
+                    placeholder="Enter your email."
+>>>>>>> 856e9d1 (auth)
                   />
                   {errors.email && touched.email && (
                     <p className="mt-1 text-sm text-red-600">{errors.email}</p>
