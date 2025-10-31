@@ -64,8 +64,13 @@ export const testimoniesService = {
 
   // Get all published testimonies
   async getTestimonies(): Promise<Testimony[]> {
-    const response = await publicApi.get<Testimony[]>("/testimonies");
-    return response.data.filter((testimony) => testimony.isPublished);
+    const response = await publicApi.get<{ data: Testimony[]; meta?: unknown }>(
+      "/testimonies"
+    );
+    const testimonies = Array.isArray(response.data)
+      ? response.data
+      : response.data.data || [];
+    return testimonies.filter((testimony) => testimony.isPublished);
   },
 
   // Get a single testimony by ID
