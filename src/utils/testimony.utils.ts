@@ -5,9 +5,6 @@ import {
   AudioUploadResponse,
 } from "@/types/testimonies";
 
-/**
- * Transform form data to API request format
- */
 export function transformFormDataToApiRequest(
   formData: FormData,
   uploadedImages: ImageUploadResponse[] = [],
@@ -239,4 +236,34 @@ export const FILE_CONSTRAINTS = {
     ] as string[],
     maxSize: 200,
   },
+};
+
+export function generateTestimonySlug(id: number, eventTitle: string): string {
+  const slugTitle = eventTitle
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return `${id}-${slugTitle}`;
+}
+
+/**
+ * Parse testimony ID from slug URL
+ */
+export function parseTestimonySlug(slug: string): number | null {
+  const match = slug.match(/^(\d+)(?:-.*)?$/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+export const formatImpressions = (impressions: number) => {
+  if (impressions >= 1000000) {
+    return (impressions / 1000000).toFixed(1) + "M";
+  }
+  if (impressions >= 1000) {
+    return (impressions / 1000).toFixed(1) + "K";
+  }
+  return impressions.toString();
 };
