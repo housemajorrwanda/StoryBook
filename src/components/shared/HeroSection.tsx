@@ -31,11 +31,7 @@ const HeroSection: React.FC = () => {
         "Preserving precious memories and testimonies of those affected by the genocide against the Tutsi, ensuring their voices echo through generations.",
       image: "/images/Visit-Rwanda-Flame-of-Remembrance-1920x1280.jpg",
       icon: (
-        <svg
-          className="w-full h-full text-white"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
           <path d="M13.83,2.17C13.5,1.84 13,1.84 12.67,2.17L12.67,2.17L9.83,5.02C9.41,5.44 9,6.18 9,7V14C9,17.31 11.69,20 15,20C18.31,20 21,17.31 21,14V7C21,6.18 20.59,5.44 20.17,5.02L17.33,2.17C17,1.84 16.5,1.84 16.17,2.17L16.17,2.17L15.66,2.68C15.44,2.9 15.44,3.26 15.66,3.48C15.88,3.7 16.24,3.7 16.46,3.48L16.46,3.48L16.83,3.11L19.32,5.61C19.61,5.9 19.84,6.4 19.84,6.85V13.84C19.84,16.55 17.71,18.68 15,18.68C12.29,18.68 10.16,16.55 10.16,13.84V6.85C10.16,6.4 10.39,5.9 10.68,5.61L13.17,3.11L13.54,3.48C13.76,3.7 14.12,3.7 14.34,3.48C14.56,3.26 14.56,2.9 14.34,2.68L13.83,2.17Z" />
         </svg>
       ),
@@ -47,11 +43,7 @@ const HeroSection: React.FC = () => {
         "Leveraging cutting-edge AI technology to identify meaningful connections between testimonies, reuniting families separated by tragedy and revealing shared experiences that bridge time and distance.",
       image: "/images/Rwanda%20Komera%20%23kwibuka31.jpeg",
       icon: (
-        <svg
-          className="w-full h-full text-white"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
           <path d="M3.9,12C3.9,10.29 5.29,8.9 7,8.9H11V7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H11V15.1H7C5.29,15.1 3.9,13.71 3.9,12M8,13H16V11H8V13M17,7H13V8.9H17C18.71,8.9 20.1,10.29 20.1,12C20.1,13.71 18.71,15.1 17,15.1H13V17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7Z" />
         </svg>
       ),
@@ -63,11 +55,7 @@ const HeroSection: React.FC = () => {
         "Utilizing advanced digital archival systems and AI technology to ensure these crucial historical testimonies are securely preserved for future generations.",
       image: "/images/Urumuri Rutazima(never off light).jpeg",
       icon: (
-        <svg
-          className="w-full h-full text-white"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C14.8,12.1 14.4,12.5 13.8,12.5H10.2C9.6,12.5 9.2,12.1 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V10.8H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z" />
         </svg>
       ),
@@ -165,7 +153,6 @@ const HeroSection: React.FC = () => {
             ))}
           </div>
 
-          {/* Revolutionary Search Interface */}
           <div className="max-w-4xl mb-14 md:mb-24">
             <div
               className={`bg-white backdrop-blur-xl rounded-3xl shadow-[0_12px_48px_rgba(0,0,0,0.3)] overflow-hidden border-2 transition-all duration-500 ${
@@ -204,11 +191,11 @@ const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Mission Cards  */}
-          <div className="mb-16 md:mb-24">
-            <div className="text-center mb-12 md:mb-20">
+          {/* Mission Cards */}
+          <div className="mb-10 md:mb-24">
+            <div className="text-center mb-12 md:mb-16">
               <h2
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4 md:mb-6 tracking-tight"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4 md:mb-6 tracking-tight"
                 style={{
                   textShadow: "0 4px 24px rgba(0,0,0,0.5)",
                 }}
@@ -217,7 +204,7 @@ const HeroSection: React.FC = () => {
               </h2>
 
               <p
-                className="text-lg sm:text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed px-4 font-medium"
+                className="text-sm sm:text-base text-white/90 max-w-3xl mx-auto leading-relaxed px-4 font-medium"
                 style={{
                   textShadow: "0 2px 12px rgba(0,0,0,0.5)",
                 }}
@@ -232,7 +219,7 @@ const HeroSection: React.FC = () => {
                 {missionCards.map((card, idx) => (
                   <div
                     key={idx}
-                    className={`group relative ${
+                    className={`group relative cursor-pointer ${
                       card.featured ? "md:scale-110 md:z-10" : ""
                     }`}
                     onMouseEnter={() => setHoveredCard(idx)}
@@ -242,33 +229,36 @@ const HeroSection: React.FC = () => {
                     }}
                   >
                     <div
-                      className={`relative bg-white backdrop-blur-xl border-2 rounded-4xl p-6 md:p-8 ${
+                      className={`relative bg-white border rounded-3xl p-6 md:p-8 ${
                         card.featured ? "lg:p-12" : ""
-                      } shadow-[0_12px_48px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_64px_rgba(0,0,0,0.3)] transition-all duration-700 ${
+                      } shadow-lg hover:shadow-2xl transition-all duration-500 ${
                         card.featured
-                          ? "min-h-[400px] md:min-h-[480px] border-gray-300"
-                          : "min-h-[320px] md:min-h-[360px] border-white/30"
-                      } hover:transform hover:-translate-y-3 overflow-hidden ${
-                        hoveredCard === idx ? "scale-[1.02]" : ""
+                          ? "min-h-[400px] md:min-h-[480px] border-gray-200 shadow-2xl"
+                          : "min-h-[320px] md:min-h-[360px] border-gray-100"
+                      } hover:transform hover:-translate-y-2 overflow-hidden ${
+                        hoveredCard === idx ? "scale-[1.02] shadow-xl" : ""
                       }`}
                     >
-                      {/* Dynamic Background Image */}
+                      {/* Subtle Background Pattern */}
                       <div
-                        className={`absolute inset-0 transition-opacity duration-700 ${
-                          hoveredCard === idx ? "opacity-10" : "opacity-5"
+                        className={`absolute inset-0 transition-opacity duration-500 ${
+                          hoveredCard === idx
+                            ? "opacity-[0.03]"
+                            : "opacity-[0.02]"
                         }`}
                       >
+                        <div className="absolute inset-0 bg-black" />
                         <Image
                           src={card.image}
-                          alt=""
+                          alt="about image"
                           fill
-                          className="object-cover"
+                          className="object-cover mix-blend-overlay"
                           quality={70}
                           sizes="(max-width: 768px) 100vw, 33vw"
                         />
                       </div>
 
-                      {/* Floating Icon Badge */}
+                      {/* Enhanced Icon Container */}
                       <div
                         className={`absolute ${
                           card.featured
@@ -281,77 +271,82 @@ const HeroSection: React.FC = () => {
                             card.featured
                               ? "w-16 h-16 md:w-24 md:h-24"
                               : "w-14 h-14 md:w-18 md:h-18"
-                          } bg-gray-900 rounded-[1.25rem] md:rounded-3xl flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-700 ${
+                          } bg-white border border-gray-800 rounded-xl flex items-center justify-center transition-all duration-500 ${
                             hoveredCard === idx
-                              ? "scale-110 rotate-6"
+                              ? "scale-110 rotate-3 shadow-xl"
                               : "scale-100 rotate-0"
-                          } border-2 border-white/10`}
+                          }`}
                         >
                           <div
-                            className={
+                            className={`flex items-center justify-center ${
                               card.featured
                                 ? "w-10 h-10 md:w-14 md:h-14"
                                 : "w-7 h-7 md:w-9 md:h-9"
-                            }
+                            } text-gray-800`}
                           >
-                            {card.icon}
+                            <div className="w-full h-full text-gray-800">
+                              {card.icon}
+                            </div>
                           </div>
-
-                          {/* Icon Glow */}
-                          <div className="absolute inset-0 rounded-[1.25rem] bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         </div>
                       </div>
 
                       {/* Content */}
                       <div
-                        className={`relative z-10 ${
+                        className={`relative z-10 cursor-pointer ${
                           card.featured ? "pt-14 md:pt-20" : "pt-12 md:pt-14"
                         }`}
                       >
                         <h3
-                          className={`${
+                          className={`cursor-pointer ${
                             card.featured
                               ? "text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-7"
                               : "text-xl md:text-2xl mb-3 md:mb-4"
-                          } font-black text-gray-900 text-center tracking-tight`}
+                          } font-bold text-gray-900 text-center tracking-tight`}
                         >
                           {card.title}
                         </h3>
 
                         <p
-                          className={`text-gray-700 leading-relaxed text-center ${
+                          className={`cursor-pointer text-gray-600 leading-relaxed text-center ${
                             card.featured
-                              ? "text-base md:text-lg lg:text-xl font-medium"
+                              ? "text-base md:text-lg lg:text-xl font-normal"
                               : "text-sm md:text-base"
                           }`}
                         >
                           {card.description}
                         </p>
 
-                        {/* Decorative Element */}
+                        {/* Featured Card Accent */}
                         {card.featured && (
                           <div className="mt-6 md:mt-8 text-center">
-                            <div className="inline-flex items-center justify-center w-12 md:w-16 h-1.5 bg-black/80 rounded-full" />
+                            <div className="inline-flex items-center space-x-2">
+                              <div className="w-3 h-3 bg-gray-800 rounded-full" />
+                              <div className="w-8 h-1 bg-gray-800 rounded-full" />
+                              <div className="w-3 h-3 bg-gray-800 rounded-full" />
+                            </div>
                           </div>
                         )}
                       </div>
 
-                      {/* Hover Border Animation */}
+                      {/* Corner Accents */}
+                      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gray-200 rounded-tl-lg" />
+                      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gray-200 rounded-tr-lg" />
+                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gray-200 rounded-bl-lg" />
+                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gray-200 rounded-br-lg" />
+
+                      {/* Solid Border Animation */}
                       <div
-                        className={`absolute inset-0 rounded-4xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${
-                          card.featured
-                            ? "bg-[linear-gradient(45deg,transparent_48%,rgba(0,0,0,0.03)_50%,transparent_52%)]"
-                            : "bg-[linear-gradient(135deg,transparent_48%,rgba(0,0,0,0.02)_50%,transparent_52%)]"
+                        className={`absolute inset-0 rounded-3xl border-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
+                          card.featured ? "border-gray-800" : "border-gray-300"
                         }`}
-                        style={{
-                          backgroundSize: "200% 200%",
-                          animation:
-                            hoveredCard === idx
-                              ? "shimmer 2s linear infinite"
-                              : "none",
-                        }}
                       />
                     </div>
+
+                    {/* Outer Glow for Featured Card */}
+                    {card.featured && (
+                      <div className="absolute inset-0 rounded-3xl bg-gray-800/10 blur-md -z-10 scale-105 opacity-60 cursor-pointer" />
+                    )}
                   </div>
                 ))}
               </div>

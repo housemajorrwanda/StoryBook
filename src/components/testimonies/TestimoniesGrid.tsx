@@ -148,7 +148,7 @@ export default function TestimoniesGrid({
               )}`}
               className="group block"
             >
-              <article className="border-b border-gray-100 hover:border-black transition-all duration-300 py-8 hover:bg-gray-50 px-6">
+              <article className="border-b border-gray-50 hover:border-black transition-all duration-300 py-8 hover:bg-gray-50 px-6">
                 <div className="flex flex-col md:flex-row gap-8">
                   {hasImage ? (
                     <div className="md:w-48 md:h-48 w-full h-64 shrink-0 overflow-hidden relative">
@@ -199,7 +199,7 @@ export default function TestimoniesGrid({
                     </div>
 
                     {/* Bottom Section */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-100">
+                    <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-50">
                       {/* Left: Author & Location */}
                       <div className="flex items-center gap-6 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export default function TestimoniesGrid({
                         </div>
                       </div>
 
-                      {/* Right: Views & CTA */}
+                      {/* Views & CTA */}
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 text-sm text-gray-500">
                           <Eye className="w-4 h-4" />
