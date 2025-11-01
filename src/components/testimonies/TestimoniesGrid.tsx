@@ -6,19 +6,20 @@ import {
   LuCalendar,
   LuUser,
   LuMapPin,
-  LuImage,
   LuMic,
   LuVideo,
   LuArrowRight,
   LuQuote,
   LuSparkles,
   LuEye,
-  LuTrendingUp,
-  LuFlame,
+  LuFileText,
 } from "react-icons/lu";
 import { useTestimonies } from "@/hooks/useTestimonies";
 import { Testimony } from "@/types/testimonies";
-import { generateTestimonySlug } from "@/utils/testimony.utils";
+import {
+  formatImpressions,
+  generateTestimonySlug,
+} from "@/utils/testimony.utils";
 
 interface TestimoniesGridProps {
   limit?: number;
@@ -105,7 +106,7 @@ export default function TestimoniesGrid({
       case "video":
         return <LuVideo className="w-5 h-5" />;
       default:
-        return <LuImage className="w-5 h-5" />;
+        return <LuFileText className="w-5 h-5" />;
     }
   };
 
@@ -115,81 +116,6 @@ export default function TestimoniesGrid({
       month: "long",
       day: "numeric",
     });
-  };
-
-  const formatImpressions = (impressions: number) => {
-    if (impressions >= 1000000) {
-      return (impressions / 1000000).toFixed(1) + "M";
-    }
-    if (impressions >= 1000) {
-      return (impressions / 1000).toFixed(1) + "K";
-    }
-    return impressions.toString();
-  };
-
-  const getImpressionTier = (impressions: number) => {
-    if (impressions >= 10000) return "viral";
-    if (impressions >= 5000) return "trending";
-    if (impressions >= 1000) return "popular";
-    if (impressions >= 100) return "growing";
-    return "new";
-  };
-
-  const getImpressionConfig = (impressions: number) => {
-    const tier = getImpressionTier(impressions);
-
-    switch (tier) {
-      case "viral":
-        return {
-          icon: LuFlame,
-          color: "text-orange-500",
-          bgColor: "bg-orange-500/10",
-          borderColor: "border-orange-500/20",
-          glowColor: "shadow-orange-500/20",
-          label: "Viral",
-          animation: "animate-pulse",
-        };
-      case "trending":
-        return {
-          icon: LuTrendingUp,
-          color: "text-purple-500",
-          bgColor: "bg-purple-500/10",
-          borderColor: "border-purple-500/20",
-          glowColor: "shadow-purple-500/20",
-          label: "Trending",
-          animation: "animate-bounce",
-        };
-      case "popular":
-        return {
-          icon: LuEye,
-          color: "text-blue-500",
-          bgColor: "bg-blue-500/10",
-          borderColor: "border-blue-500/20",
-          glowColor: "shadow-blue-500/20",
-          label: "Popular",
-          animation: "",
-        };
-      case "growing":
-        return {
-          icon: LuEye,
-          color: "text-green-500",
-          bgColor: "bg-green-500/10",
-          borderColor: "border-green-500/20",
-          glowColor: "shadow-green-500/20",
-          label: "Growing",
-          animation: "",
-        };
-      default:
-        return {
-          icon: LuEye,
-          color: "text-gray-500",
-          bgColor: "bg-gray-500/10",
-          borderColor: "border-gray-500/20",
-          glowColor: "shadow-gray-500/20",
-          label: "New",
-          animation: "",
-        };
-    }
   };
 
   return (
@@ -219,8 +145,6 @@ export default function TestimoniesGrid({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
         {displayedTestimonies.map((testimony: Testimony, index: number) => {
-          const impressionConfig = getImpressionConfig(testimony.impressions);
-
           return (
             <Link
               key={testimony.id}
@@ -265,13 +189,13 @@ export default function TestimoniesGrid({
                   )}
 
                   {/* Media Type Badge */}
-                  <div className="absolute top-5 right-5 backdrop-blur-xl">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-white/95 text-gray-900 text-xs font-black rounded-2xl shadow-2xl border border-white/50 group-hover:scale-110 transition-transform duration-500">
+                  <div className="absolute top-5 right-5 flex items-center gap-2">
+                    <div className="flex items-center gap-2 p-2 bg-white/95 text-gray-700 text-xs font-black rounded-full group-hover:scale-110 transition-transform duration-500">
                       {getSubmissionIcon(testimony.submissionType!)}
-                      <span className="uppercase tracking-widest">
-                        {testimony.submissionType}
-                      </span>
                     </div>
+                    <span className="uppercase tracking-widest text-xs text-black font-semibold">
+                      {testimony.submissionType}
+                    </span>
                   </div>
 
                   {/* Quote Icon Overlay */}
@@ -331,9 +255,7 @@ export default function TestimoniesGrid({
                   <div className="mt-6 border-gray-100">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${impressionConfig.bgColor}`}
-                        />
+                        <div className={`w-2 h-2 rounded-full`} />
                         <span className="font-semibold text-gray-500 uppercase tracking-wider">
                           Engagement
                         </span>
@@ -345,20 +267,6 @@ export default function TestimoniesGrid({
                         </span>
                         <span className="text-gray-400">views</span>
                       </div>
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-1000 ease-out ${impressionConfig.bgColor
-                          .replace("bg-", "bg-")
-                          .replace("/10", "/60")}`}
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (testimony.impressions / 10000) * 100
-                          )}%`,
-                        }}
-                      />
                     </div>
                   </div>
 

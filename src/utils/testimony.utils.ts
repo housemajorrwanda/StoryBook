@@ -257,3 +257,13 @@ export function parseTestimonySlug(slug: string): number | null {
   const match = slug.match(/^(\d+)(?:-.*)?$/);
   return match ? parseInt(match[1], 10) : null;
 }
+
+export const formatImpressions = (impressions: number) => {
+  if (impressions >= 1000000) {
+    return (impressions / 1000000).toFixed(1) + "M";
+  }
+  if (impressions >= 1000) {
+    return (impressions / 1000).toFixed(1) + "K";
+  }
+  return impressions.toString();
+};
