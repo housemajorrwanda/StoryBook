@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { authService } from "@/services/auth.service";
 import { LoginCredentials, SignupCredentials } from "@/types/auth";
 import { setAuthToken, clearAuthToken } from "@/lib/cookies";
+import { decodeAuthToken } from "@/lib/decodeToken";
 
 export const useLogin = () => {
   const router = useRouter();
@@ -19,14 +20,22 @@ export const useLogin = () => {
         setAuthToken(data.access_token);
         queryClient.setQueryData(["user"], data.user);
         toast.success("Login successful!");
-        router.push("/dashboard");
+
+        // Redirect based on user role
+        const userRole = data.user.role || decodeAuthToken()?.role;
+        if (userRole === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
       } else {
         toast.error("Login failed");
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
-        error.response?.data?.message || "Login failed. Please try again.";
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Login failed. Please try again.";
       toast.error(message);
     },
   });
@@ -44,14 +53,22 @@ export const useSignup = () => {
         setAuthToken(data.access_token);
         queryClient.setQueryData(["user"], data.user);
         toast.success("Account created successfully!");
-        router.push("/dashboard");
+
+        // Redirect based on user role
+        const userRole = data.user.role || decodeAuthToken()?.role;
+        if (userRole === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/"); // Landing page for regular users
+        }
       } else {
         toast.error("Signup failed");
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
-        error.response?.data?.message || "Signup failed. Please try again.";
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Signup failed. Please try again.";
       toast.error(message);
     },
   });
