@@ -26,11 +26,7 @@ export default function UserAvatar({
     right: 0,
   });
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setMounted(true), 0);
-  }, []);
+  const isClient = typeof window !== "undefined";
 
   useEffect(() => {
     if (isDropdownOpen && buttonRef.current) {
@@ -68,7 +64,7 @@ export default function UserAvatar({
     return user.username || user.email || "User";
   };
 
-  const dropdownContent = showDropdown && isDropdownOpen && mounted && (
+  const dropdownContent = showDropdown && isDropdownOpen && isClient && (
     <>
       {/* Backdrop */}
       <div
@@ -127,7 +123,7 @@ export default function UserAvatar({
         </div>
       </button>
 
-      {mounted &&
+      {isClient &&
         dropdownContent &&
         createPortal(dropdownContent, document.body)}
     </div>
