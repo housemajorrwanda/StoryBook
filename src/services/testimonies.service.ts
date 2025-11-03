@@ -147,7 +147,7 @@ export const testimoniesService = {
 
   // Upload audio to Cloudinary
   async uploadAudio(file: File): Promise<AudioUploadResponse> {
-    const maxSize = 50 * 1024 * 1024; // 50MB limit for audio
+    const maxSize = 50 * 1024 * 1024;
 
     // Validate file size
     if (file.size > maxSize) {
@@ -199,7 +199,7 @@ export const testimoniesService = {
 
   // Upload video
   async uploadVideo(file: File): Promise<AudioUploadResponse> {
-    const maxSize = 100 * 1024 * 1024; // 100MB limit for video
+    const maxSize = 100 * 1024 * 1024;
 
     // Validate file size
     if (file.size > maxSize) {
@@ -219,7 +219,7 @@ export const testimoniesService = {
         "/upload/video",
         formData,
         {
-          timeout: 300000, // 5 minutes for video
+          timeout: 300000,
           onUploadProgress: () => {},
         }
       );

@@ -15,6 +15,7 @@ export function decodeAuthToken(key = "authToken"): JWTPayload | null {
 
     const payload = JSON.parse(atob(token.split(".")[1]));
     return payload as JWTPayload;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     localStorage.removeItem(key);
     return null;

@@ -5,12 +5,18 @@ import { useState, useEffect } from "react";
 import { LuMenu, LuShare, LuX } from "react-icons/lu";
 import HeroSection from "@/components/shared/HeroSection";
 import TestimoniesGrid from "@/components/testimonies/TestimoniesGrid";
+import UserAvatar from "@/components/shared/UserAvatar";
+import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
+import { useLogout } from "@/hooks/auth/use-auth-queries";
 
 export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<ReturnType<typeof getCurrentUser>>(null);
+  const logoutMutation = useLogout();
 
   // Handle scroll events
   useEffect(() => {
@@ -34,6 +40,36 @@ export default function Home() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      if (isAuthenticated()) {
+        setUser(getCurrentUser());
+      } else {
+        setUser(null);
+      }
+    };
+
+    // Set mounted in next tick to avoid direct state update in effect
+    setTimeout(() => setMounted(true), 0);
+    checkAuth();
+
+    // Listen for storage changes (when login/logout happens in other tabs)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also check periodically for token expiration
+    const interval = setInterval(checkAuth, 5000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   // Handle mobile menu state changes
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,6 +90,14 @@ export default function Home() {
       document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        setUser(null);
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#fafafa] relative overflow-hidden">
@@ -115,11 +159,12 @@ export default function Home() {
 
       <header className="fixed top-16 md:top-20 w-full left-0 z-40 px-4 sm:px-6 lg:px-8">
         <div
-          className={`container mx-auto px-5 md:px-8 h-16 md:h-20 flex items-center justify-between backdrop-blur-2xl rounded-2xl transition-all duration-700 ease-out relative overflow-hidden ${
+          className={`container mx-auto px-5 md:px-8 h-16 md:h-20 flex items-center justify-between backdrop-blur-2xl rounded-2xl transition-all duration-700 ease-out relative ${
             isScrolled
               ? "bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08)] scale-[0.96] border border-gray-200/50"
               : "bg-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] scale-100 border border-white/40"
           }`}
+          style={{ overflow: "visible" }}
         >
           {/* Shimmer effect on hover */}
           <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none">
@@ -161,9 +206,9 @@ export default function Home() {
           <nav className="hidden md:flex items-center justify-center flex-1">
             <div className="flex items-center gap-1 bg-black/5 backdrop-blur-md rounded-full px-2 py-2 border border-black/5">
               {[
-                { href: "#stories", label: "Browse" },
+                { href: "#testimonies", label: "Testimonies" },
                 { href: "#connections", label: "Connections" },
-                { href: "#archive", label: "Archive" },
+                { href: "#virtual Tours", label: "Virtual Tours" },
                 { href: "#education", label: "Education" },
               ].map((item) => (
                 <Link key={item.href} href={item.href}>
@@ -187,17 +232,28 @@ export default function Home() {
               </button>
             </Link>
 
-            <Link href="/login">
-              <button
-                className={`inline-flex items-center gap-2 cursor-pointer px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] border ${
-                  isScrolled
-                    ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-800 shadow-sm hover:shadow-md"
-                    : "bg-white/80 hover:bg-white border-white/60 text-gray-800 backdrop-blur-sm shadow-sm hover:shadow-md"
-                }`}
-              >
-                Sign in
-              </button>
-            </Link>
+            {mounted && user ? (
+              <UserAvatar
+                user={user}
+                size="lg"
+                showDropdown={true}
+                onLogout={handleLogout}
+              />
+            ) : (
+              mounted && (
+                <Link href="/login">
+                  <button
+                    className={`inline-flex items-center gap-2 cursor-pointer px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] border ${
+                      isScrolled
+                        ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-800 shadow-sm hover:shadow-md"
+                        : "bg-white/80 hover:bg-white border-white/60 text-gray-800 backdrop-blur-sm shadow-sm hover:shadow-md"
+                    }`}
+                  >
+                    Sign in
+                  </button>
+                </Link>
+              )
+            )}
           </div>
 
           {/* Refined Mobile Menu Button */}
@@ -232,7 +288,7 @@ export default function Home() {
             {/* Navigation Links with Stagger Effect */}
             <div className="space-y-2 pb-6 border-b border-gray-200/50">
               {[
-                { href: "#stories", label: "Browse Stories", delay: "0ms" },
+                { href: "#testimonies", label: "Testimonies", delay: "0ms" },
                 {
                   href: "#connections",
                   label: "Find Connections",
@@ -273,11 +329,47 @@ export default function Home() {
                 </button>
               </Link>
 
-              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <button className="w-full px-6 py-4 bg-white border border-gray-300 hover:border-gray-400 active:border-gray-500 text-gray-800 hover:text-black text-base font-bold rounded-2xl transition-all duration-200 min-h-[56px] active:bg-gray-50 active:scale-[0.98] shadow-sm mt-2">
-                  Sign in
-                </button>
-              </Link>
+              {mounted && user ? (
+                <div className="flex items-center gap-3 px-6 py-4 bg-gray-50 rounded-2xl">
+                  <UserAvatar user={user} size="md" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {user.firstName && user.lastName
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.username || user.email}
+                    </p>
+                    {user.role === "admin" && (
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="text-xs text-gray-600 hover:text-gray-900"
+                      >
+                        Go to Dashboard
+                      </Link>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                mounted && (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <button className="w-full px-6 py-4 bg-white border border-gray-300 hover:border-gray-400 active:border-gray-500 text-gray-800 hover:text-black text-base font-bold rounded-2xl transition-all duration-200 min-h-[56px] active:bg-gray-50 active:scale-[0.98] shadow-sm mt-2">
+                      Sign in
+                    </button>
+                  </Link>
+                )
+              )}
             </div>
           </div>
         </div>
@@ -324,7 +416,7 @@ export default function Home() {
       <HeroSection />
 
       {/* Published Testimonies Section */}
-      <section id="stories" className="relative z-10 bg-[#fafafa]">
+      <section id="testimonies" className="relative z-10 bg-[#fafafa]">
         <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-12 md:py-14 bg-[#fafafa]">
           <div className="mb-6 sm:mb-10 md:mb-12">
             <h2 className="text-xl sm:text-xl md:text-3xl font-extrabold tracking-tight text-gray-900">
