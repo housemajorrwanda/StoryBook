@@ -7,11 +7,10 @@ export interface LoginCredentials {
 
 export interface SignupCredentials {
   email: string;
-  username: string;
   password: string;
+  fullName: string;
+  residentPlace?: string;
   confirmPassword: string;
-  firstName: string;
-  lastName: string;
 }
 
 export interface JWTPayload {

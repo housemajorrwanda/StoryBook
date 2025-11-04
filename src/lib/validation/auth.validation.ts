@@ -24,6 +24,9 @@ export const signupValidationSchema = Yup.object({
       "Username can only contain letters, numbers, and underscores"
     )
     .required("Username is required"),
+  fullName: Yup.string()
+    .min(2, 'Full name must be at least 2 characters')
+    .required('Full name is required'),
   email: Yup.string()
     .email("Invalid email address")
     .required("Email is required"),
