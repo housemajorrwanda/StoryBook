@@ -30,6 +30,8 @@ import Placeholder from "@tiptap/extension-placeholder";
 interface TestimonyContentStepProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  onCursorChange?: (position: number) => void;
+  onSaveDraft?: () => void;
 }
 
 // Toolbar button component
@@ -66,6 +68,8 @@ const ToolbarButton = ({
 export default function TestimonyContentStep({
   formData,
   setFormData,
+  onCursorChange,
+  onSaveDraft,
 }: TestimonyContentStepProps) {
   // Modal state
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
@@ -105,6 +109,19 @@ You can use the formatting tools above to:
         ...prev,
         testimony: html,
       }));
+
+      // Track cursor position
+      if (onCursorChange) {
+        const { from } = editor.state.selection;
+        onCursorChange(from);
+      }
+    },
+    onSelectionUpdate: ({ editor }) => {
+      // Track cursor position on selection changes
+      if (onCursorChange) {
+        const { from } = editor.state.selection;
+        onCursorChange(from);
+      }
     },
     editorProps: {
       attributes: {
@@ -804,13 +821,25 @@ You can use the formatting tools above to:
         {/* Recording Modals */}
         <AudioRecorderModal
           isOpen={isAudioModalOpen}
-          onClose={() => setIsAudioModalOpen(false)}
+          onClose={() => {
+            setIsAudioModalOpen(false);
+            // Save draft when closing audio recorder
+            if (onSaveDraft) {
+              onSaveDraft();
+            }
+          }}
           onRecordingComplete={handleAudioRecordingComplete}
         />
 
         <VideoRecorderModal
           isOpen={isVideoModalOpen}
-          onClose={() => setIsVideoModalOpen(false)}
+          onClose={() => {
+            setIsVideoModalOpen(false);
+            // Save draft when closing video recorder
+            if (onSaveDraft) {
+              onSaveDraft();
+            }
+          }}
           onRecordingComplete={handleVideoRecordingComplete}
         />
       </div>

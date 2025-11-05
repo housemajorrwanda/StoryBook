@@ -150,15 +150,23 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <LuCalendar className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Date of Event</p>
-                  <p className="font-semibold text-gray-900">
-                    {formatDate(testimony.dateOfEvent)}
-                  </p>
+              {(testimony.dateOfEventFrom || testimony.dateOfEventTo) && (
+                <div className="flex items-center gap-3">
+                  <LuCalendar className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-500">Date of Event</p>
+                    <p className="font-semibold text-gray-900">
+                      {testimony.dateOfEventFrom && testimony.dateOfEventTo
+                        ? `${formatDate(
+                            testimony.dateOfEventFrom
+                          )} - ${formatDate(testimony.dateOfEventTo)}`
+                        : testimony.dateOfEventFrom
+                        ? formatDate(testimony.dateOfEventFrom)
+                        : formatDate(testimony.dateOfEventTo!)}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -270,7 +278,7 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
                       {testimony.fullName}
                     </p>
                     <p className="text-sm text-gray-600 capitalize">
-                      {testimony.relationToEvent}
+                      {testimony.relationToEvent || "N/A"}
                     </p>
                   </div>
                 </div>

@@ -1,46 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   LuChevronLeft,
   LuChevronRight,
   LuArrowLeft,
   LuLoader,
+  LuSave,
+  LuCheck,
 } from "react-icons/lu";
 import { toast } from "react-hot-toast";
 import SubmissionTypeStep from "@/components/testimony/SubmissionTypeStep";
 import PersonalDetailsStep from "@/components/testimony/PersonalDetailsStep";
 import TestimonyContentStep from "@/components/testimony/TestimonyContentStep";
-import { FormData } from "@/types/testimonies";
-import { useCreateTestimonyMultipart } from "@/hooks/useTestimonies";
+import { FormData, CreateOrUpdateTestimonyRequest } from "@/types/testimonies";
+import { useCreateTestimony, useUpdateTestimony } from "@/hooks/useTestimonies";
+import { testimoniesService } from "@/services/testimonies.service";
 import {
   validateFormData,
   validateFile,
   FILE_CONSTRAINTS,
 } from "@/utils/testimony.utils";
+import { isAuthenticated } from "@/lib/decodeToken";
 
 export default function ShareStoryPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savedDraftId, setSavedDraftId] = useState<number | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
+  const [cursorPosition, setCursorPosition] = useState(0);
+
   const [formData, setFormData] = useState<FormData>({
     type: null,
     identity: null,
     fullName: "",
     relationToEvent: "",
-    relativesNames: "",
     location: "",
-    dateOfEvent: "",
+    dateOfEventFrom: "",
+    dateOfEventTo: "",
     testimony: "",
     eventTitle: "",
     consent: false,
     images: [],
     audioFile: null,
     videoFile: null,
+    relatives: [],
   });
 
   // TanStack Query hooks
-  const createTestimonyMultipart = useCreateTestimonyMultipart();
+  const createTestimony = useCreateTestimony();
+  const updateTestimony = useUpdateTestimony();
 
   const steps = [
     { number: 1, label: "Type", title: "Choose Submission Type" },
@@ -60,33 +72,170 @@ export default function ShareStoryPage() {
     }
   };
 
+  // Manual save draft functionality
+  const handleSaveDraft = useCallback(async () => {
+    // Only save if user is authenticated
+    if (!isAuthenticated()) {
+      toast.error("Please log in to save drafts");
+      return;
+    }
+
+    // Don't save if form is empty or invalid
+    if (!formData.type || !formData.identity || !formData.eventTitle) {
+      toast.error(
+        "Please fill in at least the submission type, identity, and event title"
+      );
+      return;
+    }
+
+    // Set saving status
+    setSaveStatus("saving");
+
+    try {
+      // Upload images first to get URLs
+      const imageUrls: string[] = [];
+      if (formData.images.length > 0) {
+        toast.loading("Uploading images...", { id: "upload-images" });
+        const uploadPromises = formData.images.map((img) =>
+          testimoniesService.uploadImage(img.file)
+        );
+        const uploadedImages = await Promise.all(uploadPromises);
+        imageUrls.push(...uploadedImages.map((img) => img.url));
+        toast.dismiss("upload-images");
+      }
+
+      // Build request
+      const request: CreateOrUpdateTestimonyRequest = {
+        submissionType: formData.type,
+        identityPreference: formData.identity,
+        fullName: formData.fullName || undefined,
+        relationToEvent: formData.relationToEvent || undefined,
+        location: formData.location || undefined,
+        dateOfEventFrom: formData.dateOfEventFrom || undefined,
+        dateOfEventTo: formData.dateOfEventTo || undefined,
+        relatives: formData.relatives?.length ? formData.relatives : undefined,
+        eventTitle: formData.eventTitle,
+        eventDescription: "",
+        fullTestimony: formData.testimony || undefined,
+        isDraft: true,
+        draftCursorPosition: cursorPosition,
+        agreedToTerms: false, // Drafts don't require consent
+        images: imageUrls.length > 0 ? imageUrls : undefined,
+        audio: formData.audioFile || undefined,
+        video: formData.videoFile || undefined,
+      };
+
+      // Save or update draft
+      if (savedDraftId) {
+        await updateTestimony.mutateAsync({
+          id: savedDraftId,
+          request,
+        });
+        toast.success("Draft updated successfully!", { icon: "💾" });
+      } else {
+        const result = await createTestimony.mutateAsync(request);
+        setSavedDraftId(result.id);
+        toast.success("Draft saved successfully!", { icon: "💾" });
+      }
+
+      setSaveStatus("saved");
+
+      // Reset status after 3 seconds
+      setTimeout(() => {
+        setSaveStatus("idle");
+      }, 3000);
+    } catch (error) {
+      console.error("Save draft failed:", error);
+      setSaveStatus("idle");
+      toast.error("Failed to save draft. Please try again.");
+    }
+  }, [
+    formData,
+    cursorPosition,
+    savedDraftId,
+    createTestimony,
+    updateTestimony,
+  ]);
+
+  // Save draft on tab close/window unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Only save if user has made changes and is authenticated
+      if (
+        isAuthenticated() &&
+        formData.type &&
+        formData.identity &&
+        formData.eventTitle
+      ) {
+        // Use sendBeacon for reliable sending before page unload
+        const request: CreateOrUpdateTestimonyRequest = {
+          submissionType: formData.type,
+          identityPreference: formData.identity,
+          fullName: formData.fullName || undefined,
+          relationToEvent: formData.relationToEvent || undefined,
+          location: formData.location || undefined,
+          dateOfEventFrom: formData.dateOfEventFrom || undefined,
+          dateOfEventTo: formData.dateOfEventTo || undefined,
+          relatives: formData.relatives?.length
+            ? formData.relatives
+            : undefined,
+          eventTitle: formData.eventTitle,
+          eventDescription: "",
+          fullTestimony: formData.testimony || undefined,
+          isDraft: true,
+          draftCursorPosition: cursorPosition,
+          agreedToTerms: false,
+          images: undefined, // Skip images on unload to avoid delays
+          audio: undefined, // Skip files on unload
+          video: undefined,
+        };
+
+        // Save synchronously before unload
+        if (savedDraftId) {
+          navigator.sendBeacon(
+            `${
+              process.env.NEXT_PUBLIC_API_BASE_URL ||
+              "https://storybook-backend-production-574d.up.railway.app"
+            }/testimonies/${savedDraftId}`,
+            JSON.stringify(request)
+          );
+        } else {
+          navigator.sendBeacon(
+            `${
+              process.env.NEXT_PUBLIC_API_BASE_URL ||
+              "https://storybook-backend-production-574d.up.railway.app"
+            }/testimonies`,
+            JSON.stringify(request)
+          );
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [formData, cursorPosition, savedDraftId]);
+
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
 
-      // Validate form data
+      // Validate form data (consent is checked here for final submission only)
       const validationErrors = validateFormData(formData);
+
+      // Add consent check for final submission (not required for drafts)
+      if (!formData.consent) {
+        validationErrors.push("You must agree to the terms and conditions");
+      }
+
       if (validationErrors.length > 0) {
         validationErrors.forEach((error) => toast.error(error));
         setIsSubmitting(false);
         return;
       }
 
-      // Build multipart FormData for single endpoint
-      const fd = new window.FormData();
-      fd.append("submissionType", String(formData.type));
-      fd.append("identityPreference", String(formData.identity));
-      fd.append("fullName", formData.fullName);
-      fd.append("relationToEvent", formData.relationToEvent);
-      fd.append("nameOfRelative", formData.relativesNames);
-      fd.append("location", formData.location);
-      fd.append("dateOfEvent", formData.dateOfEvent);
-      fd.append("eventTitle", formData.eventTitle);
-      fd.append("eventDescription", "");
-      fd.append("fullTestimony", formData.testimony);
-      fd.append("agreedToTerms", String(formData.consent));
-
-      // Files
+      // Validate files before uploading
       for (const imageData of formData.images) {
         const v = validateFile(
           imageData.file,
@@ -98,9 +247,8 @@ export default function ShareStoryPage() {
           setIsSubmitting(false);
           return;
         }
-        fd.append("images", imageData.file);
-        fd.append("imagesDescriptions", imageData.description || "");
       }
+
       if (formData.audioFile) {
         const v = validateFile(
           formData.audioFile,
@@ -112,8 +260,8 @@ export default function ShareStoryPage() {
           setIsSubmitting(false);
           return;
         }
-        fd.append("audio", formData.audioFile);
       }
+
       if (formData.videoFile) {
         const v = validateFile(
           formData.videoFile,
@@ -125,11 +273,56 @@ export default function ShareStoryPage() {
           setIsSubmitting(false);
           return;
         }
-        fd.append("video", formData.videoFile);
       }
 
-      toast.loading("Submitting testimony...", { id: "submit-testimony" });
-      await createTestimonyMultipart.mutateAsync(fd);
+      toast.loading("Uploading files and submitting testimony...", {
+        id: "submit-testimony",
+      });
+
+      // Upload images first to get URLs
+      const imageUrls: string[] = [];
+      if (formData.images.length > 0) {
+        const uploadPromises = formData.images.map((img) =>
+          testimoniesService.uploadImage(img.file)
+        );
+        const uploadedImages = await Promise.all(uploadPromises);
+        imageUrls.push(...uploadedImages.map((img) => img.url));
+      }
+
+      // Build request
+      const request: CreateOrUpdateTestimonyRequest = {
+        submissionType: formData.type!,
+        identityPreference: formData.identity!,
+        fullName: formData.fullName || undefined,
+        relationToEvent: formData.relationToEvent || undefined,
+        location: formData.location || undefined,
+        dateOfEventFrom: formData.dateOfEventFrom || undefined,
+        dateOfEventTo: formData.dateOfEventTo || undefined,
+        relatives: formData.relatives?.length ? formData.relatives : undefined,
+        eventTitle: formData.eventTitle,
+        eventDescription: "",
+        fullTestimony: formData.testimony || undefined,
+        isDraft: false, // Final submission
+        agreedToTerms: formData.consent,
+        images: imageUrls.length > 0 ? imageUrls : undefined,
+        audio: formData.audioFile || undefined,
+        video: formData.videoFile || undefined,
+      };
+
+      // Submit or update
+      if (savedDraftId) {
+        await updateTestimony.mutateAsync({
+          id: savedDraftId,
+          request,
+        });
+      } else {
+        await createTestimony.mutateAsync(request);
+      }
+
+      toast.success("Testimony submitted successfully!", {
+        id: "submit-testimony",
+      });
+
       setTimeout(() => {
         window.location.href = "/";
       }, 2000);
@@ -147,7 +340,7 @@ export default function ShareStoryPage() {
           : error instanceof Error
           ? error.message
           : "Failed to submit testimony. Please try again.";
-      toast.error(errorMessage);
+      toast.error(errorMessage, { id: "submit-testimony" });
     } finally {
       setIsSubmitting(false);
     }
@@ -159,7 +352,11 @@ export default function ShareStoryPage() {
         return formData.type !== null && formData.identity !== null;
       case 2:
         return (
-          formData.fullName && formData.relationToEvent && formData.location
+          formData.fullName &&
+          formData.relationToEvent &&
+          formData.location &&
+          formData.dateOfEventFrom &&
+          formData.dateOfEventTo
         );
       case 3:
         // Validate required fields for all types
@@ -201,13 +398,48 @@ export default function ShareStoryPage() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-black rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs sm:text-sm">S</span>
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Save Draft Button in Header (always visible when authenticated) */}
+            {isAuthenticated() && (
+              <button
+                onClick={handleSaveDraft}
+                disabled={
+                  saveStatus === "saving" ||
+                  !formData.type ||
+                  !formData.identity ||
+                  !formData.eventTitle
+                }
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm"
+              >
+                {saveStatus === "saving" ? (
+                  <>
+                    <LuLoader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                    <span className="hidden sm:inline">Saving...</span>
+                  </>
+                ) : saveStatus === "saved" ? (
+                  <>
+                    <LuCheck className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
+                    <span className="hidden sm:inline">Saved!</span>
+                  </>
+                ) : (
+                  <>
+                    <LuSave className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Save Draft</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-black rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xs sm:text-sm">
+                  S
+                </span>
+              </div>
+              <span className="font-bold text-gray-900 text-sm sm:text-base">
+                StoryBook
+              </span>
             </div>
-            <span className="font-bold text-gray-900 text-sm sm:text-base">
-              StoryBook
-            </span>
           </div>
         </div>
       </header>
@@ -301,6 +533,8 @@ export default function ShareStoryPage() {
               <TestimonyContentStep
                 formData={formData}
                 setFormData={setFormData}
+                onCursorChange={setCursorPosition}
+                onSaveDraft={handleSaveDraft}
               />
             )}
           </div>
@@ -329,20 +563,47 @@ export default function ShareStoryPage() {
                 <LuChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={!isStepValid() || isSubmitting}
-                className="flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-black text-white font-semibold rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base w-full sm:w-auto order-1 sm:order-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <LuLoader className="w-4 h-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Testimony"
+              <div className="flex items-center gap-3 order-1 sm:order-2">
+                {/* Save Draft Button (only if authenticated) */}
+                {isAuthenticated() && (
+                  <button
+                    onClick={handleSaveDraft}
+                    disabled={saveStatus === "saving"}
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg sm:rounded-xl hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base"
+                  >
+                    {saveStatus === "saving" ? (
+                      <>
+                        <LuLoader className="w-4 h-4 animate-spin" />
+                        <span className="hidden sm:inline">Saving...</span>
+                      </>
+                    ) : saveStatus === "saved" ? (
+                      <>
+                        <LuCheck className="w-4 h-4 text-green-500" />
+                        <span className="hidden sm:inline">Saved!</span>
+                      </>
+                    ) : (
+                      <>
+                        <LuSave className="w-4 h-4" />
+                        <span className="hidden sm:inline">Save Draft</span>
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!isStepValid() || isSubmitting}
+                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-black text-white font-semibold rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base w-full sm:w-auto"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <LuLoader className="w-4 h-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Testimony"
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </div>

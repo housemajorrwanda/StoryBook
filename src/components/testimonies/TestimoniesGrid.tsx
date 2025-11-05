@@ -181,10 +181,28 @@ export default function TestimoniesGrid({
                           {getSubmissionIcon(testimony.submissionType!)}
                           {testimony.submissionType}
                         </span>
-                        <span>•</span>
-                        <span>{testimony.relationToEvent}</span>
-                        <span>•</span>
-                        <span>{formatDate(testimony.dateOfEvent)}</span>
+                        {testimony.relationToEvent && (
+                          <>
+                            <span>•</span>
+                            <span>{testimony.relationToEvent}</span>
+                          </>
+                        )}
+                        {(testimony.dateOfEventFrom ||
+                          testimony.dateOfEventTo) && (
+                          <>
+                            <span>•</span>
+                            <span>
+                              {testimony.dateOfEventFrom &&
+                              testimony.dateOfEventTo
+                                ? `${formatDate(
+                                    testimony.dateOfEventFrom
+                                  )} - ${formatDate(testimony.dateOfEventTo)}`
+                                : testimony.dateOfEventFrom
+                                ? formatDate(testimony.dateOfEventFrom)
+                                : formatDate(testimony.dateOfEventTo!)}
+                            </span>
+                          </>
+                        )}
                       </div>
 
                       {/* Title */}

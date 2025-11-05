@@ -1,8 +1,10 @@
 import axios from "axios";
+import { getAuthToken } from "@/lib/cookies";
 import {
   Testimony,
   ImageUploadResponse,
   AudioUploadResponse,
+  CreateOrUpdateTestimonyRequest,
 } from "@/types/testimonies";
 
 const publicApi = axios.create({
@@ -25,7 +27,29 @@ const uploadApi = axios.create({
   },
 });
 
-// Public API error handler (no auth redirect)
+const authenticatedApi = axios.create({
+  baseURL:
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    "https://storybook-backend-production-574d.up.railway.app",
+  timeout: 120000,
+});
+
+// Add auth token interceptor to authenticated API
+authenticatedApi.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Public API error handler
 publicApi.interceptors.response.use(
   (response) => response,
   (error) => Promise.reject(error)
@@ -35,6 +59,24 @@ publicApi.interceptors.response.use(
 uploadApi.interceptors.response.use(
   (response) => response,
   (error) => Promise.reject(error)
+);
+
+// Authenticated API error handler
+authenticatedApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error && typeof error === "object" && "response" in error) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem("authToken");
+        document.cookie =
+          "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        window.location.href = "/";
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 // Helper function to test server connectivity
@@ -48,14 +90,113 @@ async function testServerConnectivity(): Promise<boolean> {
   }
 }
 
+// Helper function to build FormData from CreateOrUpdateTestimonyRequest
+function buildTestimonyFormData(
+  request: CreateOrUpdateTestimonyRequest
+): FormData {
+  const fd = new FormData();
+
+  // Required fields (*)
+  if (request.submissionType !== null && request.submissionType !== undefined) {
+    fd.append("submissionType", String(request.submissionType));
+  }
+  if (
+    request.identityPreference !== null &&
+    request.identityPreference !== undefined
+  ) {
+    fd.append("identityPreference", String(request.identityPreference));
+  }
+  fd.append("eventTitle", request.eventTitle);
+  fd.append("agreedToTerms", String(request.agreedToTerms));
+
+  // Optional string fields
+  if (request.fullName) {
+    fd.append("fullName", request.fullName);
+  }
+  if (request.relationToEvent) {
+    fd.append("relationToEvent", request.relationToEvent);
+  }
+  if (request.location) {
+    fd.append("location", request.location);
+  }
+  if (request.eventDescription) {
+    fd.append("eventDescription", request.eventDescription);
+  }
+  if (request.fullTestimony) {
+    fd.append("fullTestimony", request.fullTestimony);
+  }
+
+  // Date fields
+  if (request.dateOfEventFrom) {
+    fd.append("dateOfEventFrom", request.dateOfEventFrom);
+  }
+  if (request.dateOfEventTo) {
+    fd.append("dateOfEventTo", request.dateOfEventTo);
+  }
+
+  // Boolean and number fields
+  if (typeof request.isDraft === "boolean") {
+    fd.append("isDraft", String(request.isDraft));
+  }
+  if (typeof request.draftCursorPosition === "number") {
+    fd.append("draftCursorPosition", String(request.draftCursorPosition));
+  }
+
+  // Array of objects - relatives
+  if (request.relatives && Array.isArray(request.relatives)) {
+    fd.append("relatives", JSON.stringify(request.relatives));
+  }
+
+  if (
+    request.images &&
+    Array.isArray(request.images) &&
+    request.images.length > 0
+  ) {
+    request.images.forEach((imageUrl) => {
+      fd.append("images", imageUrl);
+    });
+  }
+
+  // Binary files
+  if (request.audio) {
+    fd.append("audio", request.audio);
+  }
+  if (request.video) {
+    fd.append("video", request.video);
+  }
+
+  return fd;
+}
+
 // Testimonies API Service
 export const testimoniesService = {
-  // Create testimony via single multipart endpoint
+  async createTestimony(
+    request: CreateOrUpdateTestimonyRequest
+  ): Promise<Testimony> {
+    try {
+      const fd = buildTestimonyFormData(request);
+      const response = await authenticatedApi.post<Testimony>(
+        "/testimonies",
+        fd,
+        {
+          timeout: 300000,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   async createTestimonyMultipart(fd: FormData): Promise<Testimony> {
     try {
-      const response = await uploadApi.post<Testimony>("/testimonies", fd, {
-        timeout: 300000,
-      });
+      const response = await authenticatedApi.post<Testimony>(
+        "/testimonies",
+        fd,
+        {
+          timeout: 300000,
+        }
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -79,7 +220,55 @@ export const testimoniesService = {
     return response.data;
   },
 
-  // Upload single image to Cloudinary with retry logic
+  // Get user's draft testimonies (REQUIRES AUTH)
+  async getDrafts(): Promise<Testimony[]> {
+    const response = await authenticatedApi.get<
+      { data: Testimony[] } | Testimony[]
+    >("/testimonies/drafts");
+    if (Array.isArray(response.data)) {
+      return response.data.filter((testimony) => testimony.isDraft === true);
+    }
+    return (
+      response.data.data?.filter((testimony) => testimony.isDraft === true) ||
+      []
+    );
+  },
+
+  // Update testimony with new request format (REQUIRES AUTH)
+  async updateTestimony(
+    id: number,
+    request: CreateOrUpdateTestimonyRequest
+  ): Promise<Testimony> {
+    try {
+      const fd = buildTestimonyFormData(request);
+      const response = await authenticatedApi.patch<Testimony>(
+        `/testimonies/${id}`,
+        fd,
+        {
+          timeout: 300000,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async updateTestimonyMultipart(id: number, fd: FormData): Promise<Testimony> {
+    try {
+      const response = await authenticatedApi.patch<Testimony>(
+        `/testimonies/${id}`,
+        fd,
+        {
+          timeout: 300000,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   async uploadImage(file: File, retryCount = 0): Promise<ImageUploadResponse> {
     const maxRetries = 3;
     const maxSize = 10 * 1024 * 1024; // 10MB limit
