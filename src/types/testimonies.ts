@@ -19,10 +19,11 @@ export interface Testimony {
   submissionType: StoryType;
   identityPreference: IdentityPreference;
   fullName: string;
-  relationToEvent: string;
-  nameOfRelative: string;
+  relationToEvent?: string;
+  relatives?: Array<Record<string, unknown>>;
   location: string;
-  dateOfEvent: string;
+  dateOfEventFrom?: string;
+  dateOfEventTo?: string;
   eventTitle: string;
   eventDescription?: string;
   fullTestimony: string;
@@ -49,6 +50,8 @@ export interface Testimony {
     name: string;
     email: string;
   } | null;
+  isDraft?: boolean;
+  draftCursorPosition?: number;
 }
 
 // Request Types
@@ -57,9 +60,10 @@ export interface CreateTestimonyRequest {
   identityPreference: IdentityPreference;
   fullName: string;
   relationToEvent: string;
-  nameOfRelative: string;
+  relatives?: Array<Record<string, unknown>>;
   location: string;
-  dateOfEvent: string;
+  dateOfEventFrom?: string;
+  dateOfEventTo?: string;
   eventTitle: string;
   eventDescription?: string;
   fullTestimony: string;
@@ -78,6 +82,26 @@ export interface CreateTestimonyRequest {
   agreedToTerms: boolean;
 }
 
+export interface CreateOrUpdateTestimonyRequest {
+  submissionType: StoryType;
+  identityPreference: IdentityPreference;
+  fullName?: string;
+  relationToEvent?: string;
+  relatives?: Array<Record<string, unknown>>;
+  location?: string;
+  dateOfEventFrom?: string;
+  dateOfEventTo?: string;
+  eventTitle: string;
+  eventDescription?: string;
+  fullTestimony?: string;
+  isDraft?: boolean;
+  draftCursorPosition?: number;
+  agreedToTerms: boolean;
+  images?: string[];
+  audio?: File | null;
+  video?: File | null;
+}
+
 // Upload Response Types
 export interface ImageUploadResponse {
   url: string;
@@ -92,15 +116,15 @@ export interface AudioUploadResponse {
   publicId: string;
 }
 
-// Form Data Types (for frontend form)
 export interface FormData {
   type: StoryType;
   identity: IdentityPreference;
   fullName: string;
   relationToEvent: string;
-  relativesNames: string;
+  relatives?: Array<Record<string, unknown>>;
   location: string;
-  dateOfEvent: string;
+  dateOfEventFrom?: string;
+  dateOfEventTo?: string;
   testimony: string;
   eventTitle: string;
   consent: boolean;

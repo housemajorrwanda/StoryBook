@@ -59,7 +59,7 @@ export const useSignup = () => {
         if (userRole === "admin") {
           router.push("/dashboard");
         } else {
-          router.push("/"); // Landing page for regular users
+          router.push("/");
         }
       } else {
         toast.error("Signup failed");
@@ -79,17 +79,20 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => authService.logout(),
+    mutationFn: async () => {
+      return Promise.resolve();
+    },
     onSuccess: () => {
       clearAuthToken();
       queryClient.clear();
-      toast.success("Logged out successfully");
+      queryClient.removeQueries();
+      toast.success("Logged out successfully!");
       router.push("/");
     },
     onError: () => {
-      // Even if logout fails on server, clear local data
       clearAuthToken();
       queryClient.clear();
+      queryClient.removeQueries();
       router.push("/");
     },
   });

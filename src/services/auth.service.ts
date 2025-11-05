@@ -13,14 +13,10 @@ export const authService = {
   },
 
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
-    // Remove confirmPassword before sending to API
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword: _, ...apiCredentials } = credentials;
     const response = await axiosInstance.post("/auth/register", apiCredentials);
     return response.data;
-  },
-
-  logout: async (): Promise<void> => {
-    await axiosInstance.post("/auth/logout");
   },
 
   refreshToken: async (): Promise<LoginResponse> => {

@@ -1,5 +1,11 @@
-import React from "react";
-import { LuCalendar, LuChevronDown } from "react-icons/lu";
+import React, { useState } from "react";
+import {
+  LuCalendar,
+  LuPlus,
+  LuX,
+  LuChevronDown,
+  LuMapPin,
+} from "react-icons/lu";
 import { FormData } from "@/types/testimonies";
 
 interface PersonalDetailsStepProps {
@@ -11,6 +17,62 @@ export default function PersonalDetailsStep({
   formData,
   setFormData,
 }: PersonalDetailsStepProps) {
+  const relatives = formData.relatives || [];
+  const [newRelativeValue, setNewRelativeValue] = useState("");
+  const [newRelativeName, setNewRelativeName] = useState("");
+
+  const relationshipOptions = [
+    { value: "brother", label: "Brother" },
+    { value: "sister", label: "Sister" },
+    { value: "father", label: "Father" },
+    { value: "mother", label: "Mother" },
+    { value: "son", label: "Son" },
+    { value: "daughter", label: "Daughter" },
+    { value: "uncle", label: "Uncle" },
+    { value: "aunt", label: "Aunt" },
+    { value: "cousin", label: "Cousin" },
+    { value: "grandfather", label: "Grandfather" },
+    { value: "grandmother", label: "Grandmother" },
+    { value: "nephew", label: "Nephew" },
+    { value: "niece", label: "Niece" },
+    { value: "neighbor", label: "Neighbor" },
+    { value: "other", label: "Other" },
+  ];
+
+  const addRelative = () => {
+    if (newRelativeValue.trim() && newRelativeName.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        relatives: [
+          ...(prev.relatives || []),
+          { value: newRelativeValue.trim(), name: newRelativeName.trim() },
+        ],
+      }));
+      setNewRelativeValue("");
+      setNewRelativeName("");
+    }
+  };
+
+  const removeRelative = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      relatives: (prev.relatives || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateRelative = (
+    index: number,
+    field: "value" | "name",
+    newValue: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      relatives: (prev.relatives || []).map((rel, i) =>
+        i === index ? { ...rel, [field]: newValue } : rel
+      ),
+    }));
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="text-center">
@@ -22,28 +84,29 @@ export default function PersonalDetailsStep({
         </p>
       </div>
 
+      {/* Full Name */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
+          Full Name *
+        </label>
+        <input
+          type="text"
+          value={formData.fullName}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              fullName: e.target.value,
+            }))
+          }
+          placeholder="Enter your full name"
+          className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-            Full Name *
-          </label>
-          <input
-            type="text"
-            value={formData.fullName}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                fullName: e.target.value,
-              }))
-            }
-            placeholder="Your full name"
-            className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-            Your Role *
+            How are you connected to these events? *
           </label>
           <div className="relative">
             <select
@@ -54,9 +117,10 @@ export default function PersonalDetailsStep({
                   relationToEvent: e.target.value,
                 }))
               }
+              required
               className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none text-sm sm:text-base"
             >
-              <option value="">Choose your role</option>
+              <option value="">Select your connection to these events</option>
               {formData.type === "written" && (
                 <>
                   <option value="survivor">Survivor</option>
@@ -98,7 +162,6 @@ export default function PersonalDetailsStep({
                 </>
               )}
             </select>
-            {/* Custom dropdown arrow */}
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 pointer-events-none">
               <LuChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
             </div>
@@ -107,36 +170,64 @@ export default function PersonalDetailsStep({
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-            Location *
+            Where did this happen? *
           </label>
-          <input
-            type="text"
-            value={formData.location}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                location: e.target.value,
-              }))
-            }
-            placeholder="City, Region, or Specific Place"
-            className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  location: e.target.value,
+                }))
+              }
+              placeholder="e.g., Kigali, Nyamata, or specific location"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 pl-10 sm:pl-11 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+            />
+            <LuMapPin className="absolute left-3 sm:left-4 top-3 sm:top-4 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 pointer-events-none" />
+          </div>
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-            Date of Event *
+            Date of Event From *
           </label>
           <div className="relative">
             <input
               type="date"
-              value={formData.dateOfEvent}
+              value={formData.dateOfEventFrom || ""}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  dateOfEvent: e.target.value,
+                  dateOfEventFrom: e.target.value,
                 }))
               }
+              required
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+            />
+            <LuCalendar className="absolute right-3 sm:right-4 top-3 sm:top-4 w-4 h-4 sm:w-5 sm:h-5 text-gray-500 pointer-events-none" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
+            Date of Event To *
+          </label>
+          <div className="relative">
+            <input
+              type="date"
+              value={formData.dateOfEventTo || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  dateOfEventTo: e.target.value,
+                }))
+              }
+              min={formData.dateOfEventFrom || undefined}
+              required
               className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
             />
             <LuCalendar className="absolute right-3 sm:right-4 top-3 sm:top-4 w-4 h-4 sm:w-5 sm:h-5 text-gray-500 pointer-events-none" />
@@ -149,18 +240,98 @@ export default function PersonalDetailsStep({
           Names of Relatives{" "}
           <span className="text-gray-500 font-normal">(optional)</span>
         </label>
-        <textarea
-          value={formData.relativesNames}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              relativesNames: e.target.value,
-            }))
-          }
-          placeholder="Names of family members affected (helps with connections)"
-          rows={3}
-          className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 resize-none text-sm sm:text-base leading-relaxed"
-        />
+        <div className="space-y-3">
+          {/* Existing relatives */}
+          {relatives.map((relative, index) => {
+            const rel = relative as { value?: string; name?: string };
+            return (
+              <div
+                key={index}
+                className="flex items-center gap-2 w-full border border-gray-300 rounded-lg sm:rounded-xl bg-white p-2"
+              >
+                <div className="relative w-32 sm:w-40 shrink-0">
+                  <select
+                    value={rel.value || ""}
+                    onChange={(e) =>
+                      updateRelative(index, "value", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white text-sm cursor-pointer appearance-none"
+                  >
+                    <option value="">Relationship</option>
+                    {relationshipOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <LuChevronDown className="w-3 h-3 text-gray-400" />
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  value={rel.name || ""}
+                  onChange={(e) =>
+                    updateRelative(index, "name", e.target.value)
+                  }
+                  placeholder="Name"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeRelative(index)}
+                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors cursor-pointer shrink-0"
+                  aria-label="Remove relative"
+                >
+                  <LuX className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
+            );
+          })}
+
+          {/* Add relative */}
+          <div className="flex items-center gap-2">
+            <div className="relative w-32 sm:w-48 shrink-0">
+              <select
+                value={newRelativeValue}
+                onChange={(e) => setNewRelativeValue(e.target.value)}
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none text-sm sm:text-base"
+              >
+                <option value="">Select relationship</option>
+                {relationshipOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 pointer-events-none">
+                <LuChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+              </div>
+            </div>
+            <input
+              type="text"
+              value={newRelativeName}
+              onChange={(e) => setNewRelativeName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addRelative();
+                }
+              }}
+              placeholder="Enter relative's name"
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+            />
+            <button
+              type="button"
+              onClick={addRelative}
+              disabled={!newRelativeValue.trim() || !newRelativeName.trim()}
+              className="px-4 py-2 sm:py-3 bg-black text-white rounded-lg sm:rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center shrink-0 cursor-pointer"
+              aria-label="Add relative"
+            >
+              <LuPlus className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

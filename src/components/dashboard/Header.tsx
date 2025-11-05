@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { JWTPayload } from "@/types/auth";
+import { useLogout } from "@/hooks/auth/use-auth-queries";
 
 interface HeaderProps {
   title: string;
@@ -11,6 +12,12 @@ interface HeaderProps {
 
 export default function Header({ title, user, onMenuClick }: HeaderProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const logoutMutation = useLogout();
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+    setShowProfileDropdown(false);
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-1 lg:px-6">
@@ -112,12 +119,13 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
                   Settings
                 </a>
                 <div className="border-t border-gray-100"></div>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                <button
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                 >
-                  Sign out
-                </a>
+                  {logoutMutation.isPending ? "Signing out..." : "Sign out"}
+                </button>
               </div>
             )}
           </div>

@@ -6,7 +6,7 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { Testimony } from "@/types/testimonies";
+import { Testimony, CreateOrUpdateTestimonyRequest } from "@/types/testimonies";
 import { testimoniesService } from "@/services/testimonies.service";
 
 // Helper function to extract error message
@@ -33,6 +33,7 @@ export const TESTIMONY_KEYS = {
   list: (filters: string) => [...TESTIMONY_KEYS.lists(), { filters }] as const,
   details: () => [...TESTIMONY_KEYS.all, "detail"] as const,
   detail: (id: number) => [...TESTIMONY_KEYS.details(), id] as const,
+  drafts: () => [...TESTIMONY_KEYS.all, "drafts"] as const,
 };
 
 // Get all published testimonies
@@ -56,7 +57,109 @@ export function useTestimony(id: number): UseQueryResult<Testimony, Error> {
   });
 }
 
-// Create testimony via single multipart endpoint
+// Get user's draft testimonies (REQUIRES AUTH)
+export function useDrafts(): UseQueryResult<Testimony[], Error> {
+  return useQuery({
+    queryKey: TESTIMONY_KEYS.drafts(),
+    queryFn: () => testimoniesService.getDrafts(),
+    staleTime: 2 * 60 * 1000, 
+    gcTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+}
+
+// Create testimony with new request format (REQUIRES AUTH)
+export function useCreateTestimony(): UseMutationResult<
+  Testimony,
+  unknown,
+  CreateOrUpdateTestimonyRequest
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: CreateOrUpdateTestimonyRequest) =>
+      testimoniesService.createTestimony(request),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: TESTIMONY_KEYS.lists(),
+      });
+      queryClient.setQueryData(TESTIMONY_KEYS.detail(data.id), data);
+
+      if (variables.isDraft) {
+        toast.success("Draft saved successfully!", {
+          icon: "💾",
+        });
+        // Also invalidate drafts list
+        queryClient.invalidateQueries({
+          queryKey: TESTIMONY_KEYS.drafts(),
+        });
+      } else {
+        toast.success(
+          "Testimony submitted successfully! It will be reviewed before being published.",
+          {
+            duration: 5000,
+          }
+        );
+      }
+    },
+    onError: (error: unknown, variables) => {
+      const message = getErrorMessage(
+        error,
+        variables.isDraft
+          ? "Failed to save draft. Please try again."
+          : "Failed to submit testimony. Please try again."
+      );
+      toast.error(message);
+    },
+  });
+}
+
+// Update testimony (REQUIRES AUTH)
+export function useUpdateTestimony(): UseMutationResult<
+  Testimony,
+  unknown,
+  { id: number; request: CreateOrUpdateTestimonyRequest }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      request,
+    }: {
+      id: number;
+      request: CreateOrUpdateTestimonyRequest;
+    }) => testimoniesService.updateTestimony(id, request),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: TESTIMONY_KEYS.lists(),
+      });
+      queryClient.setQueryData(TESTIMONY_KEYS.detail(data.id), data);
+
+      if (variables.request.isDraft) {
+        toast.success("Draft updated successfully!", {
+          icon: "💾",
+        });
+        queryClient.invalidateQueries({
+          queryKey: TESTIMONY_KEYS.drafts(),
+        });
+      } else {
+        toast.success("Testimony updated successfully!");
+      }
+    },
+    onError: (error: unknown, variables) => {
+      const message = getErrorMessage(
+        error,
+        variables.request.isDraft
+          ? "Failed to update draft. Please try again."
+          : "Failed to update testimony. Please try again."
+      );
+      toast.error(message);
+    },
+  });
+}
+
+// Legacy method - accepts FormData directly (for backward compatibility)
 export function useCreateTestimonyMultipart(): UseMutationResult<
   Testimony,
   unknown,

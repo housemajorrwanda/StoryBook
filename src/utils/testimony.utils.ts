@@ -15,10 +15,11 @@ export function transformFormDataToApiRequest(
     submissionType: formData.type!,
     identityPreference: formData.identity!,
     fullName: formData.fullName,
-    relationToEvent: formData.relationToEvent,
-    nameOfRelative: formData.relativesNames,
+    relationToEvent: "", // Not used in new API format, kept for backward compatibility
+    relatives: formData.relatives || [],
     location: formData.location,
-    dateOfEvent: formData.dateOfEvent,
+    dateOfEventFrom: formData.dateOfEventFrom || "",
+    dateOfEventTo: formData.dateOfEventTo || "",
     eventTitle: formData.eventTitle,
     eventDescription: "",
     fullTestimony: formData.testimony,
@@ -68,24 +69,36 @@ export function validateFormData(formData: FormData): string[] {
   }
 
   if (!formData.relationToEvent.trim()) {
-    errors.push("Your role/relation to the event is required");
+    errors.push("Please select how you are connected to these events");
   }
 
   if (!formData.location.trim()) {
     errors.push("Location is required");
   }
 
-  if (!formData.dateOfEvent) {
-    errors.push("Date of event is required");
+  if (!formData.dateOfEventFrom) {
+    errors.push("Date of event (From) is required");
+  }
+
+  if (!formData.dateOfEventTo) {
+    errors.push("Date of event (To) is required");
+  }
+
+  if (
+    formData.dateOfEventFrom &&
+    formData.dateOfEventTo &&
+    formData.dateOfEventFrom > formData.dateOfEventTo
+  ) {
+    errors.push("Date 'From' must be before or equal to date 'To'");
   }
 
   if (!formData.eventTitle.trim()) {
     errors.push("Event title is required");
   }
 
-  if (!formData.consent) {
-    errors.push("You must agree to the terms and conditions");
-  }
+  // Consent is only required for final submission, not for drafts
+  // This validation will be checked only on final submit, not during auto-save
+  // Removed from here to allow drafts to be saved without consent
 
   // Type-specific validation
   if (formData.type === "written") {
