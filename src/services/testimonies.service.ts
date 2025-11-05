@@ -1,83 +1,10 @@
-import axios from "axios";
-import { getAuthToken } from "@/lib/cookies";
 import {
   Testimony,
   ImageUploadResponse,
   AudioUploadResponse,
   CreateOrUpdateTestimonyRequest,
 } from "@/types/testimonies";
-
-const publicApi = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://storybook-backend-production-574d.up.railway.app",
-  timeout: 30000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-const uploadApi = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://storybook-backend-production-574d.up.railway.app",
-  timeout: 120000,
-  headers: {
-    "Content-Type": "multipart/form-data",
-  },
-});
-
-const authenticatedApi = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://storybook-backend-production-574d.up.railway.app",
-  timeout: 120000,
-});
-
-// Add auth token interceptor to authenticated API
-authenticatedApi.interceptors.request.use(
-  (config) => {
-    const token = getAuthToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    if (config.data instanceof FormData) {
-      delete config.headers["Content-Type"];
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Public API error handler
-publicApi.interceptors.response.use(
-  (response) => response,
-  (error) => Promise.reject(error)
-);
-
-// Upload API error handler with retry logic
-uploadApi.interceptors.response.use(
-  (response) => response,
-  (error) => Promise.reject(error)
-);
-
-// Authenticated API error handler
-authenticatedApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error && typeof error === "object" && "response" in error) {
-      const axiosError = error as { response?: { status?: number } };
-      if (axiosError.response?.status === 401) {
-        // Token expired or invalid
-        localStorage.removeItem("authToken");
-        document.cookie =
-          "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        window.location.href = "/";
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+import { publicApi, uploadApi, authenticatedApi } from "@/config/apiInstances";
 
 // Helper function to test server connectivity
 async function testServerConnectivity(): Promise<boolean> {
@@ -90,7 +17,6 @@ async function testServerConnectivity(): Promise<boolean> {
   }
 }
 
-// Helper function to build FormData from CreateOrUpdateTestimonyRequest
 function buildTestimonyFormData(
   request: CreateOrUpdateTestimonyRequest
 ): FormData {
@@ -221,17 +147,31 @@ export const testimoniesService = {
   },
 
   // Get user's draft testimonies (REQUIRES AUTH)
+  // Returns only the authenticated user's drafts - backend filters by user automatically
   async getDrafts(): Promise<Testimony[]> {
-    const response = await authenticatedApi.get<
-      { data: Testimony[] } | Testimony[]
-    >("/testimonies/drafts");
-    if (Array.isArray(response.data)) {
-      return response.data.filter((testimony) => testimony.isDraft === true);
+    try {
+      const response = await authenticatedApi.get<
+        { data: Testimony[] } | Testimony[]
+      >("/testimonies/drafts");
+
+      const testimonies = Array.isArray(response.data)
+        ? response.data
+        : response.data.data || [];
+
+      // Filter to ensure only drafts (backend should already filter, but double-check)
+      return testimonies.filter((testimony) => testimony.isDraft === true);
+    } catch (error) {
+      console.error("Failed to fetch drafts:", error);
+      // Log the actual error response for debugging
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: unknown; status?: number };
+        };
+        console.error("Error response:", axiosError.response?.data);
+        console.error("Status:", axiosError.response?.status);
+      }
+      return [];
     }
-    return (
-      response.data.data?.filter((testimony) => testimony.isDraft === true) ||
-      []
-    );
   },
 
   // Update testimony with new request format (REQUIRES AUTH)
