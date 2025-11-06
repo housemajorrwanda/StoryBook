@@ -15,6 +15,7 @@ export interface SignupCredentials {
 }
 
 export interface JWTPayload {
+  fullName: ReactNode;
   id: string;
   email: string;
   username: string;

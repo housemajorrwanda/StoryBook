@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   LuChevronLeft,
@@ -9,13 +10,21 @@ import {
   LuLoader,
   LuSave,
   LuCheck,
+  LuFileText,
+  LuCalendar,
+  LuChevronRight as LuChevronRightIcon,
 } from "react-icons/lu";
 import { toast } from "react-hot-toast";
 import SubmissionTypeStep from "@/components/testimony/SubmissionTypeStep";
 import PersonalDetailsStep from "@/components/testimony/PersonalDetailsStep";
 import TestimonyContentStep from "@/components/testimony/TestimonyContentStep";
 import { FormData, CreateOrUpdateTestimonyRequest } from "@/types/testimonies";
-import { useCreateTestimony, useUpdateTestimony } from "@/hooks/useTestimonies";
+import {
+  useCreateTestimony,
+  useUpdateTestimony,
+  useTestimony,
+  useDrafts,
+} from "@/hooks/useTestimonies";
 import { testimoniesService } from "@/services/testimonies.service";
 import {
   validateFormData,
@@ -25,6 +34,12 @@ import {
 import { isAuthenticated } from "@/lib/decodeToken";
 
 export default function ShareStoryPage() {
+  const searchParams = useSearchParams();
+  const draftIdParam = searchParams.get("draft");
+  const viewParam = searchParams.get("view");
+  const draftId = draftIdParam ? parseInt(draftIdParam, 10) : null;
+  const showDraftsList = viewParam === "drafts";
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedDraftId, setSavedDraftId] = useState<number | null>(null);
@@ -32,6 +47,8 @@ export default function ShareStoryPage() {
     "idle"
   );
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const [draftLoaded, setDraftLoaded] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     type: null,
@@ -54,6 +71,14 @@ export default function ShareStoryPage() {
   const createTestimony = useCreateTestimony();
   const updateTestimony = useUpdateTestimony();
 
+  // Fetch draft if draftId is present in URL
+  const { data: draftData, isLoading: isFetchingDraft } = useTestimony(
+    draftId && draftId > 0 ? draftId : 0
+  );
+
+  // Fetch all drafts if viewing drafts list
+  const { data: allDrafts = [], isLoading: isLoadingAllDrafts } = useDrafts();
+
   const steps = [
     { number: 1, label: "Type", title: "Choose Submission Type" },
     { number: 2, label: "Details", title: "Personal Information" },
@@ -71,6 +96,100 @@ export default function ShareStoryPage() {
       setCurrentStep(currentStep - 1);
     }
   };
+
+  useEffect(() => {
+    if (draftId && draftData && !draftLoaded && !isFetchingDraft) {
+      setIsLoadingDraft(true);
+      try {
+        // Helper function to convert ISO date string to YYYY-MM-DD format for date inputs
+        const formatDateForInput = (dateString: string | undefined): string => {
+          if (!dateString) return "";
+          try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            // Format as YYYY-MM-DD
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          } catch {
+            return "";
+          }
+        };
+
+        // Helper function to normalize relationToEvent value (handle case differences)
+        const normalizeRelationToEvent = (
+          value: string | undefined
+        ): string => {
+          if (!value) return "";
+          // Convert to lowercase and handle common variations
+          const normalized = value.toLowerCase().trim();
+          // Map common variations to expected values
+          const mapping: Record<string, string> = {
+            witness: "witness",
+            "direct witness": "witness",
+            survivor: "survivor",
+            "family member": "family_member",
+            "community member": "community_member",
+            helper: "rescuer",
+            rescuer: "rescuer",
+            "helper/rescuer": "rescuer",
+            other: "other",
+          };
+          return mapping[normalized] || normalized;
+        };
+
+        // Convert Testimony to FormData format
+        const loadedFormData: FormData = {
+          type: draftData.submissionType || null,
+          identity: draftData.identityPreference || null,
+          fullName: draftData.fullName || "",
+          relationToEvent: normalizeRelationToEvent(draftData.relationToEvent),
+          location: draftData.location || "",
+          dateOfEventFrom: formatDateForInput(draftData.dateOfEventFrom),
+          dateOfEventTo: formatDateForInput(draftData.dateOfEventTo),
+          testimony: draftData.fullTestimony || "",
+          eventTitle: draftData.eventTitle || "",
+          consent: draftData.agreedToTerms || false,
+          images: [],
+          audioFile: null,
+          videoFile: null,
+          relatives: draftData.relatives || [],
+        };
+
+        setFormData(loadedFormData);
+        setSavedDraftId(draftId);
+
+        // Restore cursor position if available
+        if (draftData.draftCursorPosition) {
+          setCursorPosition(draftData.draftCursorPosition);
+        }
+
+        // Navigate to appropriate step based on what's filled
+        if (loadedFormData.type && loadedFormData.identity) {
+          if (loadedFormData.testimony) {
+            setCurrentStep(3); // Go to testimony step if content exists
+          } else if (loadedFormData.eventTitle || loadedFormData.fullName) {
+            setCurrentStep(2); // Go to details step
+          }
+        }
+
+        setDraftLoaded(true);
+        toast.success(
+          "Draft loaded successfully! Continue where you left off.",
+          {
+            icon: "📝",
+            duration: 4000,
+          }
+        );
+      } catch (error) {
+        console.error("Error loading draft:", error);
+        toast.error("Failed to load draft. Please try again.");
+      } finally {
+        setIsLoadingDraft(false);
+      }
+    }
+  }, [draftId, draftData, draftLoaded, isFetchingDraft]);
 
   // Manual save draft functionality
   const handleSaveDraft = useCallback(async () => {
@@ -383,8 +502,151 @@ export default function ShareStoryPage() {
     }
   };
 
+  // Drafts list view
+  if (showDraftsList) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header Navigation */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex items-center justify-between">
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 sm:gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 cursor-pointer"
+            >
+              <LuArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="font-semibold text-sm sm:text-base">
+                Back to Home
+              </span>
+            </Link>
+            <Link
+              href="/share-testimony"
+              className="px-4 py-2 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-200 text-sm"
+            >
+              New Testimony
+            </Link>
+          </div>
+        </header>
+
+        {/* Drafts List Content */}
+        <main className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8">
+          <div className="mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+              My Drafts
+            </h1>
+            <p className="text-gray-600">
+              Continue working on your saved testimonies
+            </p>
+          </div>
+
+          {isLoadingAllDrafts ? (
+            <div className="flex items-center justify-center py-12">
+              <LuLoader className="w-8 h-8 animate-spin text-gray-400" />
+              <span className="ml-3 text-gray-600">Loading drafts...</span>
+            </div>
+          ) : allDrafts.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 sm:p-12 text-center">
+              <LuFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                No drafts yet
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Start sharing your story and save it as a draft to continue
+                later.
+              </p>
+              <Link
+                href="/share-testimony"
+                className="inline-flex items-center px-6 py-3 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-200"
+              >
+                Start New Testimony
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {allDrafts.map((draft) => {
+                const formatDraftTitle = () => {
+                  if (draft.eventTitle) {
+                    return draft.eventTitle.length > 50
+                      ? `${draft.eventTitle.substring(0, 50)}...`
+                      : draft.eventTitle;
+                  }
+                  return draft.submissionType
+                    ? `${
+                        String(draft.submissionType).charAt(0).toUpperCase() +
+                        String(draft.submissionType).slice(1)
+                      } Testimony`
+                    : "Untitled Draft";
+                };
+
+                return (
+                  <Link
+                    key={draft.id}
+                    href={`/share-testimony?draft=${draft.id}`}
+                    className="block bg-white rounded-xl border border-gray-200 p-4 sm:p-6 hover:border-gray-300 hover:shadow-md transition-all duration-200 group"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <LuSave className="w-4 h-4 text-blue-500 shrink-0" />
+                          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-black transition-colors">
+                            {formatDraftTitle()}
+                          </h3>
+                        </div>
+                        {draft.fullName && (
+                          <p className="text-sm text-gray-600 mb-2">
+                            {draft.fullName}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          {draft.updatedAt && (
+                            <div className="flex items-center gap-1">
+                              <LuCalendar className="w-3 h-3" />
+                              <span>
+                                Updated{" "}
+                                {new Date(draft.updatedAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  }
+                                )}
+                              </span>
+                            </div>
+                          )}
+                          {draft.submissionType && (
+                            <span className="px-2 py-1 bg-gray-100 rounded text-gray-700 capitalize">
+                              {draft.submissionType}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <LuChevronRightIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 shrink-0 transition-colors" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Loading overlay when fetching draft */}
+      {(isFetchingDraft || isLoadingDraft) && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 text-center">
+            <LuLoader className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Loading Draft
+            </h3>
+            <p className="text-sm text-gray-600">Restoring your testimony...</p>
+          </div>
+        </div>
+      )}
+
       {/* Header Navigation */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex items-center justify-between">
@@ -398,8 +660,16 @@ export default function ShareStoryPage() {
             </span>
           </Link>
 
+          {/* Draft indicator badge */}
+          {draftId && savedDraftId && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-800 rounded-lg text-xs sm:text-sm font-semibold">
+              <LuSave className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Resuming draft</span>
+              <span className="sm:hidden">Draft</span>
+            </div>
+          )}
+
           <div className="flex items-center gap-3 sm:gap-4">
-            {/* Save Draft Button in Header (always visible when authenticated) */}
             {isAuthenticated() && (
               <button
                 onClick={handleSaveDraft}
