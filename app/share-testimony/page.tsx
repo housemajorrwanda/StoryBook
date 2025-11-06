@@ -10,7 +10,6 @@ import {
   LuLoader,
   LuSave,
   LuCheck,
-  LuFileText,
   LuCalendar,
   LuChevronRight as LuChevronRightIcon,
 } from "react-icons/lu";
@@ -18,6 +17,7 @@ import { toast } from "react-hot-toast";
 import SubmissionTypeStep from "@/components/testimony/SubmissionTypeStep";
 import PersonalDetailsStep from "@/components/testimony/PersonalDetailsStep";
 import TestimonyContentStep from "@/components/testimony/TestimonyContentStep";
+import { EmptyState } from "@/components/shared";
 import { FormData, CreateOrUpdateTestimonyRequest } from "@/types/testimonies";
 import {
   useCreateTestimony,
@@ -544,22 +544,14 @@ export default function ShareStoryPage() {
               <span className="ml-3 text-gray-600">Loading drafts...</span>
             </div>
           ) : allDrafts.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 sm:p-12 text-center">
-              <LuFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                No drafts yet
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Start sharing your story and save it as a draft to continue
-                later.
-              </p>
-              <Link
-                href="/share-testimony"
-                className="inline-flex items-center px-6 py-3 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-200"
-              >
-                Start New Testimony
-              </Link>
-            </div>
+            <EmptyState
+              title="No drafts yet"
+              subtitle="Start sharing your story and save it as a draft to continue later."
+              action={{
+                label: "Start New Testimony",
+                href: "/share-testimony",
+              }}
+            />
           ) : (
             <div className="space-y-3">
               {allDrafts.map((draft) => {
