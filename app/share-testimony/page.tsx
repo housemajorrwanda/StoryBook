@@ -18,19 +18,26 @@ import SubmissionTypeStep from "@/components/testimony/SubmissionTypeStep";
 import PersonalDetailsStep from "@/components/testimony/PersonalDetailsStep";
 import TestimonyContentStep from "@/components/testimony/TestimonyContentStep";
 import { EmptyState } from "@/components/shared";
-import { FormData, CreateOrUpdateTestimonyRequest } from "@/types/testimonies";
+import {
+  FormData,
+  CreateOrUpdateTestimonyRequest,
+  ApiRelative,
+} from "@/types/testimonies";
 import {
   useCreateTestimony,
   useUpdateTestimony,
   useTestimony,
   useDrafts,
 } from "@/hooks/useTestimonies";
-import { testimoniesService } from "@/services/testimonies.service";
 import {
   validateFormData,
   validateFile,
   FILE_CONSTRAINTS,
 } from "@/utils/testimony.utils";
+import {
+  transformRelativesToApi,
+  transformRelativesFromApi,
+} from "@/utils/relatives.utils";
 import { isAuthenticated } from "@/lib/decodeToken";
 
 export default function ShareStoryPage() {
@@ -49,6 +56,13 @@ export default function ShareStoryPage() {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setIsAuth(isAuthenticated());
+  }, []);
 
   const [formData, setFormData] = useState<FormData>({
     type: null,
@@ -64,6 +78,10 @@ export default function ShareStoryPage() {
     images: [],
     audioFile: null,
     videoFile: null,
+    audioUrl: undefined,
+    videoUrl: undefined,
+    audioFileName: undefined,
+    videoFileName: undefined,
     relatives: [],
   });
 
@@ -101,13 +119,12 @@ export default function ShareStoryPage() {
     if (draftId && draftData && !draftLoaded && !isFetchingDraft) {
       setIsLoadingDraft(true);
       try {
-        // Helper function to convert ISO date string to YYYY-MM-DD format for date inputs
         const formatDateForInput = (dateString: string | undefined): string => {
           if (!dateString) return "";
           try {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-            // Format as YYYY-MM-DD
+
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, "0");
             const day = String(date.getDate()).padStart(2, "0");
@@ -117,14 +134,11 @@ export default function ShareStoryPage() {
           }
         };
 
-        // Helper function to normalize relationToEvent value (handle case differences)
         const normalizeRelationToEvent = (
           value: string | undefined
         ): string => {
           if (!value) return "";
-          // Convert to lowercase and handle common variations
           const normalized = value.toLowerCase().trim();
-          // Map common variations to expected values
           const mapping: Record<string, string> = {
             witness: "witness",
             "direct witness": "witness",
@@ -139,7 +153,10 @@ export default function ShareStoryPage() {
           return mapping[normalized] || normalized;
         };
 
-        // Convert Testimony to FormData format
+        const transformedRelatives = draftData.relatives?.length
+          ? transformRelativesFromApi(draftData.relatives as ApiRelative[])
+          : [];
+
         const loadedFormData: FormData = {
           type: draftData.submissionType || null,
           identity: draftData.identityPreference || null,
@@ -154,23 +171,25 @@ export default function ShareStoryPage() {
           images: [],
           audioFile: null,
           videoFile: null,
-          relatives: draftData.relatives || [],
+          audioUrl: draftData.audioUrl,
+          videoUrl: draftData.videoUrl,
+          audioFileName: draftData.audioFileName,
+          videoFileName: draftData.videoFileName,
+          relatives: transformedRelatives,
         };
 
         setFormData(loadedFormData);
         setSavedDraftId(draftId);
 
-        // Restore cursor position if available
         if (draftData.draftCursorPosition) {
           setCursorPosition(draftData.draftCursorPosition);
         }
 
-        // Navigate to appropriate step based on what's filled
         if (loadedFormData.type && loadedFormData.identity) {
           if (loadedFormData.testimony) {
-            setCurrentStep(3); // Go to testimony step if content exists
+            setCurrentStep(3);
           } else if (loadedFormData.eventTitle || loadedFormData.fullName) {
-            setCurrentStep(2); // Go to details step
+            setCurrentStep(2);
           }
         }
 
@@ -191,15 +210,12 @@ export default function ShareStoryPage() {
     }
   }, [draftId, draftData, draftLoaded, isFetchingDraft]);
 
-  // Manual save draft functionality
   const handleSaveDraft = useCallback(async () => {
-    // Only save if user is authenticated
-    if (!isAuthenticated()) {
+    if (!mounted || !isAuth) {
       toast.error("Please log in to save drafts");
       return;
     }
 
-    // Don't save if form is empty or invalid
     if (!formData.type || !formData.identity || !formData.eventTitle) {
       toast.error(
         "Please fill in at least the submission type, identity, and event title"
@@ -211,19 +227,12 @@ export default function ShareStoryPage() {
     setSaveStatus("saving");
 
     try {
-      // Upload images first to get URLs
-      const imageUrls: string[] = [];
-      if (formData.images.length > 0) {
-        toast.loading("Uploading images...", { id: "upload-images" });
-        const uploadPromises = formData.images.map((img) =>
-          testimoniesService.uploadImage(img.file)
-        );
-        const uploadedImages = await Promise.all(uploadPromises);
-        imageUrls.push(...uploadedImages.map((img) => img.url));
-        toast.dismiss("upload-images");
-      }
+      // Transform relatives from form format to API format
+      const transformedRelatives = formData.relatives?.length
+        ? transformRelativesToApi(formData.relatives)
+        : undefined;
 
-      // Build request
+      // Build request - send image files directly in multipart form
       const request: CreateOrUpdateTestimonyRequest = {
         submissionType: formData.type,
         identityPreference: formData.identity,
@@ -232,14 +241,21 @@ export default function ShareStoryPage() {
         location: formData.location || undefined,
         dateOfEventFrom: formData.dateOfEventFrom || undefined,
         dateOfEventTo: formData.dateOfEventTo || undefined,
-        relatives: formData.relatives?.length ? formData.relatives : undefined,
+        relatives: transformedRelatives,
         eventTitle: formData.eventTitle,
         eventDescription: "",
         fullTestimony: formData.testimony || undefined,
         isDraft: true,
         draftCursorPosition: cursorPosition,
-        agreedToTerms: false, // Drafts don't require consent
-        images: imageUrls.length > 0 ? imageUrls : undefined,
+        agreedToTerms: false,
+        images:
+          formData.images.length > 0
+            ? formData.images.map((img) => img.file)
+            : undefined,
+        imageDescriptions:
+          formData.images.length > 0
+            ? formData.images.map((img) => img.description || "")
+            : undefined,
         audio: formData.audioFile || undefined,
         video: formData.videoFile || undefined,
       };
@@ -250,16 +266,13 @@ export default function ShareStoryPage() {
           id: savedDraftId,
           request,
         });
-        toast.success("Draft updated successfully!", { icon: "💾" });
       } else {
         const result = await createTestimony.mutateAsync(request);
         setSavedDraftId(result.id);
-        toast.success("Draft saved successfully!", { icon: "💾" });
       }
 
       setSaveStatus("saved");
 
-      // Reset status after 3 seconds
       setTimeout(() => {
         setSaveStatus("idle");
       }, 3000);
@@ -274,76 +287,16 @@ export default function ShareStoryPage() {
     savedDraftId,
     createTestimony,
     updateTestimony,
+    mounted,
+    isAuth,
   ]);
-
-  // Save draft on tab close/window unload
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Only save if user has made changes and is authenticated
-      if (
-        isAuthenticated() &&
-        formData.type &&
-        formData.identity &&
-        formData.eventTitle
-      ) {
-        // Use sendBeacon for reliable sending before page unload
-        const request: CreateOrUpdateTestimonyRequest = {
-          submissionType: formData.type,
-          identityPreference: formData.identity,
-          fullName: formData.fullName || undefined,
-          relationToEvent: formData.relationToEvent || undefined,
-          location: formData.location || undefined,
-          dateOfEventFrom: formData.dateOfEventFrom || undefined,
-          dateOfEventTo: formData.dateOfEventTo || undefined,
-          relatives: formData.relatives?.length
-            ? formData.relatives
-            : undefined,
-          eventTitle: formData.eventTitle,
-          eventDescription: "",
-          fullTestimony: formData.testimony || undefined,
-          isDraft: true,
-          draftCursorPosition: cursorPosition,
-          agreedToTerms: false,
-          images: undefined, // Skip images on unload to avoid delays
-          audio: undefined, // Skip files on unload
-          video: undefined,
-        };
-
-        // Save synchronously before unload
-        if (savedDraftId) {
-          navigator.sendBeacon(
-            `${
-              process.env.NEXT_PUBLIC_API_BASE_URL ||
-              "https://storybook-backend-production-574d.up.railway.app"
-            }/testimonies/${savedDraftId}`,
-            JSON.stringify(request)
-          );
-        } else {
-          navigator.sendBeacon(
-            `${
-              process.env.NEXT_PUBLIC_API_BASE_URL ||
-              "https://storybook-backend-production-574d.up.railway.app"
-            }/testimonies`,
-            JSON.stringify(request)
-          );
-        }
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [formData, cursorPosition, savedDraftId]);
 
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
 
-      // Validate form data (consent is checked here for final submission only)
       const validationErrors = validateFormData(formData);
 
-      // Add consent check for final submission (not required for drafts)
       if (!formData.consent) {
         validationErrors.push("You must agree to the terms and conditions");
       }
@@ -354,7 +307,6 @@ export default function ShareStoryPage() {
         return;
       }
 
-      // Validate files before uploading
       for (const imageData of formData.images) {
         const v = validateFile(
           imageData.file,
@@ -394,19 +346,9 @@ export default function ShareStoryPage() {
         }
       }
 
-      toast.loading("Uploading files and submitting testimony...", {
-        id: "submit-testimony",
-      });
-
-      // Upload images first to get URLs
-      const imageUrls: string[] = [];
-      if (formData.images.length > 0) {
-        const uploadPromises = formData.images.map((img) =>
-          testimoniesService.uploadImage(img.file)
-        );
-        const uploadedImages = await Promise.all(uploadPromises);
-        imageUrls.push(...uploadedImages.map((img) => img.url));
-      }
+      const transformedRelatives = formData.relatives?.length
+        ? transformRelativesToApi(formData.relatives)
+        : undefined;
 
       // Build request
       const request: CreateOrUpdateTestimonyRequest = {
@@ -417,18 +359,25 @@ export default function ShareStoryPage() {
         location: formData.location || undefined,
         dateOfEventFrom: formData.dateOfEventFrom || undefined,
         dateOfEventTo: formData.dateOfEventTo || undefined,
-        relatives: formData.relatives?.length ? formData.relatives : undefined,
+        relatives: transformedRelatives,
         eventTitle: formData.eventTitle,
         eventDescription: "",
         fullTestimony: formData.testimony || undefined,
-        isDraft: false, // Final submission
+        isDraft: false,
         agreedToTerms: formData.consent,
-        images: imageUrls.length > 0 ? imageUrls : undefined,
+        images:
+          formData.images.length > 0
+            ? formData.images.map((img) => img.file)
+            : undefined,
+        imageDescriptions:
+          formData.images.length > 0
+            ? formData.images.map((img) => img.description || "")
+            : undefined,
         audio: formData.audioFile || undefined,
         video: formData.videoFile || undefined,
       };
 
-      // Submit or update
+      // Submit (hooks will show success toast)
       if (savedDraftId) {
         await updateTestimony.mutateAsync({
           id: savedDraftId,
@@ -438,10 +387,7 @@ export default function ShareStoryPage() {
         await createTestimony.mutateAsync(request);
       }
 
-      toast.success("Testimony submitted successfully!", {
-        id: "submit-testimony",
-      });
-
+      // Redirect after a short delay to allow toast to be seen
       setTimeout(() => {
         window.location.href = "/";
       }, 2000);
@@ -478,11 +424,9 @@ export default function ShareStoryPage() {
           formData.dateOfEventTo
         );
       case 3:
-        // Validate required fields for all types
         const hasEventTitle = formData.eventTitle.trim().length > 0;
         const hasConsent = formData.consent;
 
-        // Validate type-specific content
         let hasContent = false;
         switch (formData.type) {
           case "written":
@@ -502,7 +446,6 @@ export default function ShareStoryPage() {
     }
   };
 
-  // Drafts list view
   if (showDraftsList) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -527,7 +470,6 @@ export default function ShareStoryPage() {
           </div>
         </header>
 
-        {/* Drafts List Content */}
         <main className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8">
           <div className="mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -662,7 +604,7 @@ export default function ShareStoryPage() {
           )}
 
           <div className="flex items-center gap-3 sm:gap-4">
-            {isAuthenticated() && (
+            {mounted && isAuth && (
               <button
                 onClick={handleSaveDraft}
                 disabled={
@@ -796,7 +738,6 @@ export default function ShareStoryPage() {
                 formData={formData}
                 setFormData={setFormData}
                 onCursorChange={setCursorPosition}
-                onSaveDraft={handleSaveDraft}
               />
             )}
           </div>
@@ -827,7 +768,7 @@ export default function ShareStoryPage() {
             ) : (
               <div className="flex items-center gap-3 order-1 sm:order-2">
                 {/* Save Draft Button (only if authenticated) */}
-                {isAuthenticated() && (
+                {mounted && isAuth && (
                   <button
                     onClick={handleSaveDraft}
                     disabled={saveStatus === "saving"}
