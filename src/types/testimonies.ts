@@ -20,7 +20,7 @@ export interface Testimony {
   identityPreference: IdentityPreference;
   fullName: string;
   relationToEvent?: string;
-  relatives?: Array<Record<string, unknown>>;
+  relatives?: ApiRelative[];
   location: string;
   dateOfEventFrom?: string;
   dateOfEventTo?: string;
@@ -60,7 +60,7 @@ export interface CreateTestimonyRequest {
   identityPreference: IdentityPreference;
   fullName: string;
   relationToEvent: string;
-  relatives?: Array<Record<string, unknown>>;
+  relatives?: ApiRelative[];
   location: string;
   dateOfEventFrom?: string;
   dateOfEventTo?: string;
@@ -87,7 +87,7 @@ export interface CreateOrUpdateTestimonyRequest {
   identityPreference: IdentityPreference;
   fullName?: string;
   relationToEvent?: string;
-  relatives?: Array<Record<string, unknown>>;
+  relatives?: ApiRelative[];
   location?: string;
   dateOfEventFrom?: string;
   dateOfEventTo?: string;
@@ -97,7 +97,8 @@ export interface CreateOrUpdateTestimonyRequest {
   isDraft?: boolean;
   draftCursorPosition?: number;
   agreedToTerms: boolean;
-  images?: string[];
+  images?: (string | File)[];
+  imageDescriptions?: string[];
   audio?: File | null;
   video?: File | null;
 }
@@ -116,12 +117,26 @@ export interface AudioUploadResponse {
   publicId: string;
 }
 
+// Relative interface for form (user-friendly)
+export interface FormRelative {
+  value: string;
+  name: string;
+}
+
+// Relative interface for API (backend format)
+export interface ApiRelative {
+  relativeTypeId: number;
+  personName: string;
+  notes?: string;
+  order: number;
+}
+
 export interface FormData {
   type: StoryType;
   identity: IdentityPreference;
   fullName: string;
   relationToEvent: string;
-  relatives?: Array<Record<string, unknown>>;
+  relatives?: FormRelative[];
   location: string;
   dateOfEventFrom?: string;
   dateOfEventTo?: string;
@@ -131,4 +146,8 @@ export interface FormData {
   images: Array<{ file: File; description: string }>;
   audioFile: File | null;
   videoFile: File | null;
+  audioUrl?: string;
+  videoUrl?: string;
+  audioFileName?: string;
+  videoFileName?: string;
 }

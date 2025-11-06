@@ -50,6 +50,14 @@ export default function PersonalDetailsStep({
       }));
       setNewRelativeValue("");
       setNewRelativeName("");
+    } else {
+      // Show validation feedback if fields are empty
+      if (!newRelativeValue.trim()) {
+        // Could add toast or visual feedback here if needed
+      }
+      if (!newRelativeName.trim()) {
+        // Could add toast or visual feedback here if needed
+      }
     }
   };
 
@@ -237,8 +245,7 @@ export default function PersonalDetailsStep({
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-          Names of Relatives{" "}
-          <span className="text-gray-500 font-normal">(optional)</span>
+          Names of Relatives <span className="text-red-500">*</span>
         </label>
         <div className="space-y-3">
           {/* Existing relatives */}

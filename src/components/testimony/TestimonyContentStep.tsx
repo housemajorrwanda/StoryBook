@@ -31,10 +31,8 @@ interface TestimonyContentStepProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   onCursorChange?: (position: number) => void;
-  onSaveDraft?: () => void;
 }
 
-// Toolbar button component
 const ToolbarButton = ({
   onClick,
   isActive = false,
@@ -69,7 +67,6 @@ export default function TestimonyContentStep({
   formData,
   setFormData,
   onCursorChange,
-  onSaveDraft,
 }: TestimonyContentStepProps) {
   // Modal state
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
@@ -341,7 +338,6 @@ You can use the formatting tools above to:
           />
         </div>
 
-        {/* Type-specific content */}
         {formData.type === "written" && (
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
@@ -350,9 +346,7 @@ You can use the formatting tools above to:
             <div className="border-2 border-gray-200 rounded-lg sm:rounded-xl overflow-hidden focus-within:border-black transition-colors duration-200">
               {editor && (
                 <>
-                  {/* Custom Toolbar */}
                   <div className="border-b border-gray-200 bg-gray-50 p-2 sm:p-3 md:p-4 flex flex-wrap gap-1 sm:gap-2">
-                    {/* Text Formatting */}
                     <div className="flex gap-0.5 sm:gap-1 border-r border-gray-300 pr-2 sm:pr-3 mr-2 sm:mr-3 cursor-pointer">
                       <ToolbarButton
                         onClick={() =>
@@ -457,7 +451,6 @@ You can use the formatting tools above to:
                       </ToolbarButton>
                     </div>
 
-                    {/* Alignment - Hidden on small screens to save space */}
                     <div className="hidden sm:flex gap-0.5 sm:gap-1">
                       <ToolbarButton
                         onClick={() =>
@@ -549,7 +542,7 @@ You can use the formatting tools above to:
                 <p className="text-gray-500 text-xs sm:text-sm">
                   MP3, WAV up to 50MB
                 </p>
-                {formData.audioFile ? (
+                {formData.audioFile || formData.audioUrl ? (
                   <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
@@ -557,18 +550,34 @@ You can use the formatting tools above to:
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">
-                          Audio recording ready
+                          {formData.audioFile
+                            ? "Audio recording ready"
+                            : "Audio file attached"}
                         </p>
                         <p className="text-xs text-gray-600">
-                          {formData.audioFile.name.includes("recording")
-                            ? "Recorded audio"
-                            : formData.audioFile.name}
+                          {formData.audioFile
+                            ? formData.audioFile.name.includes("recording")
+                              ? "Recorded audio"
+                              : formData.audioFile.name
+                            : formData.audioFileName || "Audio file"}
                         </p>
+                        {formData.audioUrl && (
+                          <audio
+                            controls
+                            src={formData.audioUrl}
+                            className="mt-2 w-full h-8"
+                          />
+                        )}
                       </div>
                       <button
                         type="button"
                         onClick={() =>
-                          setFormData((prev) => ({ ...prev, audioFile: null }))
+                          setFormData((prev) => ({
+                            ...prev,
+                            audioFile: null,
+                            audioUrl: undefined,
+                            audioFileName: undefined,
+                          }))
                         }
                         className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
                       >
@@ -640,7 +649,7 @@ You can use the formatting tools above to:
                 <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-6">
                   MP4, MOV up to 200MB
                 </p>
-                {formData.videoFile ? (
+                {formData.videoFile || formData.videoUrl ? (
                   <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
@@ -648,18 +657,34 @@ You can use the formatting tools above to:
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">
-                          Video recording ready
+                          {formData.videoFile
+                            ? "Video recording ready"
+                            : "Video file attached"}
                         </p>
                         <p className="text-xs text-gray-600">
-                          {formData.videoFile.name.includes("recording")
-                            ? "Recorded video"
-                            : formData.videoFile.name}
+                          {formData.videoFile
+                            ? formData.videoFile.name.includes("recording")
+                              ? "Recorded video"
+                              : formData.videoFile.name
+                            : formData.videoFileName || "Video file"}
                         </p>
+                        {formData.videoUrl && (
+                          <video
+                            controls
+                            src={formData.videoUrl}
+                            className="mt-2 w-full max-w-md rounded-lg"
+                          />
+                        )}
                       </div>
                       <button
                         type="button"
                         onClick={() =>
-                          setFormData((prev) => ({ ...prev, videoFile: null }))
+                          setFormData((prev) => ({
+                            ...prev,
+                            videoFile: null,
+                            videoUrl: undefined,
+                            videoFileName: undefined,
+                          }))
                         }
                         className="text-gray-500 hover:text-gray-700 transition-colors duration-200 cursor-pointer"
                       >
@@ -823,10 +848,6 @@ You can use the formatting tools above to:
           isOpen={isAudioModalOpen}
           onClose={() => {
             setIsAudioModalOpen(false);
-            // Save draft when closing audio recorder
-            if (onSaveDraft) {
-              onSaveDraft();
-            }
           }}
           onRecordingComplete={handleAudioRecordingComplete}
         />
@@ -835,10 +856,6 @@ You can use the formatting tools above to:
           isOpen={isVideoModalOpen}
           onClose={() => {
             setIsVideoModalOpen(false);
-            // Save draft when closing video recorder
-            if (onSaveDraft) {
-              onSaveDraft();
-            }
           }}
           onRecordingComplete={handleVideoRecordingComplete}
         />

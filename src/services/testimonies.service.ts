@@ -73,14 +73,23 @@ function buildTestimonyFormData(
     fd.append("relatives", JSON.stringify(request.relatives));
   }
 
+  // Images
   if (
     request.images &&
     Array.isArray(request.images) &&
     request.images.length > 0
   ) {
-    request.images.forEach((imageUrl) => {
-      fd.append("images", imageUrl);
+    request.images.forEach((image) => {
+      fd.append("images", image as File | string);
     });
+  }
+
+  if (
+    request.imageDescriptions &&
+    Array.isArray(request.imageDescriptions) &&
+    request.imageDescriptions.length > 0
+  ) {
+    fd.append("imageDescriptions", JSON.stringify(request.imageDescriptions));
   }
 
   // Binary files
@@ -222,7 +231,7 @@ export const testimoniesService = {
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("files", file);
 
     try {
       const response = await uploadApi.post<ImageUploadResponse>(
@@ -289,7 +298,7 @@ export const testimoniesService = {
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("files", file);
 
     try {
       const response = await uploadApi.post<AudioUploadResponse>(
@@ -341,7 +350,7 @@ export const testimoniesService = {
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("files", file);
 
     try {
       const response = await uploadApi.post<AudioUploadResponse>(

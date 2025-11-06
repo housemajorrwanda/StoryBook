@@ -4,6 +4,7 @@ import {
   ImageUploadResponse,
   AudioUploadResponse,
 } from "@/types/testimonies";
+import { transformRelativesToApi } from "./relatives.utils";
 
 export function transformFormDataToApiRequest(
   formData: FormData,
@@ -11,12 +12,16 @@ export function transformFormDataToApiRequest(
   uploadedAudio?: AudioUploadResponse,
   uploadedVideo?: AudioUploadResponse
 ): CreateTestimonyRequest {
+  const transformedRelatives = formData.relatives?.length
+    ? transformRelativesToApi(formData.relatives)
+    : undefined;
+
   const request: CreateTestimonyRequest = {
     submissionType: formData.type!,
     identityPreference: formData.identity!,
     fullName: formData.fullName,
-    relationToEvent: "", // Not used in new API format, kept for backward compatibility
-    relatives: formData.relatives || [],
+    relationToEvent: formData.relationToEvent,
+    relatives: transformedRelatives,
     location: formData.location,
     dateOfEventFrom: formData.dateOfEventFrom || "",
     dateOfEventTo: formData.dateOfEventTo || "",
@@ -70,6 +75,10 @@ export function validateFormData(formData: FormData): string[] {
 
   if (!formData.relationToEvent.trim()) {
     errors.push("Please select how you are connected to these events");
+  }
+
+  if (!formData.relatives?.length) {
+    errors.push("Please add at least one relative");
   }
 
   if (!formData.location.trim()) {
