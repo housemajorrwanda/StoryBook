@@ -17,6 +17,7 @@ import {
   formatImpressions,
   generateTestimonySlug,
 } from "@/utils/testimony.utils";
+import { EmptyState } from "@/components/shared";
 
 interface TestimoniesGridProps {
   limit?: number;
@@ -95,23 +96,12 @@ export default function TestimoniesGrid({
 
   if (!displayedTestimonies || displayedTestimonies.length === 0) {
     return (
-      <div className="text-center py-24">
-        <div className="inline-block p-16 border-l-4 border-gray-900">
-          <div className="w-24 h-24 mx-auto mb-8 bg-gray-900 flex items-center justify-center">
-            <FileText className="w-12 h-12 text-white" />
-          </div>
-          <p className="text-3xl font-black text-gray-900 mb-4">
-            No Testimonies Yet
-          </p>
-          <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-            Be the first to share your story and inspire others with your
-            journey
-          </p>
-          <button className="px-10 py-5 bg-gray-900 text-white font-bold text-lg hover:bg-black transition-all duration-300">
-            Share Your Story
-          </button>
-        </div>
-      </div>
+      <EmptyState
+        title="No Testimonies Yet"
+        subtitle="Be the first to share your story and inspire others with your journey"
+        icon={<FileText className="w-16 h-16 text-gray-300" />}
+        size="lg"
+      />
     );
   }
 

@@ -2,10 +2,12 @@
 
 import { Formik, Form, Field } from "formik";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useSignup } from "@/hooks/auth/use-auth-queries";
 import { signupValidationSchema } from "@/lib/validation/auth.validation";
 import { SignupCredentials } from "@/types/auth";
+import { CheckIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 
 export default function SignupPage() {
   const signupMutation = useSignup();
@@ -17,84 +19,56 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl flex items-center gap-8">
-        {/* Left Side - Remembrance Timeline Card */}
-        <div className="hidden lg:flex lg:w-2/5 flex-col justify-center">
-          <div className="bg-gray-50 rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg w-full">
-            <div className="flex items-center mb-6">
-              <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center mr-2">
-                <svg
-                  className="w-3 h-3 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">31 Years</h2>
-                <p className="text-sm text-gray-600">Of Remembrance</p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-white flex items-center justify-center p-4">
+      <div className="w-full max-w-7xl flex items-center gap-8 lg:gap-12">
+        {/* Left Side - Hero Image with Overlay */}
+        <div className="hidden lg:flex lg:w-2/5 flex-col justify-center relative">
+          <div className="relative h-[850px] rounded-2xl overflow-hidden shadow-2xl group">
+            <Image
+              src="/images/Kwibuka.jpeg"
+              alt="Rwanda Remembrance - Kwibuka"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
+              priority
+              sizes="(max-width: 1024px) 0vw, 40vw"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
 
-            <p className="text-gray-700 mb-8 leading-relaxed font-medium text-sm">
-              From tragedy to healing, from silence to testimony, from
-              separation to reunion.
-            </p>
-
-            <div className="relative">
-              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
-
-              <div className="relative flex items-start mb-6">
-                <div className="w-6 h-6 bg-gray-800 rounded-full shrink-0 z-10"></div>
-                <div className="ml-4">
-                  <h3 className="font-bold text-gray-900 mb-1 text-sm">
-                    1994 - The Tragedy
-                  </h3>
-                  <p className="text-gray-600 text-xs">
-                    Genocide against the Tutsi in Rwanda.
-                  </p>
+            {/* Content Overlay */}
+            <div className="absolute inset-0 flex flex-col justify-end p-8 text-white">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold">31 Years</h2>
+                    <p className="text-sm text-white/90">Of Remembrance</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="relative flex items-start mb-6">
-                <div className="w-6 h-6 bg-gray-800 rounded-full shrink-0 z-10"></div>
-                <div className="ml-4">
-                  <h3 className="font-bold text-gray-900 mb-1 text-sm">
-                    1994-2000 - Rebuilding
-                  </h3>
-                  <p className="text-gray-600 text-xs">
-                    Rwanda begins healing and reconciliation.
-                  </p>
-                </div>
-              </div>
+                <p className="text-white/90 leading-relaxed text-base max-w-md">
+                  From tragedy to healing, from silence to testimony, from
+                  separation to reunion. Your story matters. Join us in
+                  preserving history for future generations.
+                </p>
 
-              <div className="relative flex items-start mb-6">
-                <div className="w-6 h-6 bg-gray-800 rounded-full shrink-0 z-10"></div>
-                <div className="ml-4">
-                  <h3 className="font-bold text-gray-900 mb-1 text-sm">
-                    2024 - Digital Archive
-                  </h3>
-                  <p className="text-gray-600 text-xs">
-                    This platform launches to preserve testimonies.
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative flex items-start">
-                <div className="w-6 h-6 bg-gray-800 rounded-full shrink-0 z-10"></div>
-                <div className="ml-4">
-                  <h3 className="font-bold text-gray-900 mb-1 text-sm">
-                    Today - Your Story
-                  </h3>
-                  <p className="text-gray-600 text-xs">
-                    Join us in preserving history for future generations.
-                  </p>
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="h-px w-12 bg-white/50" />
+                  <span className="text-xs text-white/70 uppercase tracking-wider">
+                    Kwibuka
+                  </span>
                 </div>
               </div>
             </div>
@@ -103,18 +77,19 @@ export default function SignupPage() {
 
         {/* Vertical Divider Line */}
         <div className="hidden lg:flex items-center justify-center">
-          <div className="w-px h-80 bg-gray-300"></div>
+          <div className="w-px h-96 bg-linear-to-b from-transparent via-gray-300 to-transparent"></div>
         </div>
 
         {/* Right Side - Signup Form */}
         <div className="w-full lg:w-3/5 flex items-center justify-center">
-          <div className="w-full max-w-lg">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="w-full max-w-lg bg-white rounded-2xl p-8 lg:p-10 shadow-xl border border-gray-100">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Create Account
               </h1>
-              <p className="text-gray-600 text-sm">
-                Join us in preserving history.
+              <p className="text-gray-600">
+                Join us in preserving history. Share your story and be part of
+                the remembrance.
               </p>
             </div>
 
@@ -137,7 +112,7 @@ export default function SignupPage() {
                   {/* Google Signup Button */}
                   <button
                     type="button"
-                    className="w-full flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                    className="w-full flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md cursor-pointer"
                   >
                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                       <path
@@ -276,43 +251,13 @@ export default function SignupPage() {
                       />
                       <button
                         type="button"
-                        className="absolute inset-y-0 right-0 pr-2 flex items-center"
+                        className="absolute inset-y-0 right-0 pr-2 flex items-center cursor-pointer"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <svg
-                            className="h-4 w-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                            />
-                          </svg>
+                          <EyeOffIcon className="h-4 w-4 text-gray-400" />
                         ) : (
-                          <svg
-                            className="h-4 w-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
+                          <EyeIcon className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
                     </div>
@@ -341,7 +286,7 @@ export default function SignupPage() {
                       />
                       <button
                         type="button"
-                        className="absolute inset-y-0 right-0 pr-2 flex items-center"
+                        className="absolute inset-y-0 right-0 pr-2 flex items-center cursor-pointer"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
@@ -397,20 +342,11 @@ export default function SignupPage() {
                         <input
                           type="checkbox"
                           id="terms"
+                          name="terms"
                           className="sr-only peer"
                         />
                         <div className="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:bg-gray-800 peer-checked:border-gray-800 transition-colors">
-                          <svg
-                            className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          <CheckIcon className="h-4 w-4 text-white" />
                         </div>
                       </div>
                       <span className="ml-2 text-xs text-gray-700">
@@ -436,7 +372,7 @@ export default function SignupPage() {
                   <button
                     type="submit"
                     disabled={signupMutation.isPending}
-                    className="w-full bg-gray-800 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="w-full bg-gray-800 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm cursor-pointer"
                   >
                     {signupMutation.isPending
                       ? "Creating Account..."
@@ -452,10 +388,11 @@ export default function SignupPage() {
                 Don&apos;t have Account?{" "}
                 <Link
                   href="/login"
-                  className="text-gray-800 hover:text-gray-900 font-medium transition-colors"
+                  className="text-gray-800 hover:text-gray-900 font-medium transition-colors duration-300 cursor-pointer hover:underline hover:font-semibold"
                 >
                   Sign In
-                </Link>
+                </Link>{" "}
+                here
               </p>
             </div>
           </div>
