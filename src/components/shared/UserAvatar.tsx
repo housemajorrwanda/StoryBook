@@ -67,10 +67,7 @@ export default function UserAvatar({
   };
 
   const getUserName = () => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
-    return user.username || user.email || "User";
+    return user.fullName || "User";
   };
 
   const handleResumeDraft = (draftId: number) => {
@@ -113,8 +110,8 @@ export default function UserAvatar({
           right: `${dropdownPosition.right}px`,
         }}
       >
-        <div className="px-4 py-3 border-b border-gray-100">
-          <p className="text-sm font-semibold text-gray-900">{getUserName()}</p>
+        <div className="px-4 py-2 border-b border-gray-50">
+          <p className="text-base font-bold text-gray-900">{getUserName()}</p>
           <p className="text-xs text-gray-500 truncate">{user.email}</p>
         </div>
 
@@ -133,8 +130,8 @@ export default function UserAvatar({
                     Drafts ({drafts.length})
                   </p>
                 </div>
-                <div className="max-h-48 overflow-y-auto">
-                  {drafts.slice(0, 3).map((draft) => (
+                <div className="max-h-96 overflow-y-auto">
+                  {drafts.slice(0, 5).map((draft) => (
                     <button
                       key={draft.id}
                       onClick={() => handleResumeDraft(draft.id)}
@@ -155,10 +152,10 @@ export default function UserAvatar({
                       </div>
                     </button>
                   ))}
-                  {drafts.length > 3 && (
+                  {drafts.length > 5 && (
                     <Link
-                      href="/share-testimony"
-                      className="block px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer text-center"
+                      href="/share-testimony?view=drafts"
+                      className="block px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer text-center border-t border-gray-100"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       View all {drafts.length} drafts

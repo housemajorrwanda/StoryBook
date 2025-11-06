@@ -146,8 +146,8 @@ export const testimoniesService = {
     return response.data;
   },
 
-  // Get user's draft testimonies (REQUIRES AUTH)
-  // Returns only the authenticated user's drafts - backend filters by user automatically
+  // Get user's draft testimonies
+
   async getDrafts(): Promise<Testimony[]> {
     try {
       const response = await authenticatedApi.get<
@@ -158,11 +158,11 @@ export const testimoniesService = {
         ? response.data
         : response.data.data || [];
 
-      // Filter to ensure only drafts (backend should already filter, but double-check)
-      return testimonies.filter((testimony) => testimony.isDraft === true);
+      return testimonies.filter(
+        (testimony: Testimony) => testimony.isDraft === true
+      );
     } catch (error) {
       console.error("Failed to fetch drafts:", error);
-      // Log the actual error response for debugging
       if (error && typeof error === "object" && "response" in error) {
         const axiosError = error as {
           response?: { data?: unknown; status?: number };
