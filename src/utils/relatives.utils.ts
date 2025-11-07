@@ -25,12 +25,26 @@ const REVERSE_RELATIONSHIP_MAP: Record<number, string> = Object.fromEntries(
 export function transformRelativesToApi(
   formRelatives: FormRelative[]
 ): ApiRelative[] {
-  return formRelatives.map((rel, index) => ({
-    relativeTypeId: RELATIONSHIP_TYPE_MAP[rel.value] || 15,
-    personName: rel.name,
-    notes: "",
-    order: index,
-  }));
+  console.log("Transforming relatives to API format:", formRelatives);
+
+  const transformed = formRelatives
+    .filter((rel) => rel && (rel.value || rel.name)) // Filter out empty relatives
+    .map((rel, index) => {
+      const result = {
+        relativeTypeId: RELATIONSHIP_TYPE_MAP[rel.value || ""] || 15,
+        personName: rel.name || "",
+        notes: "",
+        order: index,
+      };
+      console.log(`Transformed relative ${index}:`, {
+        original: rel,
+        transformed: result,
+      });
+      return result;
+    });
+
+  console.log("Final transformed relatives:", transformed);
+  return transformed;
 }
 
 export function transformRelativesFromApi(

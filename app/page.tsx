@@ -192,7 +192,7 @@ export default function Home() {
           </Link>
 
           {/* Elevated Navigation - Desktop */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0">
+          <nav className="hidden md:flex items-center justify-center flex-1 min-w-0">
             <div className="flex items-center gap-0.5 sm:gap-1 bg-black/5 backdrop-blur-md rounded-full px-1 sm:px-2 py-1.5 sm:py-2 border border-black/5">
               {[
                 { href: "#testimonies", label: "Testimonies" },
