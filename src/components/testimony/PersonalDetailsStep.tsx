@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import {
   LuCalendar,
   LuPlus,
@@ -17,9 +18,21 @@ export default function PersonalDetailsStep({
   formData,
   setFormData,
 }: PersonalDetailsStepProps) {
+  // Ensure relatives array is always defined and persisted
   const relatives = formData.relatives || [];
   const [newRelativeValue, setNewRelativeValue] = useState("");
   const [newRelativeName, setNewRelativeName] = useState("");
+
+  // Ensure relatives array exists in formData when component mounts
+  useEffect(() => {
+    if (!formData.relatives) {
+      setFormData((prev) => ({
+        ...prev,
+        relatives: [],
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const relationshipOptions = [
     { value: "brother", label: "Brother" },
@@ -40,23 +53,44 @@ export default function PersonalDetailsStep({
   ];
 
   const addRelative = () => {
-    if (newRelativeValue.trim() && newRelativeName.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        relatives: [
-          ...(prev.relatives || []),
-          { value: newRelativeValue.trim(), name: newRelativeName.trim() },
-        ],
-      }));
+    const trimmedValue = newRelativeValue.trim();
+    const trimmedName = newRelativeName.trim();
+
+    console.log("Adding relative:", { trimmedValue, trimmedName });
+
+    if (trimmedValue && trimmedName) {
+      setFormData((prev) => {
+        const currentRelatives = prev.relatives || [];
+        const newRelative = { value: trimmedValue, name: trimmedName };
+
+        console.log("New relative object:", newRelative);
+        console.log("Current relatives before add:", currentRelatives);
+
+        const updatedRelatives = [...currentRelatives, newRelative];
+
+        console.log("Updated relatives:", updatedRelatives);
+
+        const updatedFormData = {
+          ...prev,
+          relatives: updatedRelatives,
+        };
+
+        console.log("Updated formData:", updatedFormData);
+
+        return updatedFormData;
+      });
       setNewRelativeValue("");
       setNewRelativeName("");
     } else {
-      // Show validation feedback if fields are empty
-      if (!newRelativeValue.trim()) {
-        // Could add toast or visual feedback here if needed
+      console.warn("Cannot add relative - missing fields:", {
+        hasValue: !!trimmedValue,
+        hasName: !!trimmedName,
+      });
+      if (!trimmedValue) {
+        toast.error("Please select a relationship");
       }
-      if (!newRelativeName.trim()) {
-        // Could add toast or visual feedback here if needed
+      if (!trimmedName) {
+        toast.error("Please enter a name");
       }
     }
   };
@@ -73,12 +107,20 @@ export default function PersonalDetailsStep({
     field: "value" | "name",
     newValue: string
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      relatives: (prev.relatives || []).map((rel, i) =>
-        i === index ? { ...rel, [field]: newValue } : rel
-      ),
-    }));
+    setFormData((prev) => {
+      const currentRelatives = prev.relatives || [];
+      const updatedRelatives = currentRelatives.map((rel, i) => {
+        if (i === index) {
+          return { ...rel, [field]: newValue.trim() };
+        }
+        return rel;
+      });
+
+      return {
+        ...prev,
+        relatives: updatedRelatives,
+      };
+    });
   };
 
   return (
@@ -245,10 +287,9 @@ export default function PersonalDetailsStep({
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-          Names of Relatives <span className="text-red-500">*</span>
+          Names of Relatives *
         </label>
         <div className="space-y-3">
-          {/* Existing relatives */}
           {relatives.map((relative, index) => {
             const rel = relative as { value?: string; name?: string };
             return (
@@ -296,7 +337,6 @@ export default function PersonalDetailsStep({
             );
           })}
 
-          {/* Add relative */}
           <div className="flex items-center gap-2">
             <div className="relative w-32 sm:w-48 shrink-0">
               <select

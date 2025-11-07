@@ -19,6 +19,11 @@ export const useLogin = () => {
       if (data.access_token && data.user) {
         setAuthToken(data.access_token);
         queryClient.setQueryData(["user"], data.user);
+
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("lastLoginTime", Date.now().toString());
+        }
+
         toast.success("Login successful!");
 
         // Redirect based on user role
@@ -52,6 +57,12 @@ export const useSignup = () => {
       if (data.access_token && data.user) {
         setAuthToken(data.access_token);
         queryClient.setQueryData(["user"], data.user);
+
+        // Store login time to prevent race condition in API interceptor
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("lastLoginTime", Date.now().toString());
+        }
+
         toast.success("Account created successfully!");
 
         // Redirect based on user role

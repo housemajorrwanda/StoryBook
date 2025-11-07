@@ -62,7 +62,7 @@ export function useDrafts(): UseQueryResult<Testimony[], Error> {
   return useQuery({
     queryKey: TESTIMONY_KEYS.drafts(),
     queryFn: () => testimoniesService.getDrafts(),
-    staleTime: 2 * 60 * 1000, 
+    staleTime: 2 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
     retry: 1,
   });
@@ -97,7 +97,8 @@ export function useCreateTestimony(): UseMutationResult<
         toast.success(
           "Testimony submitted successfully! It will be reviewed before being published.",
           {
-            duration: 5000,
+            duration: 6000,
+            id: "testimony-submitted-success",
           }
         );
       }

@@ -54,8 +54,8 @@ export default function UserAvatar({
   };
 
   const getInitials = () => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    if (user.fullName) {
+      return `${user.fullName[0]}`.toUpperCase();
     }
     if (user.username) {
       return user.username[0].toUpperCase();

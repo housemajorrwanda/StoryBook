@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   LuChevronLeft,
@@ -40,7 +40,8 @@ import {
 } from "@/utils/relatives.utils";
 import { isAuthenticated } from "@/lib/decodeToken";
 
-export default function ShareStoryPage() {
+function ShareStoryPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const draftIdParam = searchParams.get("draft");
   const viewParam = searchParams.get("view");
@@ -295,6 +296,19 @@ export default function ShareStoryPage() {
     try {
       setIsSubmitting(true);
 
+      // Debug: Log formData before validation
+      console.log("FormData before validation:", {
+        relatives: formData.relatives,
+        relativesCount: formData.relatives?.length || 0,
+        relativesData: formData.relatives,
+        relativesDetails: formData.relatives?.map((rel) => ({
+          value: rel?.value,
+          name: rel?.name,
+          hasValue: !!rel?.value,
+          hasName: !!rel?.name,
+        })),
+      });
+
       const validationErrors = validateFormData(formData);
 
       if (!formData.consent) {
@@ -302,8 +316,17 @@ export default function ShareStoryPage() {
       }
 
       if (validationErrors.length > 0) {
-        validationErrors.forEach((error) => toast.error(error));
+        validationErrors.forEach((error, index) => {
+          setTimeout(() => {
+            toast.error(error, {
+              duration: 4000,
+              id: `validation-error-${index}`,
+            });
+          }, index * 100);
+        });
         setIsSubmitting(false);
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
 
@@ -346,9 +369,15 @@ export default function ShareStoryPage() {
         }
       }
 
+      // Debug: Log relatives before transformation
+      console.log("Relatives before transformation:", formData.relatives);
+
       const transformedRelatives = formData.relatives?.length
         ? transformRelativesToApi(formData.relatives)
         : undefined;
+
+      // Debug: Log transformed relatives
+      console.log("Transformed relatives:", transformedRelatives);
 
       // Build request
       const request: CreateOrUpdateTestimonyRequest = {
@@ -377,20 +406,34 @@ export default function ShareStoryPage() {
         video: formData.videoFile || undefined,
       };
 
+      // Store submission start time to prevent logout from API interceptor
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("lastSubmissionTime", Date.now().toString());
+      }
+
       // Submit (hooks will show success toast)
+      let submissionResult;
       if (savedDraftId) {
-        await updateTestimony.mutateAsync({
+        submissionResult = await updateTestimony.mutateAsync({
           id: savedDraftId,
           request,
         });
       } else {
-        await createTestimony.mutateAsync(request);
+        submissionResult = await createTestimony.mutateAsync(request);
       }
 
-      // Redirect after a short delay to allow toast to be seen
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 2000);
+      // Only redirect if submission was successful
+      if (submissionResult) {
+        // Wait longer to ensure toast is visible and prevent race conditions
+        // Use Next.js router to preserve authentication state
+        setTimeout(() => {
+          // Clear submission time before redirect
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("lastSubmissionTime");
+          }
+          router.push("/");
+        }, 3000); // Increased to 3 seconds to ensure toast is visible
+      }
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error &&
@@ -405,7 +448,11 @@ export default function ShareStoryPage() {
           : error instanceof Error
           ? error.message
           : "Failed to submit testimony. Please try again.";
-      toast.error(errorMessage, { id: "submit-testimony" });
+      toast.error(errorMessage, {
+        id: "submit-testimony",
+        duration: 5000,
+      });
+      // Don't clear form data on error - let user fix and resubmit
     } finally {
       setIsSubmitting(false);
     }
@@ -727,6 +774,7 @@ export default function ShareStoryPage() {
             {/* Step 2: Details Form */}
             {currentStep === 2 && (
               <PersonalDetailsStep
+                key="personal-details-step"
                 formData={formData}
                 setFormData={setFormData}
               />
@@ -820,5 +868,19 @@ export default function ShareStoryPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ShareStoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <LuLoader className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      }
+    >
+      <ShareStoryPageContent />
+    </Suspense>
   );
 }

@@ -77,8 +77,37 @@ export function validateFormData(formData: FormData): string[] {
     errors.push("Please select how you are connected to these events");
   }
 
-  if (!formData.relatives?.length) {
-    errors.push("Please add at least one relative");
+  // Validate relatives
+  const relatives = formData.relatives || [];
+
+  // Debug logging
+  console.log("Validating relatives:", {
+    relatives,
+    count: relatives.length,
+    details: relatives.map((rel) => ({
+      value: rel?.value,
+      name: rel?.name,
+      valueType: typeof rel?.value,
+      nameType: typeof rel?.name,
+      valueTrimmed: rel?.value?.trim(),
+      nameTrimmed: rel?.name?.trim(),
+      isValid: rel?.value?.trim() && rel?.name?.trim(),
+    })),
+  });
+
+  const hasValidRelative = relatives.some((rel) => {
+    const value = rel?.value;
+    const name = rel?.name;
+    const hasValue =
+      value && typeof value === "string" && value.trim().length > 0;
+    const hasName = name && typeof name === "string" && name.trim().length > 0;
+    return hasValue && hasName;
+  });
+
+  if (!hasValidRelative) {
+    errors.push(
+      "Please add at least one relative with both relationship and name"
+    );
   }
 
   if (!formData.location.trim()) {

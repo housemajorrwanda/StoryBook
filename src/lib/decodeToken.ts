@@ -14,7 +14,13 @@ export function decodeAuthToken(key = "authToken"): JWTPayload | null {
     }
 
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload as JWTPayload;
+
+    const decodedPayload: JWTPayload = {
+      ...payload,
+      id: payload.id || (payload.sub ? String(payload.sub) : undefined),
+    };
+
+    return decodedPayload;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     localStorage.removeItem(key);
