@@ -53,8 +53,8 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
           <div className="text-right">
             <p className="text-xs font-medium text-gray-900">
               Welcome back,{" "}
-              {user?.firstName && user?.lastName
-                ? `${user.firstName} ${user.lastName}`
+              {user?.fullName
+                ? `${user.fullName}`
                 : user?.username || user?.email || "User"}
               !
             </p>
@@ -69,8 +69,8 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
               {/* Avatar */}
               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-medium">
-                  {user?.firstName && user?.lastName
-                    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
+                  {user?.fullName
+                    ? `${user.fullName.charAt(0)}`
                     : user?.username
                     ? user.username.charAt(0).toUpperCase()
                     : user?.email
@@ -100,8 +100,8 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <p className="text-sm font-medium text-gray-900">
-                    {user?.firstName && user?.lastName
-                      ? `${user.firstName} ${user.lastName}`
+                    {user?.fullName
+                      ? `${user.fullName}`
                       : user?.username || user?.email || "User"}
                   </p>
                   <p className="text-xs text-gray-500">{user?.email}</p>

@@ -10,17 +10,15 @@ export interface SignupCredentials {
   username: string;
   password: string;
   confirmPassword: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
 }
 
 export interface JWTPayload {
-  fullName: ReactNode;
-  id: string;
+  sub?: number | string;
+  id?: string;
   email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
+  username?: string;
+  fullName?: ReactNode | string | null;
   role?: string;
   iat: number;
   exp: number;

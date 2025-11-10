@@ -14,8 +14,16 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = (values: SignupCredentials) => {
-    signupMutation.mutate(values);
+  const handleSubmit = async (
+    values: SignupCredentials,
+    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
+  ) => {
+    try {
+      await signupMutation.mutateAsync(values);
+    } catch {
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -96,8 +104,7 @@ export default function SignupPage() {
             <Formik
               key="signup-form"
               initialValues={{
-                firstName: "",
-                lastName: "",
+                fullName: "",
                 username: "",
                 email: "",
                 password: "",
@@ -105,9 +112,9 @@ export default function SignupPage() {
               }}
               validationSchema={signupValidationSchema}
               onSubmit={handleSubmit}
-              enableReinitialize={true}
+              enableReinitialize={false}
             >
-              {({ errors, touched }) => (
+              {({ errors, touched, isSubmitting }) => (
                 <Form className="space-y-4">
                   {/* Google Signup Button */}
                   <button
@@ -148,43 +155,21 @@ export default function SignupPage() {
                   {/* First Name Field */}
                   <div>
                     <label
-                      htmlFor="firstName"
+                      htmlFor="fullName"
                       className="block text-xs font-medium text-gray-700 mb-1"
                     >
-                      First Name
+                      Full Name
                     </label>
                     <Field
                       type="text"
-                      id="firstName"
-                      name="firstName"
+                      id="fullName"
+                      name="fullName"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent text-sm"
-                      placeholder="Enter your first name"
+                      placeholder="Enter your full name"
                     />
-                    {errors.firstName && touched.firstName && (
+                    {errors.fullName && touched.fullName && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.firstName}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Last Name Field */}
-                  <div>
-                    <label
-                      htmlFor="lastName"
-                      className="block text-xs font-medium text-gray-700 mb-1"
-                    >
-                      Last Name
-                    </label>
-                    <Field
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent text-sm"
-                      placeholder="Enter your last name"
-                    />
-                    {errors.lastName && touched.lastName && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.lastName}
+                        {errors.fullName}
                       </p>
                     )}
                   </div>
@@ -371,7 +356,7 @@ export default function SignupPage() {
                   {/* Create Account Button */}
                   <button
                     type="submit"
-                    disabled={signupMutation.isPending}
+                    disabled={isSubmitting || signupMutation.isPending}
                     className="w-full bg-gray-800 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm cursor-pointer"
                   >
                     {signupMutation.isPending
