@@ -138,15 +138,34 @@ export const testimoniesService = {
     }
   },
 
-  // Get all published testimonies
-  async getTestimonies(): Promise<Testimony[]> {
-    const response = await publicApi.get<{ data: Testimony[]; meta?: unknown }>(
-      "/testimonies"
+  // Get all testimonies with optional filters
+  async getTestimonies(filters?: {
+    search?: string;
+    submissionType?: string;
+    status?: string;
+    isPublished?: boolean;
+    dateFrom?: string;
+    dateTo?: string;
+    skip?: number;
+    limit?: number;
+  }): Promise<{ data: Testimony[]; meta?: { skip: number; limit: number; total: number } }> {
+    const params: Record<string, string | number | boolean> = {};
+    
+    if (filters?.search) params.search = filters.search;
+    if (filters?.submissionType) params.submissionType = filters.submissionType;
+    if (filters?.status) params.status = filters.status;
+    if (filters?.isPublished !== undefined) params.isPublished = filters.isPublished;
+    if (filters?.dateFrom) params.dateFrom = filters.dateFrom;
+    if (filters?.dateTo) params.dateTo = filters.dateTo;
+    if (filters?.skip !== undefined) params.skip = filters.skip;
+    if (filters?.limit !== undefined) params.limit = filters.limit;
+
+    const response = await publicApi.get<{ data: Testimony[]; meta?: { skip: number; limit: number; total: number } }>(
+      "/testimonies",
+      { params }
     );
-    const testimonies = Array.isArray(response.data)
-      ? response.data
-      : response.data.data || [];
-    return testimonies.filter((testimony) => testimony.isPublished);
+    
+    return response.data;
   },
 
   // Get a single testimony by ID

@@ -423,13 +423,9 @@ export default function Home() {
             <h2 className="text-xl sm:text-xl md:text-3xl font-extrabold tracking-tight text-gray-900">
               Testimonies
             </h2>
-            <p className="mt-2 text-xs md:text-sm text-gray-600 max-w-2xl">
-              Discover powerful stories of resilience, courage, and remembrance
-              shared by our community.
-            </p>
           </div>
 
-          <TestimoniesGrid limit={6} showHeader={false} />
+          <TestimoniesGrid limit={9} showHeader={false} showFilters={true} />
         </div>
       </section>
     </div>
