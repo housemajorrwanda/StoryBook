@@ -36,11 +36,20 @@ export const TESTIMONY_KEYS = {
   drafts: () => [...TESTIMONY_KEYS.all, "drafts"] as const,
 };
 
-// Get all published testimonies
-export function useTestimonies(): UseQueryResult<Testimony[], Error> {
+// Get all testimonies with optional filters
+export function useTestimonies(filters?: {
+  search?: string;
+  submissionType?: string;
+  status?: string;
+  isPublished?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+  skip?: number;
+  limit?: number;
+}): UseQueryResult<{ data: Testimony[]; meta?: { skip: number; limit: number; total: number } }, Error> {
   return useQuery({
-    queryKey: TESTIMONY_KEYS.lists(),
-    queryFn: testimoniesService.getTestimonies,
+    queryKey: [...TESTIMONY_KEYS.lists(), filters],
+    queryFn: () => testimoniesService.getTestimonies(filters),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
