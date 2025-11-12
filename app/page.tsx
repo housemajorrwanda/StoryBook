@@ -196,9 +196,9 @@ export default function Home() {
             <div className="flex items-center gap-0.5 sm:gap-1 bg-black/5 backdrop-blur-md rounded-full px-1 sm:px-2 py-1.5 sm:py-2 border border-black/5">
               {[
                 { href: "#testimonies", label: "Testimonies" },
-                { href: "#connections", label: "Connections" },
-                { href: "#virtual Tours", label: "Virtual Tours" },
-                { href: "#education", label: "Education" },
+                { href: "/connections", label: "Connections" },
+                { href: "/virtual-tours", label: "Virtual Tours" },
+                { href: "/education", label: "Education" },
               ].map((item) => (
                 <Link key={item.href} href={item.href}>
                   <button className="relative px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 font-semibold text-xs sm:text-sm text-gray-700 hover:text-black transition-all duration-300 cursor-pointer group rounded-full hover:bg-white/80 whitespace-nowrap">
@@ -285,16 +285,16 @@ export default function Home() {
               {[
                 { href: "#testimonies", label: "Testimonies", delay: "0ms" },
                 {
-                  href: "#connections",
+                  href: "/connections",
                   label: "Find Connections",
                   delay: "50ms",
                 },
                 {
-                  href: "#virtual-tours",
+                  href: "/virtual-tours",
                   label: "Virtual Tours",
                   delay: "100ms",
                 },
-                { href: "#education", label: "Education", delay: "150ms" },
+                { href: "/education", label: "Education", delay: "150ms" },
               ].map((item) => (
                 <Link
                   key={item.href}
