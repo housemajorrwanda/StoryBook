@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { ApiResponse, User } from "./common";
 
 export interface LoginCredentials {
@@ -7,10 +8,10 @@ export interface LoginCredentials {
 
 export interface SignupCredentials {
   email: string;
-  username: string;
   password: string;
   confirmPassword: string;
   fullName: string;
+  residentPlace?: string;
 }
 
 export interface JWTPayload {

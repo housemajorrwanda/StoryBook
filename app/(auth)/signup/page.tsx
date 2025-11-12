@@ -105,7 +105,6 @@ export default function SignupPage() {
               key="signup-form"
               initialValues={{
                 fullName: "",
-                username: "",
                 email: "",
                 password: "",
                 confirmPassword: "",
@@ -170,28 +169,6 @@ export default function SignupPage() {
                     {errors.fullName && touched.fullName && (
                       <p className="mt-1 text-sm text-red-600">
                         {errors.fullName}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Username Field */}
-                  <div>
-                    <label
-                      htmlFor="username"
-                      className="block text-xs font-medium text-gray-700 mb-1"
-                    >
-                      Username
-                    </label>
-                    <Field
-                      type="text"
-                      id="username"
-                      name="username"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent text-sm"
-                      placeholder="Choose a username"
-                    />
-                    {errors.username && touched.username && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.username}
                       </p>
                     )}
                   </div>

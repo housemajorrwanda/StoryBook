@@ -15,7 +15,14 @@ export const authService = {
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword: _, ...apiCredentials } = credentials;
-    const response = await axiosInstance.post("/auth/register", apiCredentials);
+    // Only send fields that the backend expects
+    const requestBody = {
+      email: apiCredentials.email,
+      password: apiCredentials.password,
+      fullName: apiCredentials.fullName,
+      ...(apiCredentials.residentPlace && { residentPlace: apiCredentials.residentPlace }),
+    };
+    const response = await axiosInstance.post("/auth/register", requestBody);
     return response.data;
   },
 
