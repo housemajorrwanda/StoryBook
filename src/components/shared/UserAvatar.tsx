@@ -54,20 +54,29 @@ export default function UserAvatar({
   };
 
   const getInitials = () => {
-    if (user.fullName) {
-      return `${user.fullName[0]}`.toUpperCase();
+    if (typeof user.fullName === "string" && user.fullName.trim().length > 0) {
+      return user.fullName.trim().charAt(0).toUpperCase();
     }
-    if (user.username) {
-      return user.username[0].toUpperCase();
+    if (typeof user.username === "string" && user.username.trim().length > 0) {
+      return user.username.trim().charAt(0).toUpperCase();
     }
-    if (user.email) {
-      return user.email[0].toUpperCase();
+    if (typeof user.email === "string" && user.email.length > 0) {
+      return user.email.charAt(0).toUpperCase();
     }
     return "U";
   };
 
   const getUserName = () => {
-    return user.fullName || "User";
+    if (typeof user.fullName === "string" && user.fullName.trim().length > 0) {
+      return user.fullName;
+    }
+    if (typeof user.username === "string" && user.username.trim().length > 0) {
+      return user.username;
+    }
+    if (typeof user.email === "string" && user.email.trim().length > 0) {
+      return user.email;
+    }
+    return "User";
   };
 
   const handleResumeDraft = (draftId: number) => {
