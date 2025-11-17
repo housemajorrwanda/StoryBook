@@ -54,14 +54,14 @@ export default function UserAvatar({
   };
 
   const getInitials = () => {
-    if (typeof user.fullName === "string" && user.fullName.trim().length > 0) {
-      return user.fullName.trim().charAt(0).toUpperCase();
+    if (user.fullName && typeof user.fullName === "string") {
+      return `${user.fullName[0]}`.toUpperCase();
     }
-    if (typeof user.username === "string" && user.username.trim().length > 0) {
-      return user.username.trim().charAt(0).toUpperCase();
+    if (user.username && typeof user.username === "string") {
+      return user.username[0].toUpperCase();
     }
-    if (typeof user.email === "string" && user.email.length > 0) {
-      return user.email.charAt(0).toUpperCase();
+    if (user.email && typeof user.email === "string") {
+      return user.email[0].toUpperCase();
     }
     return "U";
   };

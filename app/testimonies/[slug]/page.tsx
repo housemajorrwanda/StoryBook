@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { use } from "react";
 import TestimonyDetail from "@/components/testimonies/TestimonyDetail";
 import { parseTestimonySlug } from "@/utils/testimony.utils";
+import PageLayout from "@/layout/PageLayout";
 
 interface TestimonyPageProps {
   params: Promise<{
@@ -19,5 +20,9 @@ export default function TestimonyPage({ params }: TestimonyPageProps) {
     notFound();
   }
 
-  return <TestimonyDetail id={id} />;
+  return (
+    <PageLayout showBackgroundEffects={true} variant="default">
+      <TestimonyDetail id={id} />
+    </PageLayout>
+  );
 }

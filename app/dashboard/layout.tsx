@@ -62,7 +62,7 @@ export default function DashboardLayout({
 
         {/* Main content area - scrollable */}
         <main className="flex-1 overflow-y-auto p-4">
-          <div className="max-w-7xl mx-auto h-full">{children}</div>
+          <div className="h-full">{children}</div>
         </main>
 
         {/* Footer */}

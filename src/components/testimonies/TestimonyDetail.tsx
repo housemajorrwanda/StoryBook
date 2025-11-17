@@ -80,7 +80,7 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
     );
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -90,21 +90,10 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-          >
-            <LuArrowLeft className="w-4 h-4" />
-            <span className="font-medium">Back to Testimonies</span>
-          </Link>
-        </div>
-      </div>
+  
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12">
         <article className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Hero Section */}
           <div className="p-6 sm:p-8 md:p-12 border-b border-gray-200">
