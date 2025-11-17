@@ -67,7 +67,16 @@ export default function UserAvatar({
   };
 
   const getUserName = () => {
-    return user.fullName || "User";
+    if (typeof user.fullName === "string" && user.fullName.trim().length > 0) {
+      return user.fullName;
+    }
+    if (typeof user.username === "string" && user.username.trim().length > 0) {
+      return user.username;
+    }
+    if (typeof user.email === "string" && user.email.trim().length > 0) {
+      return user.email;
+    }
+    return "User";
   };
 
   const handleResumeDraft = (draftId: number) => {
