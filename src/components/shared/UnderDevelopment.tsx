@@ -10,7 +10,7 @@ interface UnderDevelopmentProps {
 
 export default function UnderDevelopment({
   title = "Coming Soon",
-  subtitle = "We're working hard to bring you something amazing. This page will be available soon!",
+  subtitle = "We&apos;re working hard to bring you something amazing. This page will be available soon!",
   showBackButton = true,
   className = "",
 }: UnderDevelopmentProps) {
@@ -55,7 +55,7 @@ export default function UnderDevelopment({
               style={{ width: "65%" }} 
             />
           </div>
-          <p className="text-sm text-gray-500 mt-2">We're making progress...</p>
+          <p className="text-sm text-gray-500 mt-2">We&apos;re making progress...</p>
         </div>
 
         {/* Action Buttons */}

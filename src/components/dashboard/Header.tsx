@@ -20,8 +20,8 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-1 lg:px-6">
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
+    <header className="bg-white border-b border-gray-200 px-4 py-6 lg:px-6">
+      <div className="flex items-center justify-between">
         {/* Left side */}
         <div className="flex items-center space-x-2">
           {/* Mobile menu button */}
@@ -70,11 +70,11 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-medium">
                   {user?.fullName
-                    ? `${user.fullName.charAt(0)}`
+                    ? `${String(user.fullName).charAt(0)}`
                     : user?.username
-                    ? user.username.charAt(0).toUpperCase()
+                    ? String(user.username).charAt(0).toUpperCase()
                     : user?.email
-                    ? user.email.charAt(0).toUpperCase()
+                    ? String(user.email).charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>

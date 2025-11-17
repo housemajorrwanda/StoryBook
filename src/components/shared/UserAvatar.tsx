@@ -54,13 +54,13 @@ export default function UserAvatar({
   };
 
   const getInitials = () => {
-    if (user.fullName) {
+    if (user.fullName && typeof user.fullName === "string") {
       return `${user.fullName[0]}`.toUpperCase();
     }
-    if (user.username) {
+    if (user.username && typeof user.username === "string") {
       return user.username[0].toUpperCase();
     }
-    if (user.email) {
+    if (user.email && typeof user.email === "string") {
       return user.email[0].toUpperCase();
     }
     return "U";

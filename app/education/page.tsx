@@ -1,7 +1,11 @@
 import UnderDevelopment from "@/components/shared/UnderDevelopment";
+import PageLayout from "@/layout/PageLayout";
 
 export default function EducationPage() {
   return (
+
+      <PageLayout showBackgroundEffects={true} variant="default">
+    
     <div className="min-h-screen bg-[#fafafa]">
       <UnderDevelopment
         title="Education"
@@ -9,6 +13,8 @@ export default function EducationPage() {
         showBackButton={true}
       />
     </div>
+
+    </PageLayout>
   );
 }
 
