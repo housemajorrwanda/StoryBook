@@ -4,6 +4,7 @@ import { useState } from "react";
 import { use } from "react";
 import { X, Volume2, VolumeX, Eye, Compass } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import PageLayout from "@/layout/PageLayout";
 
 interface Hotspot {
@@ -92,10 +93,12 @@ export default function TourViewer({
         <div className="flex-1 flex overflow-hidden container mx-auto px-6 py-8 gap-6">
           {/* Tour Display */}
           <div className="flex-1 relative bg-black overflow-hidden flex items-center justify-center">
-            <img
+            <Image
               src="/immersive-360-tour-environment.jpg"
               alt="Virtual Tour"
               className="w-full h-full object-cover"
+              fill
+              priority
             />
 
             {/* Hotspot Indicators */}

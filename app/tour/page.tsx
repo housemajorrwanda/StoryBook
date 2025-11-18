@@ -275,7 +275,9 @@ export default function Tour() {
 
   // Reset to page 1 when filters change
   useEffect(() => {
-    setPage(1);
+    // Use a callback to update page state asynchronously to avoid cascading renders
+    const timer = setTimeout(() => setPage(1), 0);
+    return () => clearTimeout(timer);
   }, [debouncedSearchTerm, typeFilter]);
 
   // Infinite scroll observer

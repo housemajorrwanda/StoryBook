@@ -24,8 +24,9 @@ export default function AdminDashboard() {
   const unpublishTourMutation = useUnpublishVirtualTour();
   const archiveTourMutation = useArchiveVirtualTour();
 
-  const tours = toursResponse?.data || [];
-  const totalTours = toursResponse?.meta?.total || 0;
+  // Memoize tours to prevent dependency changes
+  const tours = useMemo(() => toursResponse?.data || [], [toursResponse?.data]);
+  const totalTours = useMemo(() => toursResponse?.meta?.total || 0, [toursResponse?.meta?.total]);
 
   // Calculate stats using useMemo
   const stats = useMemo(() => {
