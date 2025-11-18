@@ -1,27 +1,24 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { InfiniteData } from "@tanstack/react-query";
 import {
   User,
   MapPin,
   Mic,
   Video,
-  ArrowRight,
   FileText,
   Calendar,
-  Link as LinkIcon,
   Search,
-  Filter,
-  X,
-  ChevronLeft,
-  ChevronRight,
+  Headphones,
+  Play,
+  BarChart3,
 } from "lucide-react";
 import { useTestimonies } from "@/hooks/useTestimonies";
 import { Testimony } from "@/types/testimonies";
-import {
-  generateTestimonySlug,
-} from "@/utils/testimony.utils";
+import { generateTestimonySlug } from "@/utils/testimony.utils";
 import { EmptyState } from "@/components/shared";
 
 interface TestimoniesGridProps {
@@ -30,481 +27,349 @@ interface TestimoniesGridProps {
   showFilters?: boolean;
 }
 
-export default function TestimoniesGrid({
-  limit,
-  showHeader = true,
-  showFilters = true,
-}: TestimoniesGridProps) {
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [submissionType, setSubmissionType] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
-  const [isPublished, setIsPublished] = useState<boolean | undefined>(undefined);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = limit || 9;
+type TestimonyPage = {
+  data: Testimony[];
+  meta?: { skip: number; limit: number; total: number };
+};
 
-  // Debounce search input
+const TYPE_META = {
+  written: {
+    label: "Written",
+    chip: "bg-emerald-50 text-emerald-700",
+    iconBg: "bg-emerald-600",
+    icon: <FileText className="w-4 h-4 text-white" />,
+  },
+  audio: {
+    label: "Audio",
+    chip: "bg-indigo-50 text-indigo-700",
+    iconBg: "bg-indigo-600",
+    icon: <Headphones className="w-4 h-4 text-white" />,
+  },
+  video: {
+    label: "Video",
+    chip: "bg-rose-50 text-rose-700",
+    iconBg: "bg-rose-600",
+    icon: <Play className="w-4 h-4 text-white" />,
+  },
+};
+
+const formatReads = (value?: number) => {
+  if (!value || value <= 0) return "0 reads";
+  if (value < 1000) return `${value} reads`;
+  const abbreviated = (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1);
+  return `${abbreviated}k reads`;
+};
+
+const stripHtml = (value?: string, max = 200) => {
+  if (!value) return "";
+  const plain = value.replace(/<[^>]+>/g, "");
+  if (plain.length <= max) return plain;
+  return `${plain.substring(0, max)}…`;
+};
+
+export default function TestimoniesGrid({
+  limit
+}: TestimoniesGridProps) {
+  const pageSize = limit ?? 5;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setCurrentPage(1); // Reset to page 1 when search changes
-    }, 500);
-
+      setDebouncedSearch(searchTerm.trim());
+    }, 400);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [searchTerm]);
 
-  // Calculate skip based on current page
-  const skip = (currentPage - 1) * itemsPerPage;
+  const {
+    data,
+    status,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useTestimonies({
+    search: debouncedSearch || undefined,
+    status: "approved",
+    isPublished: true,
+    limit: pageSize,
+  });
 
-  const filters = {
-    ...(debouncedSearch && { search: debouncedSearch }),
-    ...(submissionType && { submissionType }),
-    ...(status && { status }),
-    ...(isPublished !== undefined && { isPublished }),
-    ...(dateFrom && { dateFrom }),
-    ...(dateTo && { dateTo }),
-    skip,
-    limit: itemsPerPage,
-  };
+  const pages = useMemo<TestimonyPage[]>(
+    () =>
+      ((data as InfiniteData<TestimonyPage> | undefined)?.pages ?? []) as TestimonyPage[],
+    [data]
+  );
+  const testimonies = useMemo(
+    () => pages.flatMap((page) => page.data),
+    [pages]
+  );
+  const total = pages[0]?.meta?.total ?? 0;
+  const isLoading = status === "pending";
+  const isError = status === "error";
 
-  const { data: response, isLoading, error } = useTestimonies(filters);
-  const testimonies = response?.data || [];
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  const formatDateRange = (from: string, to: string) => {
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-    const fromMonth = fromDate.toLocaleDateString("en-US", { month: "short" });
-    const toMonth = toDate.toLocaleDateString("en-US", { month: "short" });
-    const fromYear = fromDate.getFullYear();
-    const toYear = toDate.getFullYear();
-    
-    if (fromYear === toYear && fromMonth === toMonth) {
-      return `${fromMonth} ${fromYear}`;
+  useEffect(() => {
+    if (!hasNextPage) {
+      return;
     }
-    if (fromYear === toYear) {
-      return `${fromMonth}-${toMonth} ${fromYear}`;
-    }
-    return `${fromMonth} ${fromYear}-${toMonth} ${toYear}`;
-  };
 
-  const getSubmissionIcon = (type: string) => {
-    switch (type) {
-      case "audio":
-        return <Mic className="w-5 h-5 text-white" />;
-      case "video":
-        return <Video className="w-5 h-5 text-white" />;
-      default:
-        return <FileText className="w-5 h-5 text-white" />;
+    const node = sentinelRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    if (node) {
+      observer.observe(node);
     }
-  };
+
+    return () => {
+      if (node) {
+        observer.unobserve(node);
+      }
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="relative">
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative">
-              <div className="w-20 h-20 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
-              <div className="absolute inset-0 blur-2xl bg-gray-400 opacity-20 animate-pulse" />
-            </div>
-            <div className="text-center">
-              <span className="text-xl text-gray-900 font-bold tracking-wide block">
-                Loading Stories
-              </span>
-              <span className="text-sm text-gray-500 mt-1 block">
-                Preparing testimonies for you
-              </span>
+      <div className="max-w-full mx-auto px-4 space-y-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-5 w-32 bg-gray-200 rounded-full" />
+          <div className="h-10 w-3/4 bg-gray-200 rounded-2xl" />
+          <div className="h-4 w-1/2 bg-gray-200 rounded-full" />
+          <div className="h-12 bg-gray-100 rounded-full" />
+        </div>
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <div
+            key={`skeleton-${idx}`}
+            className="animate-pulse rounded-3xl bg-white shadow-sm overflow-hidden"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-[1.65fr,1fr]">
+              <div className="p-4 md:p-6 flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-24 h-7 bg-gray-200 rounded-full" />
+                  <div className="w-16 h-4 bg-gray-100 rounded-full" />
+                  <div className="w-20 h-4 bg-gray-100 rounded-full" />
+                </div>
+                <div className="space-y-2 md:space-y-3">
+                  <div className="h-6 bg-gray-200 rounded-full w-11/12" />
+                  <div className="h-6 bg-gray-200 rounded-full w-3/4" />
+                </div>
+                <div className="space-y-2 md:space-y-3">
+                  <div className="h-4 bg-gray-100 rounded-full" />
+                  <div className="h-4 bg-gray-100 rounded-full w-10/12" />
+                  <div className="h-4 bg-gray-100 rounded-full w-9/12" />
+                </div>
+                <div className="flex flex-wrap gap-2 md:gap-3">
+                  <div className="w-24 h-6 bg-gray-100 rounded-full" />
+                  <div className="w-20 h-6 bg-gray-100 rounded-full" />
+                  <div className="w-28 h-6 bg-gray-100 rounded-full" />
+                </div>
+              </div>
+              <div className="hidden md:block h-full w-full bg-gray-100" />
             </div>
           </div>
-        </div>
+        ))}
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center py-24">
-        <div className="inline-block p-12 bg-red-50 border-l-4 border-red-600">
-          <p className="text-2xl font-black text-red-900 mb-3">
-            Unable to Load Testimonies
-          </p>
-          <p className="text-base text-red-600 mb-6">
-            Please refresh the page or try again later
-          </p>
-          <button className="px-8 py-4 bg-red-600 text-white font-bold hover:bg-red-700 transition-all duration-300">
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const displayedTestimonies = testimonies;
-
-  if (!displayedTestimonies || displayedTestimonies.length === 0) {
+  if (isError) {
     return (
       <EmptyState
-        title="No Testimonies Yet"
-        subtitle="Be the first to share your story and inspire others with your journey"
+        title="Unable to load testimonies"
+        subtitle="Please refresh the page or try again later."
         icon={<FileText className="w-16 h-16 text-gray-300" />}
         size="lg"
       />
     );
   }
 
-  const clearFilters = () => {
-    setSearch("");
-    setDebouncedSearch("");
-    setSubmissionType("");
-    setStatus("");
-    setIsPublished(undefined);
-    setDateFrom("");
-    setDateTo("");
-    setCurrentPage(1);
-  };
-
-  const totalPages = response?.meta ? Math.ceil(response.meta.total / itemsPerPage) : 1;
-  const canGoPrevious = currentPage > 1;
-  const canGoNext = currentPage < totalPages;
-
-  const hasActiveFilters = debouncedSearch || submissionType || status || isPublished !== undefined || dateFrom || dateTo;
+  if (testimonies.length === 0) {
+    return (
+      <EmptyState
+        title="No published testimonies yet"
+        subtitle="Check back later or share a story to inspire the community."
+        icon={<FileText className="w-16 h-16 text-gray-300" />}
+        size="lg"
+      />
+    );
+  }
 
   return (
     <div className="w-full">
-      {showHeader && (
-        <div className="max-w-6xl mx-auto mb-8 px-4">
-          <div className="border-l-8 border-black pl-6">
-            <span className="text-xs font-bold tracking-[0.3em] uppercase text-gray-600 block mb-2">
-              Testimonies
-            </span>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-black leading-none">
-              Stories That Matter
-            </h1>
-            <p className="text-lg text-gray-600 mt-4 max-w-2xl">
-              Voices of resilience, courage, and remembrance from survivors and
-              witnesses
-            </p>
-          </div>
+
+      <div className="max-w-5xl mx-auto px-4 mb-10">
+        <div className="relative bg-white rounded-full shadow-sm">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search stories by title, author, or theme…"
+            className="w-full pl-14 pr-6 py-4 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900 placeholder:text-gray-400"
+          />
         </div>
-      )}
+        <p className="text-sm text-gray-500 mt-3">
+          Showing {testimonies.length} of {total.toLocaleString()} published testimonies
+        </p>
+      </div>
 
-      {/* Search and Filters - Positioned right after header */}
-      {showFilters && (
-        <div className="max-w-7xl mx-auto mb-8 px-4">
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-            {/* Search Bar */}
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search testimonies by title, description, or name..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-                />
-              </div>
-            </div>
-
-            {/* Filter Toggle */}
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setShowFilterPanel(!showFilterPanel)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Filter className="w-4 h-4" />
-                Filters
-                {hasActiveFilters && (
-                  <span className="bg-gray-800 text-white text-xs px-2 py-0.5 rounded-full">
-                    Active
-                  </span>
-                )}
-              </button>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                  Clear All
-                </button>
-              )}
-            </div>
-
-            {/* Filter Panel */}
-            {showFilterPanel && (
-              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Submission Type */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Type
-                  </label>
-                        <select
-                          value={submissionType}
-                          onChange={(e) => {
-                            setSubmissionType(e.target.value);
-                            setCurrentPage(1);
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                        >
-                    <option value="">All Types</option>
-                    <option value="written">Written</option>
-                    <option value="audio">Audio</option>
-                    <option value="video">Video</option>
-                  </select>
-                </div>
-
-                {/* Status */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Status
-                  </label>
-                        <select
-                          value={status}
-                          onChange={(e) => {
-                            setStatus(e.target.value);
-                            setCurrentPage(1);
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                        >
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-
-                {/* Published */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Published
-                  </label>
-                        <select
-                          value={isPublished === undefined ? "" : isPublished ? "true" : "false"}
-                          onChange={(e) => {
-                            setIsPublished(e.target.value === "" ? undefined : e.target.value === "true");
-                            setCurrentPage(1);
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                        >
-                    <option value="">All</option>
-                    <option value="true">Published</option>
-                    <option value="false">Not Published</option>
-                  </select>
-                </div>
-
-                {/* Date From */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Date From
-                  </label>
-                        <input
-                          type="date"
-                          value={dateFrom}
-                          onChange={(e) => {
-                            setDateFrom(e.target.value);
-                            setCurrentPage(1);
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                        />
-                </div>
-
-                {/* Date To */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Date To
-                  </label>
-                        <input
-                          type="date"
-                          value={dateTo}
-                          onChange={(e) => {
-                            setDateTo(e.target.value);
-                            setCurrentPage(1);
-                          }}
-                          min={dateFrom || undefined}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-                        />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Results Count */}
-      {showFilters && response?.meta && (
-        <div className="max-w-7xl mx-auto mb-4 px-4">
-          <p className="text-sm text-gray-600">
-            Showing {skip + 1}-{Math.min(skip + itemsPerPage, response.meta.total)} of {response.meta.total} testimonies
-          </p>
-        </div>
-      )}
-
-      {/* Card Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 max-w-7xl mx-auto">
-        {displayedTestimonies.map((testimony: Testimony) => {
-          const imageCount = testimony.images?.length || 0;
-          const submissionType = testimony.submissionType || "written";
-          const typeLabel = submissionType.charAt(0).toUpperCase() + submissionType.slice(1);
-
-          // Get excerpt text
-          let excerptText = "";
-          if (testimony.fullTestimony) {
-            const plainText = testimony.fullTestimony.replace(/<[^>]*>/g, "");
-            excerptText = plainText.substring(0, 180);
-            if (plainText.length > 180) excerptText += "...";
-          } else if (submissionType === "audio") {
-            excerptText = "I was hiding in the marshes of Nyanza when the killings began. This is my story of survival and the family members I lost. We stayed there for...";
-          } else if (submissionType === "video") {
-            excerptText = "I was hiding in the marshes of Nyanza when the killings began. This is my story of survival and the family members I lost. We stayed there for...";
-          }
-
-          // Format date
-          let dateText = "";
-          if (testimony.dateOfEventFrom && testimony.dateOfEventTo) {
-            dateText = formatDateRange(testimony.dateOfEventFrom, testimony.dateOfEventTo);
-          } else if (testimony.dateOfEventFrom) {
-            const date = new Date(testimony.dateOfEventFrom);
-            dateText = date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-          }
-
-          const survivorName = testimony.identityPreference === "anonymous"
-            ? "Anonymous Survivor"
-            : testimony.fullName || "Unknown";
+      <div className="space-y-10 max-w-5xl mx-auto px-4">
+        {testimonies.map((testimony: Testimony) => {
+          const type = testimony.submissionType || "written";
+          const meta = TYPE_META[type as keyof typeof TYPE_META] || TYPE_META.written;
+          const slug = generateTestimonySlug(testimony.id, testimony.eventTitle);
+          const excerpt = stripHtml(testimony.fullTestimony, 220);
+          const createdAt = testimony.createdAt
+            ? new Date(testimony.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "";
+          const authorName =
+            testimony.identityPreference === "anonymous"
+              ? "Anonymous"
+              : testimony.user?.name || testimony.fullName || "Unknown";
+          const impressions = formatReads(testimony.impressions);
+          const tags = [
+            testimony.relationToEvent &&
+              testimony.relationToEvent.replace(/_/g, " "),
+            testimony.location,
+            meta.label,
+          ]
+            .filter(Boolean)
+            .slice(0, 3) as string[];
+          const coverImage = testimony.images?.[0]?.imageUrl;
 
           return (
             <Link
               key={testimony.id}
-              href={`/testimonies/${generateTestimonySlug(
-                testimony.id,
-                testimony.eventTitle
-              )}`}
-              className="group"
+              href={`/testimonies/${slug}`}
+              className="group block"
             >
-              <article className="bg-gray-100 rounded-2xl p-6 h-full flex flex-col shadow-sm">
-                {/* Top: Type Badge and Count */}
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-400 rounded-lg">
-                    {getSubmissionIcon(submissionType)}
-                    <span className="text-sm font-bold text-white uppercase">{typeLabel}</span>
+              <article className="rounded-3xl bg-white shadow hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <div className="grid md:grid-cols-[1.65fr,1fr]">
+                  <div className="p-8 flex flex-col gap-6">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full ${meta.chip}`}
+                      >
+                        <span
+                          className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${meta.iconBg}`}
+                        >
+                          {meta.icon}
+                        </span>
+                        {meta.label}
+                      </span>
+                      <span className="text-xs uppercase tracking-widest text-gray-400">
+                        {createdAt}
+                      </span>
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <BarChart3 className="w-3.5 h-3.5" />
+                        {impressions}
+                      </span>
                     </div>
-                  {imageCount > 0 && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-400 rounded-lg">
-                      <LinkIcon className="w-4 h-4 text-white" />
-                      <span className="text-sm font-medium text-white">{imageCount}</span>
-                    </div>
-                        )}
-                      </div>
 
-                      {/* Title */}
-                <h2 className="text-2xl font-bold text-black mb-5 line-clamp-2">
-                        {testimony.eventTitle}
-                      </h2>
+                    <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 leading-snug group-hover:text-black">
+                      {testimony.eventTitle}
+                    </h2>
 
-                {/* Metadata Row */}
-                <div className="flex flex-wrap items-center gap-4 mb-5 text-sm text-gray-700">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    <span className="font-medium">{survivorName}</span>
-                  </div>
-                  {dateText && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>{dateText}</span>
-                    </div>
-                  )}
-                  {testimony.location && (
-                        <div className="flex items-center gap-2">
+                    <p className="text-gray-600 text-base leading-relaxed line-clamp-4">
+                      {excerpt ||
+                        "An audio testimony capturing moments of courage and defiance, remembered in detail."}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                      <span className="inline-flex items-center gap-2 font-semibold text-gray-800">
+                        <User className="w-4 h-4" />
+                        {authorName}
+                      </span>
+                      {testimony.location && (
+                        <span className="inline-flex items-center gap-2">
                           <MapPin className="w-4 h-4" />
-                          <span>{testimony.location}</span>
+                          {testimony.location}
+                        </span>
+                      )}
+                      {testimony.dateOfEventFrom && (
+                        <span className="inline-flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(testimony.dateOfEventFrom).toLocaleDateString("en-US", {
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      )}
                     </div>
-                  )}
+
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded-full bg-gray-100 text-gray-600"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative bg-gray-50">
+                    {coverImage ? (
+                      <Image
+                        src={coverImage}
+                        alt={testimony.eventTitle}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 768px) 40vw, 100vw"
+                      />
+                    ) : type === "audio" ? (
+                      <div className="h-full w-full bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center text-white gap-4">
+                        <Mic className="w-10 h-10" />
+                        <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                          Audio Story
+                        </p>
+                      </div>
+                    ) : type === "video" ? (
+                      <div className="h-full w-full bg-linear-to-br from-rose-500 via-orange-500 to-amber-400 flex flex-col items-center justify-center text-white gap-4">
+                        <Video className="w-10 h-10" />
+                        <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                          Video Story
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="h-full w-full bg-linear-to-br from-gray-900 to-gray-700 flex flex-col items-center justify-center text-white gap-4">
+                        <FileText className="w-10 h-10" />
+                        <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                          Written Story
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                {/* Excerpt */}
-                {excerptText && (
-                  <p className="text-sm text-gray-700 leading-relaxed line-clamp-3 mb-6 flex-grow">
-                    {excerptText}
-                  </p>
-                )}
-
-                {/* Read Full Testimony Button */}
-                <button className="w-full mt-auto px-4 py-3 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-lg transition-colors flex items-center justify-between">
-                  <span>Read Full Testimony</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
               </article>
             </Link>
           );
         })}
-      </div>
 
-      {/* Pagination */}
-      {showFilters && response?.meta && totalPages > 1 && (
-        <div className="max-w-7xl mx-auto mt-8 px-4">
-          <div className="flex items-center justify-between bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={!canGoPrevious}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                // Show first page, last page, current page, and pages around current
-                if (
-                  page === 1 ||
-                  page === totalPages ||
-                  (page >= currentPage - 1 && page <= currentPage + 1)
-                ) {
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                        currentPage === page
-                          ? "bg-gray-800 text-white"
-                          : "text-gray-700 bg-gray-100 hover:bg-gray-200"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                } else if (
-                  page === currentPage - 2 ||
-                  page === currentPage + 2
-                ) {
-                  return (
-                    <span key={page} className="px-2 text-gray-500">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              })}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={!canGoNext}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+        {hasNextPage && (
+          <div ref={sentinelRef} className="py-10 text-center text-gray-500 text-sm">
+            {isFetchingNextPage ? "Loading more stories…" : "Scroll for more stories"}
           </div>
-        </div>
-      )}
+        )}
+
+        {!hasNextPage && (
+          <p className="text-center text-gray-400 text-sm py-6">
+            You’ve reached the end of published testimonies.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

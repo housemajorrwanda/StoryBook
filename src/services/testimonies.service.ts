@@ -125,6 +125,13 @@ export const testimoniesService = {
     if (filters?.skip !== undefined) params.skip = filters.skip;
     if (filters?.limit !== undefined) params.limit = filters.limit;
 
+    if (params.limit === undefined) {
+      params.limit = 5;
+    }
+    if (params.skip === undefined) {
+      params.skip = 0;
+    }
+
     const response = await axiosInstance.get<{
       data: Testimony[];
       meta?: { skip: number; limit: number; total: number };
