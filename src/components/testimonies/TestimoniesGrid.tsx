@@ -103,7 +103,6 @@ export default function TestimoniesGrid({
     () => pages.flatMap((page) => page.data),
     [pages]
   );
-  const total = pages[0]?.meta?.total ?? 0;
   const isLoading = status === "pending";
   const isError = status === "error";
 
@@ -205,22 +204,19 @@ export default function TestimoniesGrid({
   return (
     <div className="w-full">
 
-      <div className="max-w-5xl mx-auto px-4 mb-10">
-        <div className="relative bg-white rounded-full shadow-sm">
+      <div className="max-w-9xl mx-auto px-4 mb-10">
+        <div className="relative bg-white rounded-xl border border-gray-200 shadow-sm">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search stories by title, author, or theme…"
-            className="w-full pl-14 pr-6 py-4 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900 placeholder:text-gray-400"
+            className="w-full pl-14 pr-6 py-4 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-700 border border-gray-200 text-gray-700 placeholder:text-gray-400 text-sm"
           />
         </div>
-        <p className="text-sm text-gray-500 mt-3">
-          Showing {testimonies.length} of {total.toLocaleString()} published testimonies
-        </p>
       </div>
 
-      <div className="space-y-10 max-w-5xl mx-auto px-4">
+      <div className="space-y-10 mx-auto px-4">
         {testimonies.map((testimony: Testimony) => {
           const type = testimony.submissionType || "written";
           const meta = TYPE_META[type as keyof typeof TYPE_META] || TYPE_META.written;
@@ -254,7 +250,7 @@ export default function TestimoniesGrid({
               href={`/testimonies/${slug}`}
               className="group block"
             >
-              <article className="rounded-3xl bg-white shadow hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <article className="rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                 <div className="grid md:grid-cols-[1.65fr,1fr]">
                   <div className="p-8 flex flex-col gap-6">
                     <div className="flex items-center gap-3">
@@ -277,16 +273,16 @@ export default function TestimoniesGrid({
                       </span>
                     </div>
 
-                    <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 leading-snug group-hover:text-black">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug group-hover:text-black">
                       {testimony.eventTitle}
                     </h2>
 
-                    <p className="text-gray-600 text-base leading-relaxed line-clamp-4">
+                    <p className="text-gray-700 text-base leading-relaxed line-clamp-4">
                       {excerpt ||
                         "An audio testimony capturing moments of courage and defiance, remembered in detail."}
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-700">
                       <span className="inline-flex items-center gap-2 font-semibold text-gray-800">
                         <User className="w-4 h-4" />
                         {authorName}
