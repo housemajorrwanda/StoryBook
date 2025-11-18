@@ -76,7 +76,9 @@ export default function TestimonyContentStep({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+      }),
       TextStyle,
       Color,
       TextAlign.configure({
@@ -334,7 +336,7 @@ You can use the formatting tools above to:
               }))
             }
             placeholder="Brief summary of the event (e.g., 'Attack on Nyanza Church', 'Rescue at roadblock')"
-            className="w-full px-3 sm:px-4 py-3 sm:py-4 border-2 border-gray-200 outline-none rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-colors duration-200 text-gray-900 text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-3 sm:py-4 border-2 border-gray-200 outline-none rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-colors duration-200 text-gray-900 text-sm sm:text-base placeholder:text-gray-400"
           />
         </div>
 
@@ -343,7 +345,7 @@ You can use the formatting tools above to:
             <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
               Full Testimony *
             </label>
-            <div className="border-2 border-gray-200 rounded-lg sm:rounded-xl overflow-hidden focus-within:border-black transition-colors duration-200">
+            <div className="border-2 border-gray-200 rounded-lg sm:rounded-xl overflow-hidden focus-within:border-black transition-colors duration-200 placeholder:text-gray-400">
               {editor && (
                 <>
                   <div className="border-b border-gray-200 bg-gray-50 p-2 sm:p-3 md:p-4 flex flex-wrap gap-1 sm:gap-2">
@@ -776,7 +778,7 @@ You can use the formatting tools above to:
                             updateImageDescription(index, e.target.value)
                           }
                           placeholder="Add a description for this image..."
-                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-colors duration-200 text-gray-900"
+                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-colors duration-200 text-gray-900 placeholder:text-gray-400"
                         />
                       </div>
                     </div>

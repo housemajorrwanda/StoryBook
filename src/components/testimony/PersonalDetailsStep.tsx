@@ -108,7 +108,7 @@ export default function PersonalDetailsStep({
             }))
           }
           placeholder="Enter your full name"
-          className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+          className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base placeholder:text-gray-400"
         />
       </div>
 
@@ -127,9 +127,9 @@ export default function PersonalDetailsStep({
                 }))
               }
               required
-              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none text-sm sm:text-base placeholder:text-gray-400"
             >
-              <option value="">Select your connection to these events</option>
+              <option value="" className="text-gray-400">Select your connection to these events</option>
               {formData.type === "written" && (
                 <>
                   <option value="survivor">Survivor</option>
@@ -192,7 +192,7 @@ export default function PersonalDetailsStep({
                 }))
               }
               placeholder="e.g., Kigali, Nyamata, or specific location"
-              className="w-full px-3 sm:px-4 py-3 sm:py-4 pl-10 sm:pl-11 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 pl-10 sm:pl-11 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base placeholder:text-gray-400"
             />
             <LuMapPin className="absolute left-3 sm:left-4 top-3 sm:top-4 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 pointer-events-none" />
           </div>
@@ -215,7 +215,7 @@ export default function PersonalDetailsStep({
                 }))
               }
               required
-              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base placeholder:text-gray-400"
             />
             <LuCalendar className="absolute right-3 sm:right-4 top-3 sm:top-4 w-4 h-4 sm:w-5 sm:h-5 text-gray-500 pointer-events-none" />
           </div>
@@ -237,7 +237,7 @@ export default function PersonalDetailsStep({
               }
               min={formData.dateOfEventFrom || undefined}
               required
-              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base placeholder:text-gray-400"
             />
             <LuCalendar className="absolute right-3 sm:right-4 top-3 sm:top-4 w-4 h-4 sm:w-5 sm:h-5 text-gray-500 pointer-events-none" />
           </div>
@@ -272,7 +272,7 @@ export default function PersonalDetailsStep({
                     onChange={(e) =>
                       updateRelative(index, "value", e.target.value)
                     }
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white text-sm cursor-pointer appearance-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white text-sm cursor-pointer appearance-none placeholder:text-gray-400"
                   >
                     <option value="">Relationship</option>
                     {relationshipOptions.map((option) => (
@@ -292,7 +292,7 @@ export default function PersonalDetailsStep({
                     updateRelative(index, "name", e.target.value)
                   }
                   placeholder="Name"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white text-sm"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white text-sm placeholder:text-gray-400"
                 />
                 {relatives.length > 1 && (
                   <button

@@ -54,20 +54,28 @@ function buildTestimonyFormData(
     fd.append("draftCursorPosition", String(request.draftCursorPosition));
   }
 
-  // Array of objects - relatives
   if (request.relatives && Array.isArray(request.relatives)) {
     fd.append("relatives", JSON.stringify(request.relatives));
   }
-
-  // Images 
   if (request.images && Array.isArray(request.images) && request.images.length > 0) {
-    request.images.forEach((image) => {
+    console.log("[FormData] Images array length:", request.images.length);
+    let fileCount = 0;
+    request.images.forEach((image, index) => {
       if (image instanceof File) {
-        fd.append("files", image);
-      } else if (typeof image === "string") {
+        console.log(`[FormData] Appending image ${index + 1}:`, {
+          name: image.name,
+          size: image.size,
+          type: image.type,
+        });
         fd.append("images", image);
+        fileCount++;
+      } else {
+        console.log(`[FormData] Image ${index + 1} is not a File:`, typeof image);
       }
     });
+    console.log(`[FormData] Total files appended: ${fileCount}`);
+  } else {
+    console.log("[FormData] No images to append");
   }
 
   if (
