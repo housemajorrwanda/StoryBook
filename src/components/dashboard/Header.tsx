@@ -19,22 +19,6 @@ export default function Header({ title, user, onMenuClick }: HeaderProps) {
     setShowProfileDropdown(false);
   };
 
-  const getUserInitial = () => {
-    if (typeof user?.fullName === "string" && user.fullName.trim().length > 0) {
-      return user.fullName.trim().charAt(0).toUpperCase();
-    }
-
-    if (typeof user?.username === "string" && user.username.trim().length > 0) {
-      return user.username.trim().charAt(0).toUpperCase();
-    }
-
-    if (typeof user?.email === "string" && user.email.length > 0) {
-      return user.email.charAt(0).toUpperCase();
-    }
-
-    return "U";
-  };
-
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-6 lg:px-6">
       <div className="flex items-center justify-between">

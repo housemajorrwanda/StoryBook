@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { LuMenu, LuShare, LuX } from "react-icons/lu";
 import UserAvatar from "@/components/shared/UserAvatar";
 import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
@@ -16,6 +17,7 @@ export default function Navigation({
   showBackgroundEffects = true, 
   variant = "default" 
 }: NavigationProps) {
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollY, setScrollY] = useState(0);
@@ -23,6 +25,14 @@ export default function Navigation({
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<ReturnType<typeof getCurrentUser>>(null);
   const logoutMutation = useLogout();
+
+  // Check if a nav item is active
+  const isActive = (href: string) => {
+    if (href === "/#testimonies") {
+      return pathname === "/" || pathname === "/#testimonies";
+    }
+    return pathname === href || pathname.startsWith(href);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,6 +107,13 @@ export default function Navigation({
       },
     });
   };
+
+  const navItems = [
+    { href: "/#testimonies", label: "Testimonies" },
+    { href: "/connections", label: "Connections" },
+    { href: "/virtual-tours", label: "Virtual Tours" },
+    { href: "/education", label: "Education" },
+  ];
 
   return (
     <>
@@ -203,19 +220,28 @@ export default function Navigation({
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center justify-center flex-1 min-w-0">
             <div className="flex items-center gap-0.5 sm:gap-1 bg-black/5 backdrop-blur-md rounded-full px-1 sm:px-2 py-1.5 sm:py-2 border border-black/5">
-              {[
-                { href: "/#testimonies", label: "Testimonies" },
-                { href: "/connections", label: "Connections" },
-                { href: "/virtual-tours", label: "Virtual Tours" },
-                { href: "/education", label: "Education" },
-              ].map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <button className="relative px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 font-semibold text-xs sm:text-sm text-gray-700 hover:text-black transition-all duration-300 cursor-pointer group rounded-full hover:bg-white/80 whitespace-nowrap">
-                    <span className="relative z-10">{item.label}</span>
-                    <div className="absolute inset-0 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 shadow-sm" />
-                  </button>
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                let active = isActive(item.href);
+                if ((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) {
+                  active = true;
+                }
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <button 
+                      className={`relative px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 font-semibold text-xs sm:text-sm transition-all duration-300 cursor-pointer group rounded-full whitespace-nowrap ${
+                        active 
+                          ? "bg-white text-black shadow-sm" 
+                          : "text-gray-700 hover:text-black! hover:bg-white/80"
+                      }`}
+                    >
+                      <span className="relative z-10">{((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) ? "Virtual Tours" : item.label}</span>
+                      {!active && (
+                        <div className="absolute inset-0 text-gray-900 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 shadow-sm" />
+                      )}
+                    </button>
+                  </Link>
+                );
+              })}
             </div>
           </nav>
 
@@ -291,36 +317,39 @@ export default function Navigation({
         >
           <div className="p-4 sm:p-6">
             <div className="space-y-2 sm:space-y-2.5 pb-4 sm:pb-6 border-b border-gray-200/50">
-              {[
-                { href: "/#testimonies", label: "Testimonies", delay: "0ms" },
-                {
-                  href: "/connections",
-                  label: "Find Connections",
-                  delay: "50ms",
-                },
-                {
-                  href: "/virtual-tours",
-                  label: "Virtual Tours",
-                  delay: "100ms",
-                },
-                { href: "/education", label: "Education", delay: "150ms" },
-              ].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <button
-                    className="w-full text-left px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-bold text-gray-800 hover:text-black bg-gray-50/50 hover:bg-gray-100 active:bg-gray-200 rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-[56px] flex items-center group relative overflow-hidden touch-manipulation cursor-pointer"
-                    style={{ animationDelay: item.delay }}
+              {navItems.map((item, index) => {
+                 let active = isActive(item.href);
+                if ((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) {
+                  active = true;
+                }
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 group-hover:h-6 sm:group-hover:h-8 bg-black transition-all duration-300 rounded-full" />
-                    <span className="ml-1 group-hover:ml-2 sm:group-hover:ml-3 transition-all duration-300">
-                      {item.label}
-                    </span>
-                  </button>
-                </Link>
-              ))}
+                    <button
+                      className={`w-full text-left px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-[56px] flex items-center group relative overflow-hidden touch-manipulation cursor-pointer ${
+                        active
+                          ? "text-black bg-gray-100"
+                          : "text-gray-800 hover:text-black bg-gray-50/50 hover:bg-gray-100 active:bg-gray-200"
+                      }`}
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-300 ${
+                        active 
+                          ? "h-8 bg-black" 
+                          : "h-0 group-hover:h-6 sm:group-hover:h-8 bg-black"
+                      }`} />
+                      <span className={`transition-all duration-300 ${
+                        active ? "ml-3" : "ml-1 group-hover:ml-2 sm:group-hover:ml-3"
+                      }`}>
+                        {((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) ? "Virtual Tours" : item.label}
+                      </span>
+                    </button>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Action Buttons */}
