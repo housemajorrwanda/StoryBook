@@ -756,7 +756,7 @@ You can use the formatting tools above to:
                     </div>
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-gray-700">
+                        <p className="text-sm font-bold text-gray-900">
                           {imageData.file.name}
                         </p>
                         <button
