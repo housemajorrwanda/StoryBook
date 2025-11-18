@@ -2,6 +2,7 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
   UseQueryResult,
   UseMutationResult,
 } from "@tanstack/react-query";
@@ -36,7 +37,12 @@ export const TESTIMONY_KEYS = {
   drafts: () => [...TESTIMONY_KEYS.all, "drafts"] as const,
 };
 
-// Get all testimonies with optional filters
+type TestimoniesPage = {
+  data: Testimony[];
+  meta?: { skip: number; limit: number; total: number };
+};
+
+// Get testimonies with infinite scrolling (defaults to published + approved)
 export function useTestimonies(filters?: {
   search?: string;
   submissionType?: string;
@@ -44,12 +50,34 @@ export function useTestimonies(filters?: {
   isPublished?: boolean;
   dateFrom?: string;
   dateTo?: string;
-  skip?: number;
   limit?: number;
-}): UseQueryResult<{ data: Testimony[]; meta?: { skip: number; limit: number; total: number } }, Error> {
-  return useQuery({
+}) {
+  const limit = filters?.limit ?? 5;
+
+  return useInfiniteQuery<TestimoniesPage, Error>({
     queryKey: [...TESTIMONY_KEYS.lists(), filters],
-    queryFn: () => testimoniesService.getTestimonies(filters),
+    initialPageParam: 0,
+    queryFn: ({ pageParam = 0 }) =>
+      testimoniesService.getTestimonies({
+        ...filters,
+        skip: pageParam as number,
+        limit,
+      }),
+    getNextPageParam: (lastPage) => {
+      const meta = lastPage?.meta;
+
+      if (!meta || meta.total === undefined) {
+        return undefined;
+      }
+
+      const nextSkip = (meta.skip ?? 0) + (meta.limit ?? limit);
+
+      if (nextSkip >= meta.total) {
+        return undefined;
+      }
+
+      return nextSkip;
+    },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
