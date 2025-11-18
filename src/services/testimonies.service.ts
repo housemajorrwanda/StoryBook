@@ -4,13 +4,13 @@ import {
   AudioUploadResponse,
   CreateOrUpdateTestimonyRequest,
 } from "@/types/testimonies";
-import { publicApi, uploadApi, authenticatedApi } from "@/config/apiInstances";
+import axiosInstance from "@/config/axiosInstance";
+import { getAuthToken, isTokenExpired } from "@/lib/cookies";
 
 // Helper function to test server connectivity
 async function testServerConnectivity(): Promise<boolean> {
   try {
-    await publicApi.get("/health", { timeout: 5000 });
-
+    await axiosInstance.get("/health", { timeout: 5000 });
     return true;
   } catch {
     return false;
@@ -22,7 +22,7 @@ function buildTestimonyFormData(
 ): FormData {
   const fd = new FormData();
 
-  // Required fields (*)
+  // Required fields
   if (request.submissionType !== null && request.submissionType !== undefined) {
     fd.append("submissionType", String(request.submissionType));
   }
@@ -36,29 +36,15 @@ function buildTestimonyFormData(
   fd.append("agreedToTerms", String(request.agreedToTerms));
 
   // Optional string fields
-  if (request.fullName) {
-    fd.append("fullName", request.fullName);
-  }
-  if (request.relationToEvent) {
-    fd.append("relationToEvent", request.relationToEvent);
-  }
-  if (request.location) {
-    fd.append("location", request.location);
-  }
-  if (request.eventDescription) {
-    fd.append("eventDescription", request.eventDescription);
-  }
-  if (request.fullTestimony) {
-    fd.append("fullTestimony", request.fullTestimony);
-  }
+  if (request.fullName) fd.append("fullName", request.fullName);
+  if (request.relationToEvent) fd.append("relationToEvent", request.relationToEvent);
+  if (request.location) fd.append("location", request.location);
+  if (request.eventDescription) fd.append("eventDescription", request.eventDescription);
+  if (request.fullTestimony) fd.append("fullTestimony", request.fullTestimony);
 
   // Date fields
-  if (request.dateOfEventFrom) {
-    fd.append("dateOfEventFrom", request.dateOfEventFrom);
-  }
-  if (request.dateOfEventTo) {
-    fd.append("dateOfEventTo", request.dateOfEventTo);
-  }
+  if (request.dateOfEventFrom) fd.append("dateOfEventFrom", request.dateOfEventFrom);
+  if (request.dateOfEventTo) fd.append("dateOfEventTo", request.dateOfEventTo);
 
   // Boolean and number fields
   if (typeof request.isDraft === "boolean") {
@@ -74,11 +60,7 @@ function buildTestimonyFormData(
   }
 
   // Images
-  if (
-    request.images &&
-    Array.isArray(request.images) &&
-    request.images.length > 0
-  ) {
+  if (request.images && Array.isArray(request.images) && request.images.length > 0) {
     request.images.forEach((image) => {
       fd.append("images", image as File | string);
     });
@@ -93,12 +75,8 @@ function buildTestimonyFormData(
   }
 
   // Binary files
-  if (request.audio) {
-    fd.append("audio", request.audio);
-  }
-  if (request.video) {
-    fd.append("video", request.video);
-  }
+  if (request.audio) fd.append("audio", request.audio);
+  if (request.video) fd.append("video", request.video);
 
   return fd;
 }
@@ -108,34 +86,18 @@ export const testimoniesService = {
   async createTestimony(
     request: CreateOrUpdateTestimonyRequest
   ): Promise<Testimony> {
-    try {
-      const fd = buildTestimonyFormData(request);
-      const response = await authenticatedApi.post<Testimony>(
-        "/testimonies",
-        fd,
-        {
-          timeout: 300000,
-        }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const fd = buildTestimonyFormData(request);
+    const response = await axiosInstance.post<Testimony>("/testimonies", fd, {
+      timeout: 300000,
+    });
+    return response.data;
   },
 
   async createTestimonyMultipart(fd: FormData): Promise<Testimony> {
-    try {
-      const response = await authenticatedApi.post<Testimony>(
-        "/testimonies",
-        fd,
-        {
-          timeout: 300000,
-        }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.post<Testimony>("/testimonies", fd, {
+      timeout: 300000,
+    });
+    return response.data;
   },
 
   // Get all testimonies with optional filters
@@ -148,9 +110,12 @@ export const testimoniesService = {
     dateTo?: string;
     skip?: number;
     limit?: number;
-  }): Promise<{ data: Testimony[]; meta?: { skip: number; limit: number; total: number } }> {
+  }): Promise<{
+    data: Testimony[];
+    meta?: { skip: number; limit: number; total: number };
+  }> {
     const params: Record<string, string | number | boolean> = {};
-    
+
     if (filters?.search) params.search = filters.search;
     if (filters?.submissionType) params.submissionType = filters.submissionType;
     if (filters?.status) params.status = filters.status;
@@ -160,100 +125,98 @@ export const testimoniesService = {
     if (filters?.skip !== undefined) params.skip = filters.skip;
     if (filters?.limit !== undefined) params.limit = filters.limit;
 
-    const response = await publicApi.get<{ data: Testimony[]; meta?: { skip: number; limit: number; total: number } }>(
-      "/testimonies",
-      { params }
-    );
-    
+    const response = await axiosInstance.get<{
+      data: Testimony[];
+      meta?: { skip: number; limit: number; total: number };
+    }>("/testimonies", { params });
+
     return response.data;
   },
 
   // Get a single testimony by ID
   async getTestimonyById(id: number): Promise<Testimony> {
-    const response = await publicApi.get<Testimony>(`/testimonies/${id}`);
+    const response = await axiosInstance.get<Testimony>(`/testimonies/${id}`);
     return response.data;
   },
 
-  // Get user's draft testimonies
 
-  async getDrafts(): Promise<Testimony[]> {
-    try {
-      const response = await authenticatedApi.get<
-        { data: Testimony[] } | Testimony[]
-      >("/testimonies/drafts");
-
-      const testimonies = Array.isArray(response.data)
-        ? response.data
-        : response.data.data || [];
-
-      return testimonies.filter(
-        (testimony: Testimony) => testimony.isDraft === true
-      );
-    } catch (error) {
-      console.error("Failed to fetch drafts:", error);
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as {
-          response?: { data?: unknown; status?: number };
-        };
-        console.error("Error response:", axiosError.response?.data);
-        console.error("Status:", axiosError.response?.status);
-      }
+// Get user's draft testimonies
+async getDrafts(): Promise<Testimony[]> {
+  try {
+    const token = getAuthToken();
+    
+    if (!token) {
+      console.error("No token available for getDrafts");
       return [];
     }
-  },
+    
+    if (isTokenExpired(token)) {
+      console.error("Token is expired!");
+      localStorage.removeItem("authToken");
+      return [];
+    }
+    
+    
+    const response = await axiosInstance.get<{ data: Testimony[] }>("/testimonies/drafts");
+    
+    return response.data.data.filter((testimony: Testimony) => testimony.isDraft === true);
+  } catch (error) {
+    console.error("Failed to get drafts:", error);
+    
+    // More detailed error logging
+    if (error && typeof error === "object" && "response" in error) {
+      const axiosError = error as {
+        response?: { data?: unknown; status?: number; headers?: unknown };
+      };
+      console.error("Error details:", axiosError.response?.data);
+    }
+    
+    return [];
+  }
+},
 
-  // Update testimony with new request format (REQUIRES AUTH)
+  // Update testimony
   async updateTestimony(
     id: number,
     request: CreateOrUpdateTestimonyRequest
   ): Promise<Testimony> {
-    try {
-      const fd = buildTestimonyFormData(request);
-      const response = await authenticatedApi.patch<Testimony>(
-        `/testimonies/${id}`,
-        fd,
-        {
-          timeout: 300000,
-        }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const fd = buildTestimonyFormData(request);
+    const response = await axiosInstance.patch<Testimony>(
+      `/testimonies/${id}`,
+      fd,
+      {
+        timeout: 300000,
+      }
+    );
+    return response.data;
   },
 
   async updateTestimonyMultipart(id: number, fd: FormData): Promise<Testimony> {
-    try {
-      const response = await authenticatedApi.patch<Testimony>(
-        `/testimonies/${id}`,
-        fd,
-        {
-          timeout: 300000,
-        }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.patch<Testimony>(
+      `/testimonies/${id}`,
+      fd,
+      {
+        timeout: 300000,
+      }
+    );
+    return response.data;
   },
 
   async uploadImage(file: File, retryCount = 0): Promise<ImageUploadResponse> {
     const maxRetries = 3;
-    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    const maxSize = 10 * 1024 * 1024; // 10MB
 
-    // Validate file size
     if (file.size > maxSize) {
-      const error = new Error(
+      throw new Error(
         `File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 10MB`
       );
-      throw error;
     }
 
     const formData = new FormData();
     formData.append("files", file);
 
     try {
-      const response = await uploadApi.post<ImageUploadResponse>(
+      const response = await axiosInstance.post<ImageUploadResponse>(
         "/upload/images",
         formData,
         {
@@ -302,25 +265,21 @@ export const testimoniesService = {
     }
   },
 
-  // Upload audio to Cloudinary
+  // Upload audio
   async uploadAudio(file: File): Promise<AudioUploadResponse> {
-    const maxSize = 50 * 1024 * 1024;
+    const maxSize = 50 * 1024 * 1024; // 50MB
 
-    // Validate file size
     if (file.size > maxSize) {
-      const error = new Error(
-        `Audio file too large: ${(file.size / 1024 / 1024).toFixed(
-          2
-        )}MB. Max: 50MB`
+      throw new Error(
+        `Audio file too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 50MB`
       );
-      throw error;
     }
 
     const formData = new FormData();
     formData.append("files", file);
 
     try {
-      const response = await uploadApi.post<AudioUploadResponse>(
+      const response = await axiosInstance.post<AudioUploadResponse>(
         "/upload/audio",
         formData,
         {
@@ -356,43 +315,33 @@ export const testimoniesService = {
 
   // Upload video
   async uploadVideo(file: File): Promise<AudioUploadResponse> {
-    const maxSize = 100 * 1024 * 1024;
+    const maxSize = 100 * 1024 * 1024; // 100MB
 
-    // Validate file size
     if (file.size > maxSize) {
-      const error = new Error(
-        `Video file too large: ${(file.size / 1024 / 1024).toFixed(
-          2
-        )}MB. Max: 100MB`
+      throw new Error(
+        `Video file too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 100MB`
       );
-      throw error;
     }
 
     const formData = new FormData();
     formData.append("files", file);
 
-    try {
-      const response = await uploadApi.post<AudioUploadResponse>(
-        "/upload/video",
-        formData,
-        {
-          timeout: 300000,
-          onUploadProgress: () => {},
-        }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.post<AudioUploadResponse>(
+      "/upload/video",
+      formData,
+      {
+        timeout: 300000,
+        onUploadProgress: () => {},
+      }
+    );
+    return response.data;
   },
 
-  // Batch upload multiple images (individual calls)
+  // Batch upload multiple images
   async uploadMultipleImages(files: File[]): Promise<ImageUploadResponse[]> {
-    if (files.length === 0) {
-      return [];
-    }
-    const uploadPromises = files.map((file) => this.uploadImage(file));
+    if (files.length === 0) return [];
 
+    const uploadPromises = files.map((file) => this.uploadImage(file));
     const results = await Promise.allSettled(uploadPromises);
 
     const successfulUploads: ImageUploadResponse[] = [];
@@ -411,12 +360,11 @@ export const testimoniesService = {
     });
 
     if (successfulUploads.length === 0 && failedUploads.length > 0) {
-      const error = new Error(
+      throw new Error(
         `Failed to upload all images: ${failedUploads
           .map((f) => f.fileName)
           .join(", ")}`
       );
-      throw error;
     }
 
     return successfulUploads;

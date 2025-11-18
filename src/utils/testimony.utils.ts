@@ -80,21 +80,6 @@ export function validateFormData(formData: FormData): string[] {
   // Validate relatives
   const relatives = formData.relatives || [];
 
-  // Debug logging
-  console.log("Validating relatives:", {
-    relatives,
-    count: relatives.length,
-    details: relatives.map((rel) => ({
-      value: rel?.value,
-      name: rel?.name,
-      valueType: typeof rel?.value,
-      nameType: typeof rel?.name,
-      valueTrimmed: rel?.value?.trim(),
-      nameTrimmed: rel?.name?.trim(),
-      isValid: rel?.value?.trim() && rel?.name?.trim(),
-    })),
-  });
-
   const hasValidRelative = relatives.some((rel) => {
     const value = rel?.value;
     const name = rel?.name;

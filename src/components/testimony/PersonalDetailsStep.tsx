@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
+import React, { useEffect } from "react";
 import {
   LuCalendar,
   LuPlus,
@@ -18,17 +17,13 @@ export default function PersonalDetailsStep({
   formData,
   setFormData,
 }: PersonalDetailsStepProps) {
-  // Ensure relatives array is always defined and persisted
   const relatives = formData.relatives || [];
-  const [newRelativeValue, setNewRelativeValue] = useState("");
-  const [newRelativeName, setNewRelativeName] = useState("");
 
-  // Ensure relatives array exists in formData when component mounts
   useEffect(() => {
-    if (!formData.relatives) {
+    if (!formData.relatives || formData.relatives.length === 0) {
       setFormData((prev) => ({
         ...prev,
-        relatives: [],
+        relatives: [{ value: "", name: "" }],
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,46 +48,10 @@ export default function PersonalDetailsStep({
   ];
 
   const addRelative = () => {
-    const trimmedValue = newRelativeValue.trim();
-    const trimmedName = newRelativeName.trim();
-
-    console.log("Adding relative:", { trimmedValue, trimmedName });
-
-    if (trimmedValue && trimmedName) {
-      setFormData((prev) => {
-        const currentRelatives = prev.relatives || [];
-        const newRelative = { value: trimmedValue, name: trimmedName };
-
-        console.log("New relative object:", newRelative);
-        console.log("Current relatives before add:", currentRelatives);
-
-        const updatedRelatives = [...currentRelatives, newRelative];
-
-        console.log("Updated relatives:", updatedRelatives);
-
-        const updatedFormData = {
-          ...prev,
-          relatives: updatedRelatives,
-        };
-
-        console.log("Updated formData:", updatedFormData);
-
-        return updatedFormData;
-      });
-      setNewRelativeValue("");
-      setNewRelativeName("");
-    } else {
-      console.warn("Cannot add relative - missing fields:", {
-        hasValue: !!trimmedValue,
-        hasName: !!trimmedName,
-      });
-      if (!trimmedValue) {
-        toast.error("Please select a relationship");
-      }
-      if (!trimmedName) {
-        toast.error("Please enter a name");
-      }
-    }
+    setFormData((prev) => ({
+      ...prev,
+      relatives: [...(prev.relatives || []), { value: "", name: "" }],
+    }));
   };
 
   const removeRelative = (index: number) => {
@@ -286,9 +245,19 @@ export default function PersonalDetailsStep({
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-          Names of Relatives *
-        </label>
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <label className="block text-sm font-semibold text-gray-700">
+            Names of Relatives *
+          </label>
+          <button
+            type="button"
+            onClick={addRelative}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-black hover:text-gray-800 cursor-pointer p-2 hover:bg-gray-100 rounded-lg duration-300 transition-all"
+          >
+            <LuPlus className="w-4 h-4" />
+            Add Relative
+          </button>
+        </div>
         <div className="space-y-3">
           {relatives.map((relative, index) => {
             const rel = relative as { value?: string; name?: string };
@@ -325,59 +294,19 @@ export default function PersonalDetailsStep({
                   placeholder="Name"
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white text-sm"
                 />
-                <button
-                  type="button"
-                  onClick={() => removeRelative(index)}
-                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors cursor-pointer shrink-0"
-                  aria-label="Remove relative"
-                >
-                  <LuX className="w-4 h-4 sm:w-5 sm:h-5" />
-                </button>
+                {relatives.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeRelative(index)}
+                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors cursor-pointer shrink-0"
+                    aria-label="Remove relative"
+                  >
+                    <LuX className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                )}
               </div>
             );
           })}
-
-          <div className="flex items-center gap-2">
-            <div className="relative w-32 sm:w-48 shrink-0">
-              <select
-                value={newRelativeValue}
-                onChange={(e) => setNewRelativeValue(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none text-sm sm:text-base"
-              >
-                <option value="">Select relationship</option>
-                {relationshipOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 pointer-events-none">
-                <LuChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
-              </div>
-            </div>
-            <input
-              type="text"
-              value={newRelativeName}
-              onChange={(e) => setNewRelativeName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addRelative();
-                }
-              }}
-              placeholder="Enter relative's name"
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 text-sm sm:text-base"
-            />
-            <button
-              type="button"
-              onClick={addRelative}
-              disabled={!newRelativeValue.trim() || !newRelativeName.trim()}
-              className="px-4 py-2 sm:py-3 bg-black text-white rounded-lg sm:rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center shrink-0 cursor-pointer"
-              aria-label="Add relative"
-            >
-              <LuPlus className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-          </div>
         </div>
       </div>
     </div>
