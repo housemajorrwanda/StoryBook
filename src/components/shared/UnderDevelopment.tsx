@@ -19,9 +19,9 @@ export default function UnderDevelopment({
       <div className="text-center max-w-2xl mx-auto">
         {/* Animated Icon Container */}
         <div className="mb-8 relative">
-          <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6 relative overflow-hidden">
+          <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-linear-to-br from-gray-100 to-gray-200 mb-6 relative overflow-hidden">
             <Construction className="w-16 h-16 text-gray-600 relative z-10 animate-pulse" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" 
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent" 
               style={{
                 animation: "shimmer 3s infinite",
               }}
@@ -51,7 +51,7 @@ export default function UnderDevelopment({
         <div className="mb-8 max-w-md mx-auto">
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-gray-400 to-gray-600 rounded-full transition-all duration-2000 ease-out" 
+              className="h-full bg-linear-to-r from-gray-400 to-gray-600 rounded-full transition-all duration-2000 ease-out" 
               style={{ width: "65%" }} 
             />
           </div>

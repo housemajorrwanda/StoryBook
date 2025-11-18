@@ -1,64 +1,201 @@
 'use client';
 
-import { BarChart3, Eye, Users, TrendingUp, MoreVertical, Edit, Trash2, Archive } from 'lucide-react';
+import { BarChart3, Eye, TrendingUp, MoreVertical, Edit, Trash2, Archive, Plus, Search } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
-
-interface Tour {
-  id: number;
-  title: string;
-  location: string;
-  status: 'draft' | 'published' | 'archived';
-  impressions: number;
-  hotspots: number;
-  audioRegions: number;
-  createdAt: string;
-}
+import { useState, useMemo } from 'react';
+import { useVirtualTours, useDeleteVirtualTour, usePublishVirtualTour, useUnpublishVirtualTour, useArchiveVirtualTour } from '@/hooks/virtual-tour/use-virtual-tours';
+import { VirtualTour } from '@/types/tour';
 
 export default function AdminDashboard() {
-  const [tours, setTours] = useState<Tour[]>([
-    { id: 1, title: 'Modern Downtown Loft', location: 'New York, NY', status: 'published', impressions: 2341, hotspots: 5, audioRegions: 2, createdAt: '2025-01-10' },
-    { id: 2, title: 'Beachfront Villa', location: 'Malibu, CA', status: 'published', impressions: 5203, hotspots: 8, audioRegions: 3, createdAt: '2025-01-08' },
-    { id: 3, title: 'Museum Gallery', location: 'Boston, MA', status: 'draft', impressions: 0, hotspots: 12, audioRegions: 4, createdAt: '2025-01-05' },
-    { id: 4, title: 'Office Space', location: 'SF, CA', status: 'published', impressions: 3921, hotspots: 6, audioRegions: 1, createdAt: '2025-01-02' },
-  ]);
-
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
   const [openMenu, setOpenMenu] = useState<number | null>(null);
-  const [filter, setFilter] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
 
-  const stats = [
-    { label: 'Total Tours', value: tours.length, icon: BarChart3 },
-    { label: 'Published', value: tours.filter((t) => t.status === 'published').length, icon: Eye },
-    { label: 'Total Impressions', value: tours.reduce((sum, t) => sum + t.impressions, 0).toLocaleString(), icon: TrendingUp },
-    { label: 'Active Users', value: '1,243', icon: Users },
-  ];
+  // Fetch tours using your hook
+  const { data: toursResponse, isLoading, error } = useVirtualTours({
+    search: searchTerm || undefined,
+    isPublished: statusFilter === 'all' ? undefined : statusFilter === 'published',
+    isArchived: statusFilter === 'archived' ? true : undefined,
+  });
 
-  const filteredTours = tours.filter((t) => filter === 'all' || t.status === filter);
+  // Mutation hooks
+  const deleteTourMutation = useDeleteVirtualTour();
+  const publishTourMutation = usePublishVirtualTour();
+  const unpublishTourMutation = useUnpublishVirtualTour();
+  const archiveTourMutation = useArchiveVirtualTour();
 
+  const tours = toursResponse?.data || [];
+  const totalTours = toursResponse?.meta?.total || 0;
+
+  // Calculate stats using useMemo
+  const stats = useMemo(() => {
+    const publishedTours = tours.filter(tour => tour.isPublished && !tour.isArchived);
+    const draftTours = tours.filter(tour => !tour.isPublished && !tour.isArchived);
+    const archivedTours = tours.filter(tour => tour.isArchived);
+    const totalImpressions = tours.reduce((sum, tour) => sum + (tour.impressions || 0), 0);
+
+    return [
+      { 
+        label: 'Total Tours', 
+        value: totalTours.toLocaleString(), 
+        icon: BarChart3,
+        description: 'All virtual tours'
+      },
+      { 
+        label: 'Published', 
+        value: publishedTours.length.toString(), 
+        icon: Eye,
+        description: 'Live tours'
+      },
+      { 
+        label: 'Archived', 
+        value: archivedTours.length.toString(), 
+        icon: Archive,
+        description: 'Archived tours'
+      },
+      { 
+        label: 'Drafts', 
+        value: draftTours.length.toString(), 
+        icon: Edit,
+        description: 'In progress'
+      },
+      { 
+        label: 'Total Views', 
+        value: totalImpressions.toLocaleString(), 
+        icon: TrendingUp,
+        description: 'All time impressions'
+      },
+    ];
+  }, [tours, totalTours]);
+
+  // Filter tours based on status
+  const filteredTours = useMemo(() => {
+    if (statusFilter === 'all') return tours;
+    if (statusFilter === 'published') return tours.filter(tour => tour.isPublished && !tour.isArchived);
+    if (statusFilter === 'draft') return tours.filter(tour => !tour.isPublished && !tour.isArchived);
+    if (statusFilter === 'archived') return tours.filter(tour => tour.isArchived);
+    return tours;
+  }, [tours, statusFilter]);
+
+  // Action handlers
   const handleDeleteTour = (id: number) => {
-    setTours(tours.filter((t) => t.id !== id));
-  };
-
-  const handleArchiveTour = (id: number) => {
-    setTours(tours.map((t) => (t.id === id ? { ...t, status: 'archived' } : t)));
+    if (confirm('Are you sure you want to delete this tour? This action cannot be undone.')) {
+      deleteTourMutation.mutate(id);
+    }
   };
 
   const handlePublishTour = (id: number) => {
-    setTours(tours.map((t) => (t.id === id ? { ...t, status: 'published' } : t)));
+    publishTourMutation.mutate(id);
+    setOpenMenu(null);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'draft':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'archived':
-        return 'bg-gray-100 text-gray-600 border-gray-200';
-      default:
-        return '';
-    }
+  const handleUnpublishTour = (id: number) => {
+    unpublishTourMutation.mutate(id);
+    setOpenMenu(null);
   };
+
+  const handleArchiveTour = (id: number) => {
+    archiveTourMutation.mutate(id);
+    setOpenMenu(null);
+  };
+
+  const getStatusInfo = (tour: VirtualTour) => {
+    if (tour.isArchived) {
+      return {
+        status: 'archived',
+        label: 'Archived',
+        color: 'bg-gray-100 text-gray-600 border-gray-200',
+        badgeColor: 'text-gray-600'
+      };
+    }
+    if (tour.isPublished) {
+      return {
+        status: 'published',
+        label: 'Published',
+        color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        badgeColor: 'text-emerald-600'
+      };
+    }
+    return {
+      status: 'draft',
+      label: 'Draft',
+      color: 'bg-amber-100 text-amber-800 border-amber-200',
+      badgeColor: 'text-amber-600'
+    };
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="px-6 py-12">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-2 animate-pulse" />
+            <div className="h-4 bg-gray-200 rounded w-96 animate-pulse" />
+          </div>
+
+          {/* Stats Grid Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="border border-gray-200 rounded-xl p-6 bg-white animate-pulse">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-20" />
+                    <div className="h-8 bg-gray-200 rounded w-16" />
+                  </div>
+                  <div className="w-10 h-10 rounded-lg bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Table Skeleton */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+            <div className="border-b border-gray-200 p-6 flex items-center justify-between">
+              <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
+              <div className="h-10 bg-gray-200 rounded w-32 animate-pulse" />
+            </div>
+            <div className="p-8 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center space-x-4 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded flex-1" />
+                  <div className="h-4 bg-gray-200 rounded w-16" />
+                  <div className="h-4 bg-gray-200 rounded w-20" />
+                  <div className="h-4 bg-gray-200 rounded w-12" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">Failed to load dashboard data</div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,18 +207,19 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
           {stats.map((stat, i) => {
             const Icon = stat.icon;
             return (
               <div key={i} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</p>
+                    <p className="text-xs text-gray-500">{stat.description}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center text-white">
-                    <Icon className="w-6 h-6" />
+                  <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white">
+                    <Icon className="w-4 h-4" />
                   </div>
                 </div>
               </div>
@@ -91,12 +229,29 @@ export default function AdminDashboard() {
 
         {/* Tours Management */}
         <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
-          {/* Header */}
-          <div className="border-b border-gray-200 p-6 flex items-center justify-between bg-white">
-            <h2 className="text-xl font-bold text-gray-900">Virtual Tours</h2>
-            <Link href="/dashboard/create" className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium">
-              Create Tour
-            </Link>
+          {/* Header with Search and Actions */}
+          <div className="border-b border-gray-200 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white">
+            <div className="flex-1 w-full">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search tours..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 text-black rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/dashboard/create" 
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Create Tour
+              </Link>
+            </div>
           </div>
 
           {/* Filters */}
@@ -104,9 +259,9 @@ export default function AdminDashboard() {
             {(['all', 'published', 'draft', 'archived'] as const).map((status) => (
               <button
                 key={status}
-                onClick={() => setFilter(status)}
+                onClick={() => setStatusFilter(status)}
                 className={`px-4 py-2 cursor-pointer rounded-lg text-sm font-medium transition-colors capitalize ${
-                  filter === status
+                  statusFilter === status
                     ? 'bg-gray-900 text-white font-semibold'
                     : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
                 }`}
@@ -131,73 +286,98 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTours.map((tour) => (
-                  <tr key={tour.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-semibold text-gray-900">{tour.title}</p>
-                        <p className="text-sm text-gray-600">{tour.location}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(tour.status)} capitalize`}>
-                        {tour.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-900 font-semibold">{tour.impressions.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-gray-700">{tour.hotspots}</td>
-                    <td className="px-6 py-4 text-gray-700">{tour.audioRegions}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{tour.createdAt}</td>
-                    <td className="px-6 py-4">
-                      <div className="relative">
-                        <button
-                          onClick={() => setOpenMenu(openMenu === tour.id ? null : tour.id)}
-                          className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
-                        >
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
+                {filteredTours.map((tour) => {
+                  const statusInfo = getStatusInfo(tour);
+                  const hotspotsCount = tour._count?.hotspots || tour.hotspots?.length || 0;
+                  const audioRegionsCount = tour._count?.audioRegions || tour.audioRegions?.length || 0;
+                  
+                  return (
+                    <tr key={tour.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-semibold text-gray-900">{tour.title}</p>
+                          <p className="text-sm text-gray-600">{tour.location}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${statusInfo.color} capitalize`}>
+                          {statusInfo.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-900 font-semibold">
+                        {(tour.impressions || 0).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">{hotspotsCount}</td>
+                      <td className="px-6 py-4 text-gray-700">{audioRegionsCount}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {formatDate(tour.createdAt)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="relative flex justify-center">
+                          <button
+                            onClick={() => setOpenMenu(openMenu === tour.id ? null : tour.id)}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+                          >
+                            <MoreVertical className="w-5 h-5" />
+                          </button>
 
-                        {openMenu === tour.id && (
-                          <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg shadow-gray-400/20 overflow-hidden z-50 w-48">
-                            <Link href={`/tour/${tour.id}`} className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm">
-                              <Eye className="w-4 h-4" />
-                              View Tour
-                            </Link>
-                            <button className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm">
-                              <Edit className="w-4 h-4" />
-                              Edit
-                            </button>
-                            {tour.status !== 'published' && (
-                              <button
-                                onClick={() => handlePublishTour(tour.id)}
-                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-900 text-sm"
+                          {openMenu === tour.id && (
+                            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg shadow-gray-400/20 overflow-hidden z-50 w-48">
+                              <Link 
+                                href={`/tour/${tour.id}`} 
+                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm"
                               >
-                                <TrendingUp className="w-4 h-4" />
-                                Publish
-                              </button>
-                            )}
-                            {tour.status !== 'archived' && (
-                              <button
-                                onClick={() => handleArchiveTour(tour.id)}
-                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-600 text-sm"
+                                <Eye className="w-4 h-4" />
+                                View Tour
+                              </Link>
+                              <Link
+                                href={`/dashboard/edit/${tour.id}`}
+                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm"
                               >
-                                <Archive className="w-4 h-4" />
-                                Archive
+                                <Edit className="w-4 h-4" />
+                                Edit
+                              </Link>
+                              {!tour.isPublished && !tour.isArchived && (
+                                <button
+                                  onClick={() => handlePublishTour(tour.id)}
+                                  className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-900 text-sm"
+                                >
+                                  <TrendingUp className="w-4 h-4" />
+                                  Publish
+                                </button>
+                              )}
+                              {tour.isPublished && !tour.isArchived && (
+                                <button
+                                  onClick={() => handleUnpublishTour(tour.id)}
+                                  className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-600 text-sm"
+                                >
+                                  <Archive className="w-4 h-4" />
+                                  Unpublish
+                                </button>
+                              )}
+                              {!tour.isArchived && (
+                                <button
+                                  onClick={() => handleArchiveTour(tour.id)}
+                                  className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-600 text-sm"
+                                >
+                                  <Archive className="w-4 h-4" />
+                                  Archive
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteTour(tour.id)}
+                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-red-50 transition-colors text-red-600 text-sm"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
                               </button>
-                            )}
-                            <button
-                              onClick={() => handleDeleteTour(tour.id)}
-                              className="flex items-center gap-2 w-full px-4 py-2 hover:bg-red-50 transition-colors text-red-600 text-sm"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -205,60 +385,24 @@ export default function AdminDashboard() {
           {/* Empty State */}
           {filteredTours.length === 0 && (
             <div className="p-12 text-center">
-              <p className="text-gray-600 mb-4">No {filter !== 'all' ? filter : ''} tours found</p>
-              <Link href="/dashboard/create" className="inline-block px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium">
-                Create First Tour
+              <div className="text-gray-400 mb-4">
+                <BarChart3 className="w-16 h-16 mx-auto" />
+              </div>
+              <p className="text-gray-600 mb-4">
+                {searchTerm || statusFilter !== 'all' 
+                  ? `No ${statusFilter !== 'all' ? statusFilter : ''} tours found matching your search`
+                  : 'No virtual tours created yet'
+                }
+              </p>
+              <Link 
+                href="/dashboard/create" 
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Create Your First Tour
               </Link>
             </div>
           )}
-        </div>
-
-        {/* Additional Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-          {/* Recent Activities */}
-          <div className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
-            <div className="space-y-4">
-              {[
-                { action: 'Published', tour: 'Downtown Loft', time: '2 hours ago' },
-                { action: 'Created', tour: 'Museum Gallery', time: '5 hours ago' },
-                { action: 'Updated', tour: 'Beachfront Villa', time: '1 day ago' },
-              ].map((activity, i) => (
-                <div key={i} className="flex items-center justify-between pb-4 border-b border-gray-200 last:border-0">
-                  <div>
-                    <p className="text-gray-900 font-medium">{activity.action}</p>
-                    <p className="text-sm text-gray-600">{activity.tour}</p>
-                  </div>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Performance Metrics */}
-          <div className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Tours</h3>
-            <div className="space-y-4">
-              {tours
-                .filter((t) => t.status === 'published')
-                .sort((a, b) => b.impressions - a.impressions)
-                .slice(0, 3)
-                .map((tour) => (
-                  <div key={tour.id} className="pb-4 border-b border-gray-100 last:border-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-gray-900 font-medium">{tour.title}</p>
-                      <span className="text-gray-900 font-semibold">{tour.impressions.toLocaleString()} views</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-linear-to-r from-gray-900 to-gray-700 h-2 rounded-full"
-                        style={{ width: `${(tour.impressions / 5500) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
