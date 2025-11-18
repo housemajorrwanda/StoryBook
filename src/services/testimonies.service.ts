@@ -59,10 +59,14 @@ function buildTestimonyFormData(
     fd.append("relatives", JSON.stringify(request.relatives));
   }
 
-  // Images
+  // Images 
   if (request.images && Array.isArray(request.images) && request.images.length > 0) {
     request.images.forEach((image) => {
-      fd.append("images", image as File | string);
+      if (image instanceof File) {
+        fd.append("files", image);
+      } else if (typeof image === "string") {
+        fd.append("images", image);
+      }
     });
   }
 
