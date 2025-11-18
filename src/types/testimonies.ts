@@ -123,7 +123,6 @@ export interface FormRelative {
   name: string;
 }
 
-// Relative interface for API (backend format)
 export interface ApiRelative {
   relativeTypeId: number;
   personName: string;
