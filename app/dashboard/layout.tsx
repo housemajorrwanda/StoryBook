@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { isAuthenticated, getCurrentUser } from "@/lib/decodeToken";
 import { Sidebar, Header } from "@/components/dashboard";
 
@@ -11,7 +11,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -46,34 +48,45 @@ export default function DashboardLayout({
 
   const user = getCurrentUser();
 
-  return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+  const pageTitle = (() => {
+    if (!pathname) return "Dashboard";
+    const map: Record<string, string> = {
+      "/dashboard": "Dashboard Overview",
+      "/dashboard/users-management": "User Management",
+      "/dashboard/content-moderations": "Content Moderations",
+      "/dashboard/virtual-tour": "Virtual Tour Management",
+      "/dashboard/all-testimonies": "All Testimonies",
+      "/dashboard/settings": "Settings & Analytics",
+    };
+    return map[pathname] ?? "Dashboard";
+  })();
 
+  const contentPaddingClass = sidebarCollapsed ? "lg:pl-0" : "lg:pl-0";
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${contentPaddingClass}`}
+      >
         {/* Header */}
         <Header
-          title="Dashboard"
+          title={pageTitle}
           user={user}
           onMenuClick={() => setSidebarOpen(true)}
+          sidebarCollapsed={sidebarCollapsed}
         />
 
-        {/* Main content area - scrollable */}
-        <main className="flex-1 overflow-y-auto p-4">
-          <div className="h-full">{children}</div>
-        </main>
-
-        {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 py-2">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <p className="text-sm text-gray-500">
-              © 2025 HTFC. All rights reserved. | In memory of over one million
-              lives lost.
-            </p>
-          </div>
-        </footer>
+        {/* Main content*/}
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
-import { UnderDevelopment } from "@/components/shared";
+import DashboardWidgets from "@/components/dashboard/DashboardWidgets";
 
 export default function DashboardPage() {
-  return <UnderDevelopment />;
+  return <DashboardWidgets />;
 }
