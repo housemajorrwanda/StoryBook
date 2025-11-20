@@ -4,13 +4,14 @@ import { Formik, Form, Field } from "formik";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { useSignup } from "@/hooks/auth/use-auth-queries";
+import { useSignup, useGoogleAuth } from "@/hooks/auth/use-auth-queries";
 import { signupValidationSchema } from "@/lib/validation/auth.validation";
 import { SignupCredentials } from "@/types/auth";
 import { CheckIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 
 export default function SignupPage() {
   const signupMutation = useSignup();
+  const googleAuth = useGoogleAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -118,6 +119,7 @@ export default function SignupPage() {
                   {/* Google Signup Button */}
                   <button
                     type="button"
+                    onClick={() => googleAuth.initiate()}
                     className="w-full flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md cursor-pointer"
                   >
                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">

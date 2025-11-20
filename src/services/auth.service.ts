@@ -15,7 +15,6 @@ export const authService = {
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword: _, ...apiCredentials } = credentials;
-    // Only send fields that the backend expects
     const requestBody = {
       email: apiCredentials.email,
       password: apiCredentials.password,
@@ -28,6 +27,19 @@ export const authService = {
 
   refreshToken: async (): Promise<LoginResponse> => {
     const response = await axiosInstance.post("/auth/refresh");
+    return response.data;
+  },
+
+  initiateGoogleAuth: (): void => {
+    const baseURL =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      "https://storybook-backend-production-574d.up.railway.app";
+    // Redirect to backend Google OAuth endpoint
+    window.location.href = `${baseURL}/auth/google`;
+  },
+
+  handleGoogleCallback: async (): Promise<LoginResponse> => {
+    const response = await axiosInstance.get("/auth/google/success");
     return response.data;
   },
 };

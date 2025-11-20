@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type MouseEvent as ReactMouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import { LuMenu, LuShare, LuX } from "react-icons/lu";
 import UserAvatar from "@/components/shared/UserAvatar";
@@ -13,9 +13,9 @@ interface NavigationProps {
   variant?: "default" | "transparent";
 }
 
-export default function Navigation({ 
-  showBackgroundEffects = true, 
-  variant = "default" 
+export default function Navigation({
+  showBackgroundEffects = true,
+  variant = "default",
 }: NavigationProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -114,6 +114,71 @@ export default function Navigation({
     { href: "/virtual-tours", label: "Virtual Tours" },
     { href: "/education", label: "Education" },
   ];
+
+  const getHeaderOffset = () => {
+    if (typeof window === "undefined") return 160;
+    const width = window.innerWidth;
+    if (width < 640) return 112;
+    if (width < 768) return 128;
+    return 160;
+  };
+
+  const getSectionElement = (hash: string) => {
+    if (!hash || typeof document === "undefined") return null;
+    return document.getElementById(hash);
+  };
+
+  const scrollToSection = (hash: string, delay = 0) => {
+    if (typeof window === "undefined") return;
+
+    const performScroll = () => {
+      const element = getSectionElement(hash);
+      if (!element) return;
+
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - getHeaderOffset();
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    };
+
+    if (delay) {
+      setTimeout(performScroll, delay);
+    } else {
+      performScroll();
+    }
+  };
+
+  const handleDesktopNavClick = (
+    e: ReactMouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (!href.startsWith("/#")) return;
+    const hash = href.split("#")[1];
+    if (!getSectionElement(hash)) return;
+
+    e.preventDefault();
+    scrollToSection(hash);
+  };
+
+  const handleMobileNavClick = (
+    e: ReactMouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    const isAnchorLink = href.startsWith("/#");
+    setIsMobileMenuOpen(false);
+
+    if (!isAnchorLink) return;
+
+    const hash = href.split("#")[1];
+    if (!getSectionElement(hash)) return;
+
+    e.preventDefault();
+    scrollToSection(hash, 100);
+  };
 
   return (
     <>
@@ -226,11 +291,15 @@ export default function Navigation({
                   active = true;
                 }
                 return (
-                  <Link key={item.href} href={item.href}>
-                    <button 
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={(e) => handleDesktopNavClick(e, item.href)}
+                  >
+                    <button
                       className={`relative px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 font-semibold text-xs sm:text-sm transition-all duration-300 cursor-pointer group rounded-full whitespace-nowrap ${
-                        active 
-                          ? "bg-white text-black shadow-sm" 
+                        active
+                          ? "bg-white text-black shadow-sm"
                           : "text-gray-700 hover:text-black! hover:bg-white/80"
                       }`}
                     >
@@ -326,7 +395,7 @@ export default function Navigation({
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => handleMobileNavClick(e, item.href)}
                   >
                     <button
                       className={`w-full text-left px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-[56px] flex items-center group relative overflow-hidden touch-manipulation cursor-pointer ${
