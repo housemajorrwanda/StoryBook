@@ -4,10 +4,14 @@ import { Upload, Plus, X, Volume2, Zap } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useCreateVirtualTour } from "@/hooks/virtual-tour/use-virtual-tours";
-import { CreateVirtualTourRequest, HotspotForm, AudioRegionForm, EffectForm } from "@/types/tour";
+import { CreateVirtualTourRequest , CreateAudioRegionData , CreateEffectData , CreateHotspotData } from "@/types/tour";
+import { useRouter } from "next/navigation";
 
 export default function CreateTour() {
   const createTourMutation = useCreateVirtualTour();
+
+
+  const router = useRouter();
 
   const [formData, setFormData] = useState<CreateVirtualTourRequest>({
     title: "",
@@ -19,51 +23,17 @@ export default function CreateTour() {
     isPublished: false,
   });
 
-  const [hotspots, setHotspots] = useState<HotspotForm[]>([
-    {
-      id: "1",
-      title: "Hotspot 1",
-      type: "info",
-      autoTrigger: false,
-      showOnHover: false,
-      order: 0,
-    },
-  ]);
-
-  const [audioRegions, setAudioRegions] = useState<AudioRegionForm[]>([
-    {
-      id: "1",
-      title: "Ambient Background",
-      regionType: "sphere",
-      centerX: 0,
-      centerY: 0,
-      centerZ: 0,
-      radius: 10,
-      volume: 0.8,
-      loop: true,
-      spatialAudio: true,
-      autoPlay: true,
-      playOnce: false,
-      order: 0,
-    },
-  ]);
-
-  const [effects, setEffects] = useState<EffectForm[]>([
-    {
-      id: "1",
-      effectType: "visual",
-      effectName: "fog",
-      triggerType: "on_enter",
-      triggerDelay: 0,
-      intensity: 0.5,
-      opacity: 1,
-      size: 1,
-      animationSpeed: 1,
-      order: 0,
-    },
-  ]);
+  const [hotspots, setHotspots] = useState<CreateHotspotData[]>([]);
+  const [audioRegions, setAudioRegions] = useState<CreateAudioRegionData[]>([]);
+  const [effects, setEffects] = useState<CreateEffectData[]>([]);
 
   const [tourFile, setTourFile] = useState<File | null>(null);
+  const [audioFiles, setAudioFiles] = useState<File[]>([]);
+  const [hotspotAudioFiles, setHotspotAudioFiles] = useState<File[]>([]);
+  const [hotspotImageFiles, setHotspotImageFiles] = useState<File[]>([]);
+  const [hotspotVideoFiles, setHotspotVideoFiles] = useState<File[]>([]);
+  const [effectSoundFiles, setEffectSoundFiles] = useState<File[]>([]);
+
   const [editingAudio, setEditingAudio] = useState<string | null>(null);
   const [editingEffect, setEditingEffect] = useState<string | null>(null);
 
@@ -84,8 +54,19 @@ export default function CreateTour() {
       ...hotspots,
       {
         id: newId,
-        title: `Hotspot ${hotspots.length + 1}`,
         type: "info",
+        title: `Hotspot ${hotspots.length + 1}`,
+        description: "",
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        pitch: 0,
+        yaw: 0,
+        icon: "",
+        actionUrl: "",
+        color: "",
+        size: 1,
+        triggerDistance: 5,
         autoTrigger: false,
         showOnHover: false,
         order: hotspots.length,
@@ -97,7 +78,7 @@ export default function CreateTour() {
     setHotspots(hotspots.filter((h) => h.id !== id));
   };
 
-  const updateHotspot = (id: string, field: keyof HotspotForm, value: any) => {
+  const updateHotspot = (id: string, field: keyof CreateHotspotData, value: any) => {
     setHotspots(
       hotspots.map((h) => (h.id === id ? { ...h, [field]: value } : h))
     );
@@ -111,14 +92,22 @@ export default function CreateTour() {
       {
         id: newId,
         title: `Audio Region ${audioRegions.length + 1}`,
+        description: "",
         regionType: "sphere",
         centerX: 0,
         centerY: 0,
         centerZ: 0,
         radius: 10,
+        width: 0,
+        height: 0,
+        depth: 0,
         volume: 0.8,
         loop: true,
+        fadeInDuration: 0,
+        fadeOutDuration: 0,
         spatialAudio: true,
+        minDistance: 1,
+        maxDistance: 50,
         autoPlay: true,
         playOnce: false,
         order: audioRegions.length,
@@ -132,7 +121,7 @@ export default function CreateTour() {
 
   const updateAudioRegion = (
     id: string,
-    field: keyof AudioRegionForm,
+    field: keyof CreateAudioRegionData,
     value: string | number | boolean
   ) => {
     setAudioRegions(
@@ -150,11 +139,23 @@ export default function CreateTour() {
         effectType: "visual",
         effectName: "fog",
         triggerType: "on_enter",
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        pitch: 0,
+        yaw: 0,
+        triggerDistance: 5,
         triggerDelay: 0,
         intensity: 0.5,
+        duration: 0,
+        color: "",
+        particleCount: 0,
         opacity: 1,
         size: 1,
+        animationType: "",
         animationSpeed: 1,
+        title: "",
+        description: "",
         order: effects.length,
       },
     ]);
@@ -166,7 +167,7 @@ export default function CreateTour() {
 
   const updateEffect = (
     id: string,
-    field: keyof EffectForm,
+    field: keyof CreateEffectData,
     value: string | number | boolean
   ) => {
     setEffects(
@@ -174,163 +175,138 @@ export default function CreateTour() {
     );
   };
 
-  // File Handlers
+  // File Handlers - Updated to match backend expectations
   const handleTourFileUpload = (file: File) => {
     setTourFile(file);
   };
 
+  const handleAudioRegionFileUpload = (regionIndex: number, file: File) => {
+    const newAudioFiles = [...audioFiles];
+    newAudioFiles[regionIndex] = file;
+    setAudioFiles(newAudioFiles);
+  };
+
   const handleHotspotFileUpload = (
-    hotspotId: string,
+    hotspotIndex: number,
     file: File,
     type: "audio" | "image" | "video"
   ) => {
-    setHotspots(
-      hotspots.map((h) => (h.id === hotspotId ? { ...h, file, type } : h))
-    );
+    if (type === "audio") {
+      const newFiles = [...hotspotAudioFiles];
+      newFiles[hotspotIndex] = file;
+      setHotspotAudioFiles(newFiles);
+    } else if (type === "image") {
+      const newFiles = [...hotspotImageFiles];
+      newFiles[hotspotIndex] = file;
+      setHotspotImageFiles(newFiles);
+    } else if (type === "video") {
+      const newFiles = [...hotspotVideoFiles];
+      newFiles[hotspotIndex] = file;
+      setHotspotVideoFiles(newFiles);
+    }
   };
 
-  const handleAudioRegionFileUpload = (regionId: string, file: File) => {
-    setAudioRegions(
-      audioRegions.map((a) => (a.id === regionId ? { ...a, file } : a))
-    );
+  const handleEffectFileUpload = (effectIndex: number, file: File) => {
+    const newFiles = [...effectSoundFiles];
+    newFiles[effectIndex] = file;
+    setEffectSoundFiles(newFiles);
   };
 
-  const handleEffectFileUpload = (effectId: string, file: File) => {
-    setEffects(
-      effects.map((e) => (e.id === effectId ? { ...e, file } : e))
-    );
-  };
-
-  // Form Submission
+  // Form Submission - Updated to match backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prepare files arrays
-    const audioFiles: File[] = [];
-    const hotspotAudioFiles: File[] = [];
-    const hotspotImageFiles: File[] = [];
-    const hotspotVideoFiles: File[] = [];
-    const effectSoundFiles: File[] = [];
-
-    // Collect files from audio regions
-    audioRegions.forEach(region => {
-      if (region.file) {
-        audioFiles.push(region.file);
-      }
-    });
-
-    // Collect files from hotspots
-    hotspots.forEach(hotspot => {
-      if (hotspot.file) {
-        if (hotspot.type === 'audio') {
-          hotspotAudioFiles.push(hotspot.file);
-        } else if (hotspot.type === 'image') {
-          hotspotImageFiles.push(hotspot.file);
-        } else if (hotspot.type === 'video') {
-          hotspotVideoFiles.push(hotspot.file);
-        }
-      }
-    });
-
-    // Collect files from effects
-    effects.forEach(effect => {
-      if (effect.file && effect.effectType === 'sound') {
-        effectSoundFiles.push(effect.file);
-      }
-    });
-
-    // Prepare nested data without files
-    const hotspotsData = hotspots.map((hotspot, index) => ({
-      type: hotspot.type,
-      title: hotspot.title,
-      description: hotspot.description,
-      positionX: hotspot.positionX || 0,
-      positionY: hotspot.positionY || 0,
-      positionZ: hotspot.positionZ || 0,
-      pitch: hotspot.pitch,
-      yaw: hotspot.yaw,
-      icon: hotspot.icon,
-      actionUrl: hotspot.actionUrl,
-      color: hotspot.color,
-      size: hotspot.size,
-      triggerDistance: hotspot.triggerDistance,
-      autoTrigger: hotspot.autoTrigger,
-      showOnHover: hotspot.showOnHover,
-      order: index,
-    }));
-
-    const audioRegionsData = audioRegions.map((region, index) => ({
-      regionType: region.regionType,
-      centerX: region.centerX,
-      centerY: region.centerY,
-      centerZ: region.centerZ,
-      radius: region.radius,
-      width: region.width,
-      height: region.height,
-      depth: region.depth,
-      volume: region.volume,
-      loop: region.loop,
-      fadeInDuration: region.fadeInDuration,
-      fadeOutDuration: region.fadeOutDuration,
-      spatialAudio: region.spatialAudio,
-      minDistance: region.minDistance,
-      maxDistance: region.maxDistance,
-      autoPlay: region.autoPlay,
-      playOnce: region.playOnce,
-      title: region.title,
-      description: region.description,
-      order: index,
-    }));
-
-    const effectsData = effects.map((effect, index) => ({
-      effectType: effect.effectType,
-      triggerType: effect.triggerType,
-      effectName: effect.effectName,
-      positionX: effect.positionX,
-      positionY: effect.positionY,
-      positionZ: effect.positionZ,
-      pitch: effect.pitch,
-      yaw: effect.yaw,
-      triggerDistance: effect.triggerDistance,
-      triggerDelay: effect.triggerDelay || 0,
-      intensity: effect.intensity || 1.0,
-      duration: effect.duration,
-      color: effect.color,
-      particleCount: effect.particleCount,
-      opacity: effect.opacity || 1.0,
-      size: effect.size || 1.0,
-      animationType: effect.animationType,
-      animationSpeed: effect.animationSpeed || 1.0,
-      title: effect.title,
-      description: effect.description,
-      order: index,
-    }));
-
-    // Set tour file based on type - FIX: Use the correct field name
-    const tourFileData: any = {};
-    if (tourFile) {
-      if (formData.tourType === '360_image') {
-        tourFileData.image360File = tourFile;
-      } else if (formData.tourType === '360_video') {
-        tourFileData.video360File = tourFile;
-      } else if (formData.tourType === '3d_model') {
-        tourFileData.model3dFile = tourFile;
-      }
-    }
-
     try {
+      // Prepare nested data without files
+      const hotspotsData = hotspots.map((hotspot, index) => ({
+        type: hotspot.type,
+        title: hotspot.title,
+        description: hotspot.description,
+        positionX: hotspot.positionX,
+        positionY: hotspot.positionY,
+        positionZ: hotspot.positionZ,
+        pitch: hotspot.pitch,
+        yaw: hotspot.yaw,
+        icon: hotspot.icon,
+        actionUrl: hotspot.actionUrl,
+        color: hotspot.color,
+        size: hotspot.size,
+        triggerDistance: hotspot.triggerDistance,
+        autoTrigger: hotspot.autoTrigger,
+        showOnHover: hotspot.showOnHover,
+        order: index,
+      }));
+
+      const audioRegionsData = audioRegions.map((region, index) => ({
+        regionType: region.regionType,
+        centerX: region.centerX,
+        centerY: region.centerY,
+        centerZ: region.centerZ,
+        radius: region.radius,
+        width: region.width,
+        height: region.height,
+        depth: region.depth,
+        volume: region.volume,
+        loop: region.loop,
+        fadeInDuration: region.fadeInDuration,
+        fadeOutDuration: region.fadeOutDuration,
+        spatialAudio: region.spatialAudio,
+        minDistance: region.minDistance,
+        maxDistance: region.maxDistance,
+        autoPlay: region.autoPlay,
+        playOnce: region.playOnce,
+        title: region.title,
+        description: region.description,
+        order: index,
+      }));
+
+      const effectsData = effects.map((effect, index) => ({
+        effectType: effect.effectType,
+        triggerType: effect.triggerType,
+        effectName: effect.effectName,
+        positionX: effect.positionX,
+        positionY: effect.positionY,
+        positionZ: effect.positionZ,
+        pitch: effect.pitch,
+        yaw: effect.yaw,
+        triggerDistance: effect.triggerDistance,
+        triggerDelay: effect.triggerDelay,
+        intensity: effect.intensity,
+        duration: effect.duration,
+        color: effect.color,
+        particleCount: effect.particleCount,
+        opacity: effect.opacity,
+        size: effect.size,
+        animationType: effect.animationType,
+        animationSpeed: effect.animationSpeed,
+        title: effect.title,
+        description: effect.description,
+        order: index,
+      }));
+
+      // Filter out undefined files
+      const filteredAudioFiles = audioFiles.filter(file => file !== undefined);
+      const filteredHotspotAudioFiles = hotspotAudioFiles.filter(file => file !== undefined);
+      const filteredHotspotImageFiles = hotspotImageFiles.filter(file => file !== undefined);
+      const filteredHotspotVideoFiles = hotspotVideoFiles.filter(file => file !== undefined);
+      const filteredEffectSoundFiles = effectSoundFiles.filter(file => file !== undefined);
+
       await createTourMutation.mutateAsync({
         ...formData,
-        ...tourFileData,
+        tourFile: tourFile || undefined,
         hotspots: hotspotsData.length > 0 ? hotspotsData : undefined,
         audioRegions: audioRegionsData.length > 0 ? audioRegionsData : undefined,
         effects: effectsData.length > 0 ? effectsData : undefined,
-        audioFiles: audioFiles.length > 0 ? audioFiles : undefined,
-        hotspotAudioFiles: hotspotAudioFiles.length > 0 ? hotspotAudioFiles : undefined,
-        hotspotImageFiles: hotspotImageFiles.length > 0 ? hotspotImageFiles : undefined,
-        hotspotVideoFiles: hotspotVideoFiles.length > 0 ? hotspotVideoFiles : undefined,
-        effectSoundFiles: effectSoundFiles.length > 0 ? effectSoundFiles : undefined,
+        audioFiles: filteredAudioFiles.length > 0 ? filteredAudioFiles : undefined,
+        hotspotAudioFiles: filteredHotspotAudioFiles.length > 0 ? filteredHotspotAudioFiles : undefined,
+        hotspotImageFiles: filteredHotspotImageFiles.length > 0 ? filteredHotspotImageFiles : undefined,
+        hotspotVideoFiles: filteredHotspotVideoFiles.length > 0 ? filteredHotspotVideoFiles : undefined,
+        effectSoundFiles: filteredEffectSoundFiles.length > 0 ? filteredEffectSoundFiles : undefined,
       });
+
+      // only if success redirect
+      // router.push("/dashboard/virtual-tour")
+
     } catch (error) {
       console.error("Failed to create tour:", error);
     }
@@ -341,10 +317,12 @@ export default function CreateTour() {
     onFileSelect,
     accept,
     label,
+    currentFile,
   }: {
     onFileSelect: (file: File) => void;
     accept: string;
     label: string;
+    currentFile?: File;
   }) => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -354,24 +332,24 @@ export default function CreateTour() {
     };
 
     return (
-      <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-        <Upload className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
+        <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
         <p className="text-gray-900 font-medium mb-1">{label}</p>
-        <p className="text-sm text-gray-500 mb-4">
-          Drag and drop or click to browse
+        <p className="text-sm text-gray-500 mb-3">
+          {currentFile ? `Selected: ${currentFile.name}` : 'Drag and drop or click to browse'}
         </p>
         <input
           type="file"
           accept={accept}
           onChange={handleFileChange}
           className="hidden"
-          id="file-upload"
+          id={`file-upload-${label.replace(/\s+/g, '-')}`}
         />
         <label
-          htmlFor="file-upload"
-          className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium cursor-pointer"
+          htmlFor={`file-upload-${label.replace(/\s+/g, '-')}`}
+          className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium cursor-pointer text-sm"
         >
-          Browse Files
+          {currentFile ? 'Change File' : 'Browse Files'}
         </label>
       </div>
     );
@@ -400,7 +378,7 @@ export default function CreateTour() {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="e.g., Downtown Loft"
+                  placeholder="e.g., Museum Virtual Tour"
                   className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-400"
                   required
                 />
@@ -429,7 +407,7 @@ export default function CreateTour() {
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="e.g., New York, NY"
+                  placeholder="e.g., National Museum, City Center"
                   className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-400"
                   required
                 />
@@ -462,7 +440,7 @@ export default function CreateTour() {
                     name="embedUrl"
                     value={formData.embedUrl}
                     onChange={handleInputChange}
-                    placeholder="https://example.com/tour"
+                    placeholder="https://matterport.com/tour/123"
                     className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-400"
                     required
                   />
@@ -477,9 +455,10 @@ export default function CreateTour() {
                       ? "image/*"
                       : formData.tourType === "360_video"
                       ? "video/*"
-                      : "model/*"
+                      : ".glb,.gltf,.obj,.fbx"
                   }
-                  label={`Upload your ${formData.tourType.replace("_", " ")} file`}
+                  label={`Upload ${formData.tourType.replace("_", " ")} file`}
+                  currentFile={tourFile}
                 />
               )}
 
@@ -535,10 +514,10 @@ export default function CreateTour() {
             </div>
 
             <div className="space-y-4">
-              {hotspots.map((hotspot) => (
+              {hotspots.map((hotspot, index) => (
                 <div
                   key={hotspot.id}
-                  className="border border-gray-200 rounded-lg p-4 bg-white/50"
+                  className="border border-gray-200 rounded-lg p-6 bg-white/50"
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <input
@@ -573,38 +552,15 @@ export default function CreateTour() {
                     </button>
                   </div>
 
-                  {(hotspot.type === "audio" ||
-                    hotspot.type === "image" ||
-                    hotspot.type === "video") && (
-                    <div className="mb-4">
-                      <FileUpload
-                        onFileSelect={(file) =>
-                          handleHotspotFileUpload(
-                            hotspot.id,
-                            file,
-                            hotspot.type as any
-                          )
-                        }
-                        accept={
-                          hotspot.type === "audio"
-                            ? "audio/*"
-                            : hotspot.type === "image"
-                            ? "image/*"
-                            : "video/*"
-                        }
-                        label={`Upload ${hotspot.type} file`}
-                      />
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-2">
                         Position X
                       </label>
                       <input
                         type="number"
-                        value={hotspot.positionX || 0}
+                        step="0.1"
+                        value={hotspot.positionX}
                         onChange={(e) =>
                           updateHotspot(
                             hotspot.id,
@@ -621,7 +577,8 @@ export default function CreateTour() {
                       </label>
                       <input
                         type="number"
-                        value={hotspot.positionY || 0}
+                        step="0.1"
+                        value={hotspot.positionY}
                         onChange={(e) =>
                           updateHotspot(
                             hotspot.id,
@@ -632,9 +589,127 @@ export default function CreateTour() {
                         className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                        Position Z
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={hotspot.positionZ}
+                        onChange={(e) =>
+                          updateHotspot(
+                            hotspot.id,
+                            "positionZ",
+                            parseFloat(e.target.value)
+                          )
+                        }
+                        className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                        Trigger Distance
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={hotspot.triggerDistance}
+                        onChange={(e) =>
+                          updateHotspot(
+                            hotspot.id,
+                            "triggerDistance",
+                            parseFloat(e.target.value)
+                          )
+                        }
+                        className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={hotspot.description}
+                      onChange={(e) =>
+                        updateHotspot(hotspot.id, "description", e.target.value)
+                      }
+                      placeholder="Hotspot description"
+                      rows={2}
+                      className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-400 resize-none"
+                    />
+                  </div>
+
+                  {(hotspot.type === "audio" ||
+                    hotspot.type === "image" ||
+                    hotspot.type === "video") && (
+                    <div className="mb-4">
+                      <FileUpload
+                        onFileSelect={(file) =>
+                          handleHotspotFileUpload(
+                            index,
+                            file,
+                            hotspot.type as "audio" | "image" | "video"
+                          )
+                        }
+                        accept={
+                          hotspot.type === "audio"
+                            ? "audio/*"
+                            : hotspot.type === "image"
+                            ? "image/*"
+                            : "video/*"
+                        }
+                        label={`Upload ${hotspot.type} file`}
+                        currentFile={
+                          hotspot.type === "audio" 
+                            ? hotspotAudioFiles[index]
+                            : hotspot.type === "image"
+                            ? hotspotImageFiles[index]
+                            : hotspotVideoFiles[index]
+                        }
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hotspot.autoTrigger}
+                        onChange={(e) =>
+                          updateHotspot(hotspot.id, "autoTrigger", e.target.checked)
+                        }
+                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                      />
+                      <span className="text-sm text-gray-900">
+                        Auto-trigger when in range
+                      </span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hotspot.showOnHover}
+                        onChange={(e) =>
+                          updateHotspot(hotspot.id, "showOnHover", e.target.checked)
+                        }
+                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                      />
+                      <span className="text-sm text-gray-900">
+                        Show on hover only
+                      </span>
+                    </label>
                   </div>
                 </div>
               ))}
+
+              {hotspots.length === 0 && (
+                <div className="text-center py-8 px-4 rounded-lg border border-dashed border-gray-200">
+                  <p className="text-gray-500">No hotspots configured</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -656,183 +731,260 @@ export default function CreateTour() {
             </div>
 
             <div className="space-y-4">
-              {audioRegions.length === 0 ? (
-                <div className="text-center py-8 px-4 rounded-lg border border-dashed border-gray-200">
-                  <p className="text-gray-500">No audio regions configured</p>
-                </div>
-              ) : (
-                audioRegions.map((region) => (
+              {audioRegions.map((region, index) => (
+                <div
+                  key={region.id}
+                  className="border border-gray-200 rounded-lg overflow-hidden bg-white/50"
+                >
                   <div
-                    key={region.id}
-                    className="border border-gray-200 rounded-lg overflow-hidden bg-white/50"
+                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() =>
+                      setEditingAudio(
+                        editingAudio === region.id ? null : region.id
+                      )
+                    }
                   >
-                    <div
-                      className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() =>
-                        setEditingAudio(
-                          editingAudio === region.id ? null : region.id
-                        )
-                      }
-                    >
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">
-                          {region.title}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {region.regionType === "sphere"
-                            ? "Spherical"
-                            : "Box"}{" "}
-                          • Radius: {region.radius}m • Volume:{" "}
-                          {Math.round(region.volume * 100)}%
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeAudioRegion(region.id);
-                        }}
-                        className="p-2 rounded hover:bg-red-50 text-red-600 transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">
+                        {region.title}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {region.regionType === "sphere"
+                          ? "Spherical"
+                          : "Box"}{" "}
+                        • Radius: {region.radius}m • Volume:{" "}
+                        {Math.round(region.volume * 100)}%
+                      </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeAudioRegion(region.id);
+                      }}
+                      className="p-2 rounded hover:bg-red-50 text-red-600 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
 
-                    {editingAudio === region.id && (
-                      <div className="border-t border-gray-200 p-4 space-y-4 bg-white">
+                  {editingAudio === region.id && (
+                    <div className="border-t border-gray-200 p-4 space-y-4 bg-white">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          Region Title
+                        </label>
+                        <input
+                          type="text"
+                          value={region.title}
+                          onChange={(e) =>
+                            updateAudioRegion(
+                              region.id,
+                              "title",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Region Title
+                            Region Type
                           </label>
-                          <input
-                            type="text"
-                            value={region.title}
+                          <select
+                            value={region.regionType}
                             onChange={(e) =>
                               updateAudioRegion(
                                 region.id,
-                                "title",
+                                "regionType",
                                 e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          >
+                            <option value="sphere">Sphere</option>
+                            <option value="box">Box</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Radius (meters)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={region.radius}
+                            onChange={(e) =>
+                              updateAudioRegion(
+                                region.id,
+                                "radius",
+                                parseFloat(e.target.value)
                               )
                             }
                             className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
                           />
                         </div>
+                      </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Region Type
-                            </label>
-                            <select
-                              value={region.regionType}
-                              onChange={(e) =>
-                                updateAudioRegion(
-                                  region.id,
-                                  "regionType",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                            >
-                              <option value="sphere">Sphere</option>
-                              <option value="box">Box</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Radius (meters)
-                            </label>
-                            <input
-                              type="number"
-                              value={region.radius}
-                              onChange={(e) =>
-                                updateAudioRegion(
-                                  region.id,
-                                  "radius",
-                                  parseFloat(e.target.value)
-                                )
-                              }
-                              className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                            />
-                          </div>
-                        </div>
-
+                      <div className="grid grid-cols-3 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Volume: {Math.round(region.volume * 100)}%
+                            Center X
                           </label>
                           <input
-                            type="range"
-                            min="0"
-                            max="1"
+                            type="number"
                             step="0.1"
-                            value={region.volume}
+                            value={region.centerX}
                             onChange={(e) =>
                               updateAudioRegion(
                                 region.id,
-                                "volume",
+                                "centerX",
                                 parseFloat(e.target.value)
                               )
                             }
-                            className="w-full"
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
                           />
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Audio File
+                            Center Y
                           </label>
-                          <FileUpload
-                            onFileSelect={(file) =>
-                              handleAudioRegionFileUpload(region.id, file)
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={region.centerY}
+                            onChange={(e) =>
+                              updateAudioRegion(
+                                region.id,
+                                "centerY",
+                                parseFloat(e.target.value)
+                              )
                             }
-                            accept="audio/*"
-                            label="Upload audio file"
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
                           />
                         </div>
-
-                        <div className="space-y-3">
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={region.spatialAudio}
-                              onChange={(e) =>
-                                updateAudioRegion(
-                                  region.id,
-                                  "spatialAudio",
-                                  e.target.checked
-                                )
-                              }
-                              className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Enable Spatial Audio (3D positioning)
-                            </span>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Center Z
                           </label>
-
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={region.autoPlay}
-                              onChange={(e) =>
-                                updateAudioRegion(
-                                  region.id,
-                                  "autoPlay",
-                                  e.target.checked
-                                )
-                              }
-                              className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Auto-play when entering region
-                            </span>
-                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={region.centerZ}
+                            onChange={(e) =>
+                              updateAudioRegion(
+                                region.id,
+                                "centerZ",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          />
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          Volume: {Math.round(region.volume * 100)}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={region.volume}
+                          onChange={(e) =>
+                            updateAudioRegion(
+                              region.id,
+                              "volume",
+                              parseFloat(e.target.value)
+                            )
+                          }
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          Audio File
+                        </label>
+                        <FileUpload
+                          onFileSelect={(file) =>
+                            handleAudioRegionFileUpload(index, file)
+                          }
+                          accept="audio/*"
+                          label="Upload audio file"
+                          currentFile={audioFiles[index]}
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={region.spatialAudio}
+                            onChange={(e) =>
+                              updateAudioRegion(
+                                region.id,
+                                "spatialAudio",
+                                e.target.checked
+                              )
+                            }
+                            className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-900">
+                            Enable Spatial Audio (3D positioning)
+                          </span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={region.autoPlay}
+                            onChange={(e) =>
+                              updateAudioRegion(
+                                region.id,
+                                "autoPlay",
+                                e.target.checked
+                              )
+                            }
+                            className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-900">
+                            Auto-play when entering region
+                          </span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={region.loop}
+                            onChange={(e) =>
+                              updateAudioRegion(
+                                region.id,
+                                "loop",
+                                e.target.checked
+                              )
+                            }
+                            className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-900">
+                            Loop audio
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {audioRegions.length === 0 && (
+                <div className="text-center py-8 px-4 rounded-lg border border-dashed border-gray-200">
+                  <p className="text-gray-500">No audio regions configured</p>
+                </div>
               )}
             </div>
           </div>
@@ -855,190 +1007,211 @@ export default function CreateTour() {
             </div>
 
             <div className="space-y-4">
-              {effects.length === 0 ? (
+              {effects.map((effect, index) => (
+                <div
+                  key={effect.id}
+                  className="border border-gray-200 rounded-lg overflow-hidden bg-white/50"
+                >
+                  <div
+                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() =>
+                      setEditingEffect(
+                        editingEffect === effect.id ? null : effect.id
+                      )
+                    }
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">
+                        {effect.effectName}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {effect.effectType} • {effect.triggerType} • Intensity: {effect.intensity}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeEffect(effect.id);
+                      }}
+                      className="p-2 rounded hover:bg-red-50 text-red-600 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {editingEffect === effect.id && (
+                    <div className="border-t border-gray-200 p-4 space-y-4 bg-white">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Effect Type
+                          </label>
+                          <select
+                            value={effect.effectType}
+                            onChange={(e) =>
+                              updateEffect(
+                                effect.id,
+                                "effectType",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          >
+                            <option value="visual">Visual</option>
+                            <option value="sound">Sound</option>
+                            <option value="particle">Particle</option>
+                            <option value="animation">Animation</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Effect Name
+                          </label>
+                          <input
+                            type="text"
+                            value={effect.effectName}
+                            onChange={(e) =>
+                              updateEffect(
+                                effect.id,
+                                "effectName",
+                                e.target.value
+                              )
+                            }
+                            placeholder="e.g., fog, rain, sparkle"
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Trigger Type
+                          </label>
+                          <select
+                            value={effect.triggerType}
+                            onChange={(e) =>
+                              updateEffect(
+                                effect.id,
+                                "triggerType",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          >
+                            <option value="on_enter">On Enter</option>
+                            <option value="on_look">On Look</option>
+                            <option value="on_click">On Click</option>
+                            <option value="on_timer">On Timer</option>
+                            <option value="always">Always</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Intensity: {effect.intensity}
+                          </label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={effect.intensity}
+                            onChange={(e) =>
+                              updateEffect(
+                                effect.id,
+                                "intensity",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Position X
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={effect.positionX}
+                            onChange={(e) =>
+                              updateEffect(
+                                effect.id,
+                                "positionX",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Position Y
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={effect.positionY}
+                            onChange={(e) =>
+                              updateEffect(
+                                effect.id,
+                                "positionY",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Position Z
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={effect.positionZ}
+                            onChange={(e) =>
+                              updateEffect(
+                                effect.id,
+                                "positionZ",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
+                          />
+                        </div>
+                      </div>
+
+                      {effect.effectType === "sound" && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-900 mb-2">
+                            Sound File
+                          </label>
+                          <FileUpload
+                            onFileSelect={(file) =>
+                              handleEffectFileUpload(index, file)
+                            }
+                            accept="audio/*"
+                            label="Upload sound file"
+                            currentFile={effectSoundFiles[index]}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {effects.length === 0 && (
                 <div className="text-center py-8 px-4 rounded-lg border border-dashed border-gray-200">
                   <p className="text-gray-500">No effects configured</p>
                 </div>
-              ) : (
-                effects.map((effect) => (
-                  <div
-                    key={effect.id}
-                    className="border border-gray-200 rounded-lg overflow-hidden bg-white/50"
-                  >
-                    <div
-                      className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() =>
-                        setEditingEffect(
-                          editingEffect === effect.id ? null : effect.id
-                        )
-                      }
-                    >
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">
-                          {effect.effectName}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {effect.effectType} • {effect.triggerType} • Intensity: {effect.intensity}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeEffect(effect.id);
-                        }}
-                        className="p-2 rounded hover:bg-red-50 text-red-600 transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    {editingEffect === effect.id && (
-                      <div className="border-t border-gray-200 p-4 space-y-4 bg-white">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Effect Type
-                            </label>
-                            <select
-                              value={effect.effectType}
-                              onChange={(e) =>
-                                updateEffect(
-                                  effect.id,
-                                  "effectType",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                            >
-                              <option value="visual">Visual</option>
-                              <option value="sound">Sound</option>
-                              <option value="particle">Particle</option>
-                              <option value="animation">Animation</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Effect Name
-                            </label>
-                            <input
-                              type="text"
-                              value={effect.effectName}
-                              onChange={(e) =>
-                                updateEffect(
-                                  effect.id,
-                                  "effectName",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="e.g., fog, rain, sparkle"
-                              className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Trigger Type
-                            </label>
-                            <select
-                              value={effect.triggerType}
-                              onChange={(e) =>
-                                updateEffect(
-                                  effect.id,
-                                  "triggerType",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                            >
-                              <option value="on_enter">On Enter</option>
-                              <option value="on_look">On Look</option>
-                              <option value="on_click">On Click</option>
-                              <option value="on_timer">On Timer</option>
-                              <option value="always">Always</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Intensity: {effect.intensity}
-                            </label>
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={effect.intensity}
-                              onChange={(e) =>
-                                updateEffect(
-                                  effect.id,
-                                  "intensity",
-                                  parseFloat(e.target.value)
-                                )
-                              }
-                              className="w-full"
-                            />
-                          </div>
-                        </div>
-
-                        {effect.effectType === "sound" && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Sound File
-                            </label>
-                            <FileUpload
-                              onFileSelect={(file) =>
-                                handleEffectFileUpload(effect.id, file)
-                              }
-                              accept="audio/*"
-                              label="Upload sound file"
-                            />
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Position X
-                            </label>
-                            <input
-                              type="number"
-                              value={effect.positionX || 0}
-                              onChange={(e) =>
-                                updateEffect(
-                                  effect.id,
-                                  "positionX",
-                                  parseFloat(e.target.value)
-                                )
-                              }
-                              className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Position Y
-                            </label>
-                            <input
-                              type="number"
-                              value={effect.positionY || 0}
-                              onChange={(e) =>
-                                updateEffect(
-                                  effect.id,
-                                  "positionY",
-                                  parseFloat(e.target.value)
-                                )
-                              }
-                              className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))
               )}
             </div>
           </div>

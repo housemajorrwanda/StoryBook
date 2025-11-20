@@ -8,13 +8,10 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import {
-  AudioRegionForm,
-  CreateAudioRegionRequest,
-  CreateEffectRequest,
-  CreateHotspotRequest,
+  CreateAudioRegionData,
+  CreateEffectData,
+  CreateHotspotData,
   CreateVirtualTourRequest,
-  EffectForm,
-  HotspotForm,
   UpdateAudioRegionRequest,
   UpdateEffectRequest,
   UpdateHotspotRequest,
@@ -27,6 +24,8 @@ import {
   VirtualToursResponse,
 } from "@/types/tour";
 import { virtualTourService } from "@/services/tour.service";
+
+
 
 // Query keys
 export const virtualTourKeys = {
@@ -77,9 +76,9 @@ export const useCreateVirtualTour = (): UseMutationResult<
   VirtualTour,
   Error,
   CreateVirtualTourRequest & {
-    hotspots?: HotspotForm[];
-    audioRegions?: AudioRegionForm[];
-    effects?: EffectForm[];
+    hotspots?: CreateHotspotData[];
+    audioRegions?: CreateAudioRegionData[];
+    effects?: CreateEffectData[];
     audioFiles?: File[];
     hotspotAudioFiles?: File[];
     hotspotImageFiles?: File[];
@@ -94,6 +93,7 @@ export const useCreateVirtualTour = (): UseMutationResult<
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.lists() });
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.myTours({}) });
+      
       toast.success("Virtual tour created successfully");
     },
     onError: (error) => {
@@ -224,7 +224,7 @@ export const useIncrementViewCount = (): UseMutationResult<
 export const useCreateHotspot = (tourId: number): UseMutationResult<
   VirtualTourHotspot,
   Error,
-  CreateHotspotRequest
+  CreateHotspotData
 > => {
   const queryClient = useQueryClient();
 
@@ -305,7 +305,7 @@ export const useDeleteHotspot = (tourId: number): UseMutationResult<
 export const useCreateAudioRegion = (tourId: number): UseMutationResult<
   VirtualTourAudioRegion,
   Error,
-  CreateAudioRegionRequest
+  CreateAudioRegionData
 > => {
   const queryClient = useQueryClient();
 
@@ -386,7 +386,7 @@ export const useDeleteAudioRegion = (tourId: number): UseMutationResult<
 export const useCreateEffect = (tourId: number): UseMutationResult<
   VirtualTourEffect,
   Error,
-  CreateEffectRequest
+  CreateEffectData
 > => {
   const queryClient = useQueryClient();
 

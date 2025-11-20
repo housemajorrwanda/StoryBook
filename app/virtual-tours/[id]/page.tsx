@@ -12,13 +12,11 @@ import { useVirtualTour } from "@/hooks/virtual-tour/use-virtual-tours";
 // Helper function to convert 3D coordinates to 2D screen coordinates
 const convert3DTo2D = (x: number | null, y: number | null, z: number | null) => {
   const safeX = x || 0;
-  const safeY = y || 0;
   const safeZ = z || 0;
   
-  // Simple projection: map 3D coordinates to 2D screen space
   return {
-    x: 50 + (safeX * 5), // Adjust scaling as needed
-    y: 50 + (safeZ * 5)  // Using Z for vertical position in 2D
+    x: 50 + (safeX * 5), 
+    y: 50 + (safeZ * 5) 
   };
 };
 
@@ -86,7 +84,7 @@ export default function TourViewer({
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Tour Not Found</h2>
-            <p className="text-gray-600 mb-4">The virtual tour you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-4">The virtual tour you&apos;re looking for doesn&apos;t exist.</p>
             <Link
               href="/virtual-tours"
               className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
@@ -188,7 +186,7 @@ export default function TourViewer({
             {virtualTour.tourType === '360_image' && mediaSource && (
               <ImageComponent
                 src={mediaSource}
-                alt={virtualTour.title}
+                alt={`${virtualTour.title}-title`}
                 className="w-full h-full object-cover"
                 fill
                 priority
@@ -214,7 +212,7 @@ export default function TourViewer({
             {!mediaSource && virtualTour.tourType !== '3d_model' && (
               <ImageComponent
                 src="/immersive-360-tour-environment.jpg"
-                alt={virtualTour.title}
+                alt={`${virtualTour.title}-title`}
                 className="w-full h-full object-cover"
                 fill
                 priority
