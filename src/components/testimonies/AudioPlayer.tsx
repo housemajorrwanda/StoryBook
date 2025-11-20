@@ -23,7 +23,7 @@ export default function AudioPlayer({ src, duration }: AudioPlayerProps) {
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const isSetupRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -203,7 +203,8 @@ export default function AudioPlayer({ src, duration }: AudioPlayerProps) {
 
         analyser.fftSize = 256;
         const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        const dataArrayBuffer = new ArrayBuffer(bufferLength);
+        const dataArray = new Uint8Array(dataArrayBuffer);
 
         source.connect(analyser);
         analyser.connect(audioContext.destination);
