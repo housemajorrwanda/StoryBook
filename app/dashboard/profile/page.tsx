@@ -149,7 +149,7 @@ export default function ProfilePage() {
                   Google ID
                 </dt>
                 <dd className="text-sm font-medium text-gray-900">
-                  {profile.googleId ?? "—"}
+                  {profile.googleId ?? "Not available"}
                 </dd>
               </div>
               <div>
@@ -157,7 +157,7 @@ export default function ProfilePage() {
                   Avatar
                 </dt>
                 <dd className="text-sm font-medium text-gray-900">
-                  {profile.avatar ?? "—"}
+                  {profile.avatar ?? "Not available"}
                 </dd>
               </div>
               <div>
@@ -165,7 +165,7 @@ export default function ProfilePage() {
                   Reset token
                 </dt>
                 <dd className="text-sm font-medium text-gray-900">
-                  {profile.resetToken ? "Issued" : "—"}
+                  {profile.resetToken ? "Issued" : "Not available"}
                 </dd>
               </div>
             </dl>
