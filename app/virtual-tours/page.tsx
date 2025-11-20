@@ -1,89 +1,78 @@
 "use client";
 
 import PageLayout from "@/layout/PageLayout";
-import { ChevronRight, MapPin, Eye, Music, Sparkles, TrendingUp, Play } from "lucide-react";
+import { Search, Play, Sparkles, Eye, MapPin, Music, Info } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useIncrementViewCount, useVirtualTours } from "@/hooks/virtual-tour/use-virtual-tours";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import {
+  useIncrementViewCount,
+  useVirtualTours,
+} from "@/hooks/virtual-tour/use-virtual-tours";
 import { VirtualTour } from "@/types/tour";
 import { getTourTypeDisplay } from "@/utils/tour";
-import { useCallback, useRef, useState } from "react";
+import { debounce } from "lodash";
 
+const LIMIT = 9;
 
-
-// Tour card component
 const TourCard = ({ tour }: { tour: VirtualTour }) => {
-  const hasAudio = tour.audioRegions && tour.audioRegions.length > 0;
-  const hotspotsCount = tour._count?.hotspots || tour.hotspots?.length ||  0;
-  const audioRegionsCount = tour._count?.audioRegions || tour.audioRegions?.length || 0;
-  const effectsCount =  tour._count?.effects || tour.effects?.length || 0;
-  
-  const isVideoTour = tour.tourType === '360_video';
-  const hasMedia = tour.image360Url || tour.video360Url;
+  const hotspotsCount = tour._count?.hotspots || tour.hotspots?.length || 0;
+  const audioRegionsCount =
+    tour._count?.audioRegions || tour.audioRegions?.length || 0;
+  const effectsCount = tour._count?.effects || tour.effects?.length || 0;
 
-const { mutate: incrementViewCount } = useIncrementViewCount();
+  const isVideoTour = tour.tourType === "360_video";
+  const hasMedia =
+    tour.image360Url || tour.video360Url || tour.model3dUrl || tour.embedUrl;
 
- const handleTourClick = useCallback(() => {
+  const { mutate: incrementViewCount } = useIncrementViewCount();
+
+  const handleTourClick = useCallback(() => {
     incrementViewCount(tour.id, {
       onSuccess: () => {
-        // Successfully incremented view count
-        console.log('View count incremented for tour ID:', tour.id);
+        console.log("View count incremented for tour ID:", tour.id);
       },
       onError: (error) => {
-        console.error('Failed to increment view count:', error);
-      }
+        console.error("Failed to increment view count:", error);
+      },
     });
   }, [tour.id, incrementViewCount]);
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [imageLoaded, setImageLoaded] = useState(false);
-  
-    const handleMouseEnter = useCallback(async () => {
-      if (isVideoTour && videoRef.current) {
-        try {
-          await videoRef.current.play();
-          setIsPlaying(true);
-        } catch (error) {
-          console.error("Failed to play video:", error);
-        }
+  const handleMouseEnter = useCallback(async () => {
+    if (isVideoTour && videoRef.current) {
+      try {
+        await videoRef.current.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error("Failed to play video:", error);
       }
-    }, [isVideoTour]);
-  
-    const handleMouseLeave = useCallback(() => {
-      if (videoRef.current) {
-        videoRef.current.pause();
-        if (videoRef.current) videoRef.current.currentTime = 0;
-        setIsPlaying(false);
-      }
-    }, []);
+    }
+  }, [isVideoTour]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      if (videoRef.current) videoRef.current.currentTime = 0;
+      setIsPlaying(false);
+    }
+  }, []);
 
   return (
-    <Link key={tour.id} href={`/tour/${tour.id}`}  onClick={handleTourClick}>
+    <Link key={tour.id} href={`/virtual-tours/${tour.id}`} onClick={handleTourClick}>
       <div
-
-       onMouseEnter={handleMouseEnter}
-       onMouseLeave={handleMouseLeave}
-      
-      className="group rounded-xl border border-gray-200 overflow-hidden hover:border-gray-400 transition-all duration-300 hover:shadow-lg hover:shadow-gray-400/20 cursor-pointer h-full bg-white/50">
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="group rounded-xl border border-gray-200 overflow-hidden hover:border-gray-400 transition-all duration-300 hover:shadow-lg hover:shadow-gray-400/20 cursor-pointer h-full bg-white/50"
+      >
         <div className="relative aspect-video overflow-hidden bg-gray-100">
           {hasMedia ? (
             <>
               {isVideoTour && tour.video360Url ? (
-                // Video player with hover play
-                <div 
-                  className="relative w-full h-full"
-                  onMouseEnter={async () => {
-                    await videoRef.current?.play();
-                    setIsPlaying(true);
-                  }}
-                  onMouseLeave={() => {
-                    videoRef.current?.pause();
-                    if (videoRef.current) videoRef.current.currentTime = 0;
-                    setIsPlaying(false);
-                  }}
-                >
+                <div className="relative w-full h-full">
                   <video
                     ref={videoRef}
                     src={tour.video360Url}
@@ -93,27 +82,29 @@ const { mutate: incrementViewCount } = useIncrementViewCount();
                     playsInline
                     preload="metadata"
                   />
-                  <div className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
+                  <div
+                    className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-300 ${
+                      isPlaying ? "opacity-0" : "opacity-100"
+                    }`}
+                  >
                     <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Play className="w-6 h-6 text-gray-900 ml-1" />
                     </div>
                   </div>
                 </div>
               ) : tour.image360Url ? (
-                // Regular image
                 <Image
                   src={tour.image360Url}
                   alt={tour.title}
                   fill
-                  onLoad={() => setImageLoaded(true)}
-                  loading="lazy"
                   className={`object-cover group-hover:scale-110 transition-transform duration-300 ${
                     imageLoaded ? "opacity-100" : "opacity-0"
                   }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  onLoad={() => setImageLoaded(true)}
+                  loading="lazy"
                 />
               ) : (
-                // Fallback for tours with no media
                 <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
                   <div className="text-center p-6">
                     <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
@@ -125,7 +116,6 @@ const { mutate: incrementViewCount } = useIncrementViewCount();
               )}
             </>
           ) : (
-            // No media available
             <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
               <div className="text-center p-6">
                 <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
@@ -135,18 +125,18 @@ const { mutate: incrementViewCount } = useIncrementViewCount();
               </div>
             </div>
           )}
-          
+
           {/* Tour type badge */}
           <div className="absolute top-3 right-3">
             <span className="px-2 py-1 text-xs font-medium bg-black/70 text-white rounded-full backdrop-blur-sm">
               {getTourTypeDisplay(tour.tourType)}
             </span>
           </div>
-          
+
           {/* Hover overlay */}
           <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
-        
+
         <div className="p-6">
           <div className="flex items-start justify-between mb-2">
             <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors flex-1 pr-2">
@@ -162,12 +152,12 @@ const { mutate: incrementViewCount } = useIncrementViewCount();
               </span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
             <MapPin className="w-4 h-4" />
             {tour.location}
           </div>
-          
+
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
               <Eye className="w-4 h-4" />
@@ -177,7 +167,7 @@ const { mutate: incrementViewCount } = useIncrementViewCount();
               <Sparkles className="w-4 h-4" />
               {hotspotsCount} hotspots
             </div>
-            {hasAudio && (
+            {audioRegionsCount && (
               <div className="flex items-center gap-1">
                 <Music className="w-4 h-4" />
                 {audioRegionsCount} audio
@@ -190,7 +180,6 @@ const { mutate: incrementViewCount } = useIncrementViewCount();
               </div>
             )}
           </div>
-          
         </div>
       </div>
     </Link>
@@ -202,186 +191,262 @@ const TourCardSkeleton = () => (
   <div className="rounded-xl border border-gray-200 overflow-hidden h-full bg-white/50 animate-pulse">
     <div className="aspect-video bg-gray-200" />
     <div className="p-6">
-      <div className="h-4 bg-gray-200 rounded mb-2" />
-      <div className="h-3 bg-gray-200 rounded w-3/4 mb-4" />
-      <div className="flex gap-4">
-        <div className="h-3 bg-gray-200 rounded w-1/4" />
-        <div className="h-3 bg-gray-200 rounded w-1/4" />
-        <div className="h-3 bg-gray-200 rounded w-1/4" />
+      <div className="flex items-start justify-between mb-2">
+        <div className="h-5 bg-gray-200 rounded flex-1 mr-2" />
+        <div className="h-6 bg-gray-200 rounded w-16" />
+      </div>
+      <div className="h-4 bg-gray-200 rounded w-3/4 mb-4" />
+      <div className="flex flex-wrap gap-4">
+        <div className="h-4 bg-gray-200 rounded w-1/4" />
+        <div className="h-4 bg-gray-200 rounded w-1/4" />
+        <div className="h-4 bg-gray-200 rounded w-1/4" />
       </div>
     </div>
   </div>
 );
 
-// Error component
-const ErrorState = ({ onRetry }: { onRetry: () => void }) => (
-  <div className="text-center py-12">
-    <div className="text-gray-500 mb-4">Failed to load tours</div>
-    <button 
-      onClick={onRetry}
-      className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-    >
-      Try Again
-    </button>
-  </div>
+const FilterChip = ({
+  label,
+  value,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  isActive: boolean;
+  onClick: (value: string) => void;
+}) => (
+  <button
+    onClick={() => onClick(value)}
+    className={`px-4 py-2 cursor-pointer rounded-full text-sm font-medium transition-colors ${
+      isActive
+        ? "bg-gray-600 text-white"
+        : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400"
+    }`}
+  >
+    {label}
+  </button>
 );
 
-// Empty state component
-const EmptyState = () => (
-  <div className="text-center py-12">
-    <div className="text-gray-500 mb-4">No tours available yet</div>
-  </div>
-);
+export default function Tour() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const loaderRef = useRef<HTMLDivElement>(null);
 
-export default function VirtualToursPage() {
-  const { data: toursResponse, isLoading, error, refetch } = useVirtualTours({
-    isPublished: true,
-    limit: 4
-  });
+  // Debounce search to avoid too many API calls
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setDebouncedSearchTerm(value);
+        setPage(1);
+      }, 500),
+    []
+  );
+
+  useEffect(() => {
+    debouncedSearch(searchTerm);
+    return () => debouncedSearch.cancel();
+  }, [searchTerm, debouncedSearch]);
+
+  const params = useMemo(
+    () => ({
+      isPublished: true,
+      limit: LIMIT,
+      page,
+      search: debouncedSearchTerm || undefined,
+      tourType: typeFilter === "all" ? undefined : typeFilter,
+    }),
+    [debouncedSearchTerm, typeFilter, page]
+  );
+
+  const {
+    data: toursResponse,
+    isLoading,
+    error,
+    isFetching,
+    refetch,
+  } = useVirtualTours(params);
 
   const tours = toursResponse?.data || [];
-  const totalTours = toursResponse?.meta?.total || 0;
-  const totalImpressions = tours?.reduce((sum, tour) => sum + (tour.impressions || 0), 0) || 0;
+  const hasMore = tours.length === LIMIT && !isFetching;
 
-  // Calculate stats from real data
-  const stats = [
-    { 
-      label: "Total Tours", 
-      value: totalTours.toLocaleString(),
-      icon: <Sparkles className="w-5 h-5" />
-    },
-    { 
-      label: "Total Views", 
-      value: totalImpressions.toLocaleString(),
-      icon: <Eye className="w-5 h-5" />
-    },
-    { 
-      label: "Active Tours", 
-      value: tours.filter(tour => tour.isPublished).length.toString(),
-      icon: <TrendingUp className="w-5 h-5" />
-    },
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    // Use a callback to update page state asynchronously to avoid cascading renders
+    const timer = setTimeout(() => setPage(1), 0);
+    return () => clearTimeout(timer);
+  }, [debouncedSearchTerm, typeFilter]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isFetching) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentLoader = loaderRef.current;
+    if (currentLoader && hasMore) {
+      observer.observe(currentLoader);
+    }
+
+    return () => {
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
+      }
+    };
+  }, [hasMore, isFetching]);
+
+  const filterOptions = [
+    { value: "all", label: "All Tours" },
+    { value: "360_image", label: "360° Images" },
+    { value: "3d_model", label: "3D Models" },
+    { value: "360_video", label: "360° Videos" },
+    { value: "embed", label: "Embedded" },
   ];
+
+  const handleFilterChange = useCallback((value: string) => {
+    setTypeFilter(value);
+    setPage(1);
+  }, []);
+
+  const showLoadingSkeletons = isLoading && page === 1;
+  const showEmptyState = !isLoading && tours.length === 0;
+  const showLoadMore = hasMore && !isLoading;
 
   return (
     <PageLayout showBackgroundEffects={true} variant="default">
-      {/* Hero Section */}
-      <section className="container mx-auto px-6 py-20">
-        <div className="space-y-6 mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 text-balance leading-tight">
-            Immersive <span className="text-gray-900">360° Experiences</span>
-          </h1>
-          <p className="text-xl text-gray-600 text-balance">
-            Build thoughtful Kwibuka virtual tours with interactive details, immersive audio, and respectful visuals—creating a space for remembrance, learning, and healing.
-          </p>
-          <div className="flex gap-4 pt-4">
-            <Link
-              href="/tour"
-              className="px-6 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium flex items-center gap-2"
-            >
-              Explore Tours <ChevronRight className="w-4 h-4" />
-            </Link>
-            <button className="px-6 py-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors font-medium text-gray-900">
-              Learn More
-            </button>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 py-8">
+          {/* Header */}
+          <div className="space-y-6 mb-12 flex flex-col justify-center items-center ">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 text-balance leading-tight">
+              Virtual Tour{" "}
+              <span className="text-gray-900">360° Experiences</span>
+            </h1>
+            <p className="text-xl w-full  text-gray-600 text-center">
+              Create meaningful Kwibuka virtual tours that honor the memory of
+              the victims of the 1994 Genocide against the Tutsi. Through
+              immersive visuals, thoughtful narration, and interactive elements,
+              offer a respectful space for remembrance, education, and
+              reflection.
+              {/* Build thoughtful Kwibuka virtual tours with interactive details, immersive audio, and respectful visuals creating a space for remembrance, learning, and healing. */}
+            </p>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {stats.map((stat, i) => (
-            <div
-              key={i}
-              className="border border-gray-200 rounded-xl p-6 bg-white/50 backdrop-blur-sm hover:border-gray-300 transition-colors"
-            >
-              <div className="flex items-center gap-3 ">
-                <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center text-white">
-                  {stat.icon}
+          {/* Search and Filters */}
+          <div className="max-w-4xl mx-auto mb-12">
+            {/* Search Bar */}
+            <div className="relative mb-6">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search tours by title, location, or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent shadow-sm"
+              />
+            </div>
+
+            {/* Filter Chips */}
+            <div className="flex  flex-wrap gap-2 justify-center">
+              {filterOptions.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  label={option.label}
+                  value={option.value}
+                  isActive={typeFilter === option.value}
+                  onClick={handleFilterChange}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Tours Grid */}
+          <div className="container mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {tours.map((tour) => (
+                <TourCard key={tour.id} tour={tour} />
+              ))}
+
+              {showLoadingSkeletons &&
+                Array.from({ length: LIMIT }).map((_, index) => (
+                  <TourCardSkeleton key={`skeleton-${index}`} />
+                ))}
+            </div>
+
+            {/* Loading More Indicator */}
+            {showLoadMore && (
+              <div
+                ref={loaderRef}
+                className="flex justify-center items-center py-8"
+              >
+                <div className="flex items-center gap-3 text-gray-600">
+                  <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                  <span>Loading more tours...</span>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {stat.value}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {showEmptyState && (
+              <div className="text-center py-16">
+                <div className="max-w-md mx-auto">
+                  <Info className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No tours found
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {debouncedSearchTerm
+                      ? `No results found for "${debouncedSearchTerm}". Try adjusting your search or filters.`
+                      : "No virtual tours available at the moment. Please check back later."}
+                  </p>
+                  {(debouncedSearchTerm || typeFilter !== "all") && (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setTypeFilter("all");
+                      }}
+                      className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="text-center py-16">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">⚠️</span>
                   </div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Failed to load tours
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    We encountered an error while loading the tours. Please try
+                    again.
+                  </p>
+                  <button
+                    onClick={() => refetch()}
+                    className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    Retry
+                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Tours Section */}
-      <section className="container mx-auto px-6 py-20 border-t border-gray-200">
-        <div className="flex items-center justify-between mb-12">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Featured Tours
-          </h2>
-          <Link
-            href="/tour"
-            className="text-gray-900 hover:text-gray-700 font-medium flex items-center gap-2"
-          >
-            View all tours <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <TourCardSkeleton key={index} />
-            ))}
+            )}
           </div>
-        ) : error ? (
-          <ErrorState onRetry={() => refetch()} />
-        ) : tours.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {tours.map((tour) => (
-              <TourCard key={tour.id} tour={tour} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState />
-        )}
-      </section>
-
-      {/* Features Section */}
-      <section className="container mx-auto px-6 py-20 border-t border-gray-200">
-        <h2 className="text-3xl font-bold mb-12 text-gray-900">
-          Platform Features
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: <Eye className="w-6 h-6" />,
-              title: "360° Viewing",
-              desc: "Support for panoramic images, 360° videos, 3D models, and embedded tours from Matterport and more",
-            },
-            {
-              icon: <Sparkles className="w-6 h-6" />,
-              title: "Interactive Hotspots",
-              desc: "Add clickable information points, links, images, videos, and audio triggers throughout your tours",
-            },
-            {
-              icon: <Music className="w-6 h-6" />,
-              title: "Spatial Audio",
-              desc: "3D positional audio regions that play based on viewer position with fade effects and distance control",
-            },
-          ].map((feature, i) => (
-            <div
-              key={i}
-              className="p-6 rounded-xl border border-gray-200 bg-white/50 hover:border-gray-400 transition-colors group"
-            >
-              <div className="w-12 h-12 rounded-lg bg-gray-900 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-                {feature.icon}
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2 text-lg">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {feature.desc}
-              </p>
-            </div>
-          ))}
         </div>
-      </section>
+      </div>
     </PageLayout>
   );
 }
