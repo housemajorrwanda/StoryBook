@@ -10,7 +10,10 @@ const Home = () => {
       <HeroSection />
 
       {/* Published Testimonies Section */}
-      <section id="testimonies" className="relative z-10">
+      <section 
+        id="testimonies" 
+        className="relative z-10 scroll-mt-24 sm:scroll-mt-28 md:scroll-mt-32"
+      >
         <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-12 md:py-14 bg-[#fafafa]">
           <div className="mb-6 sm:mb-10 md:mb-12">
             <h2 className="text-xl sm:text-xl md:text-3xl font-extrabold tracking-tight text-gray-900">
