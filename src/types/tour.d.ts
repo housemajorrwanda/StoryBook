@@ -4,13 +4,79 @@ export interface CreateVirtualTourRequest {
   location: string;
   tourType: "360_image" | "360_video" | "3d_model" | "embed";
   embedUrl?: string;
-  status?: "draft" | "published" | "archived";
-  isPublished?: boolean;
-  image360File?: File;
-  video360File?: File;
-  model3dFile?: File;
-  tourFile?: File;
+  status: "draft" | "published" | "archived";
+  isPublished: boolean;
 }
+
+export interface CreateHotspotData {
+  id?: string; 
+  type: 'info' | 'link' | 'audio' | 'video' | 'image' | 'effect';
+  title: string;
+  description: string;
+  positionX: number;
+  positionY: number;
+  positionZ: number;
+  pitch: number;
+  yaw: number;
+  icon: string;
+  actionUrl: string;
+  color: string;
+  size: number;
+  triggerDistance: number;
+  autoTrigger: boolean;
+  showOnHover: boolean;
+  order: number;
+}
+
+export interface CreateAudioRegionData {
+  id?: string; 
+  title: string;
+  description: string;
+  regionType: 'sphere' | 'box';
+  centerX: number;
+  centerY: number;
+  centerZ: number;
+  radius: number;
+  width: number;
+  height: number;
+  depth: number;
+  volume: number;
+  loop: boolean;
+  fadeInDuration: number;
+  fadeOutDuration: number;
+  spatialAudio: boolean;
+  minDistance: number;
+  maxDistance: number;
+  autoPlay: boolean;
+  playOnce: boolean;
+  order: number;
+}
+
+export interface CreateEffectData {
+  id?: string; 
+  effectType: 'visual' | 'sound' | 'particle' | 'animation';
+  effectName: string;
+  triggerType: 'on_enter' | 'on_look' | 'on_click' | 'on_timer' | 'always';
+  positionX: number;
+  positionY: number;
+  positionZ: number;
+  pitch: number;
+  yaw: number;
+  triggerDistance: number;
+  triggerDelay: number;
+  intensity: number;
+  duration: number;
+  color: string;
+  particleCount: number;
+  opacity: number;
+  size: number;
+  animationType: string;
+  animationSpeed: number;
+  title: string;
+  description: string;
+  order: number;
+}
+
 
 
 export type UpdateVirtualTourRequest = Partial<CreateVirtualTourRequest>;
@@ -168,97 +234,3 @@ export interface VirtualTourEffect {
   createdAt: string;
   updatedAt: string;
 }
-
-
-
-
-export interface CreateHotspotData {
-  id?: string;
-  positionX?: number;
-  positionY?: number;
-  positionZ?: number;
-  pitch?: number;
-  yaw?: number;
-  type: 'info' | 'link' | 'audio' | 'video' | 'image' | 'effect';
-  title?: string;
-  description?: string;
-  icon?: string;
-  actionUrl?: string;
-  actionEffect?: string;
-  triggerDistance?: number;
-  autoTrigger?: boolean;
-  showOnHover?: boolean;
-  color?: string;
-  size?: number;
-  order?: number;
-  file?: File;
-  tourFile?: File;
-  actionAudioFile?: File;
-  actionVideoFile?: File;
-  actionImageFile?: File;
-  actionEffect?: string;
-}
-
-export interface CreateAudioRegionData {
-  id?: string;
-  regionType: 'sphere' | 'box';
-  centerX: number;
-  centerY: number;
-  centerZ: number;
-  radius?: number;
-  width?: number;
-  height?: number;
-  depth?: number;
-  volume?: number;
-  loop?: boolean;
-  fadeInDuration?: number;
-  fadeOutDuration?: number;
-  spatialAudio?: boolean;
-  minDistance?: number;
-  maxDistance?: number;
-  autoPlay?: boolean;
-  playOnce?: boolean;
-  title?: string;
-  description?: string;
-  order?: number;
-  file?: File;
-  tourFile?: File;
-  audioFile?: File;
-  actionAudioFile?: File;
-  actionVideoFile?: File;
-  actionImageFile?: File;
-  actionEffect?: string;
-}
-
-export interface CreateEffectData {
-  id?: string;
-  effectType: 'visual' | 'sound' | 'particle' | 'animation';
-  positionX?: number;
-  positionY?: number;
-  positionZ?: number;
-  pitch?: number;
-  yaw?: number;
-  triggerType: 'on_enter' | 'on_look' | 'on_click' | 'on_timer' | 'always';
-  triggerDistance?: number;
-  triggerDelay?: number;
-  effectName: string;
-  intensity?: number;
-  duration?: number;
-  color?: string;
-  particleCount?: number;
-  opacity?: number;
-  size?: number;
-  animationType?: string;
-  animationSpeed?: number;
-  title?: string;
-  description?: string;
-  order?: number;
-  file?: File;
-  tourFile?: File;
-  soundFile?: File;
-  actionAudioFile?: File;
-  actionVideoFile?: File;
-  actionImageFile?: File;
-  actionEffect?: string;
-}
-

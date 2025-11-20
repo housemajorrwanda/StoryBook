@@ -6,11 +6,54 @@ import Link from "next/link";
 import { useCreateVirtualTour } from "@/hooks/virtual-tour/use-virtual-tours";
 import { CreateVirtualTourRequest , CreateAudioRegionData , CreateEffectData , CreateHotspotData } from "@/types/tour";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
+
+const FileUpload = ({
+  onFileSelect,
+  accept,
+  label,
+  currentFile,
+}: {
+  onFileSelect: (file: File) => void;
+  accept: string;
+  label: string;
+  currentFile?: File;
+}) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onFileSelect(file);
+    }
+  };
+
+  return (
+    <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
+      <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
+      <p className="text-gray-900 font-medium mb-1">{label}</p>
+      <p className="text-sm text-gray-500 mb-3">
+        {currentFile ? `Selected: ${currentFile.name}` : 'Drag and drop or click to browse'}
+      </p>
+      <input
+        type="file"
+        accept={accept}
+        onChange={handleFileChange}
+        className="hidden"
+        id={`file-upload-${label.replace(/\s+/g, '-')}`}
+      />
+      <label
+        htmlFor={`file-upload-${label.replace(/\s+/g, '-')}`}
+        className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium cursor-pointer text-sm"
+      >
+        {currentFile ? 'Change File' : 'Browse Files'}
+      </label>
+    </div>
+  );
+};
+
 
 export default function CreateTour() {
   const createTourMutation = useCreateVirtualTour();
-
-
   const router = useRouter();
 
   const [formData, setFormData] = useState<CreateVirtualTourRequest>({
@@ -28,11 +71,11 @@ export default function CreateTour() {
   const [effects, setEffects] = useState<CreateEffectData[]>([]);
 
   const [tourFile, setTourFile] = useState<File | null>(null);
-  const [audioFiles, setAudioFiles] = useState<File[]>([]);
-  const [hotspotAudioFiles, setHotspotAudioFiles] = useState<File[]>([]);
-  const [hotspotImageFiles, setHotspotImageFiles] = useState<File[]>([]);
-  const [hotspotVideoFiles, setHotspotVideoFiles] = useState<File[]>([]);
-  const [effectSoundFiles, setEffectSoundFiles] = useState<File[]>([]);
+  const [audioFiles, setAudioFiles] = useState<(File | undefined)[]>([]);
+  const [hotspotAudioFiles, setHotspotAudioFiles] = useState<(File | undefined)[]>([]);
+  const [hotspotImageFiles, setHotspotImageFiles] = useState<(File | undefined)[]>([]);
+  const [hotspotVideoFiles, setHotspotVideoFiles] = useState<(File | undefined)[]>([]);
+  const [effectSoundFiles, setEffectSoundFiles] = useState<(File | undefined)[]>([]);
 
   const [editingAudio, setEditingAudio] = useState<string | null>(null);
   const [editingEffect, setEditingEffect] = useState<string | null>(null);
@@ -49,11 +92,9 @@ export default function CreateTour() {
 
   // Hotspot Management
   const addHotspot = () => {
-    const newId = Date.now().toString();
     setHotspots([
       ...hotspots,
       {
-        id: newId,
         type: "info",
         title: `Hotspot ${hotspots.length + 1}`,
         description: "",
@@ -76,9 +117,13 @@ export default function CreateTour() {
 
   const removeHotspot = (id: string) => {
     setHotspots(hotspots.filter((h) => h.id !== id));
+    // Clean up associated files (shift indices)
+    setHotspotAudioFiles(hotspotAudioFiles.filter((_, i) => hotspots[i].id !== id));
+    setHotspotImageFiles(hotspotImageFiles.filter((_, i) => hotspots[i].id !== id));
+    setHotspotVideoFiles(hotspotVideoFiles.filter((_, i) => hotspots[i].id !== id));
   };
 
-  const updateHotspot = (id: string, field: keyof CreateHotspotData, value: any) => {
+  const updateHotspot = (id: string, field: keyof CreateHotspotData, value: string | number | boolean) => {
     setHotspots(
       hotspots.map((h) => (h.id === id ? { ...h, [field]: value } : h))
     );
@@ -86,11 +131,10 @@ export default function CreateTour() {
 
   // Audio Region Management
   const addAudioRegion = () => {
-    const newId = Date.now().toString();
+
     setAudioRegions([
       ...audioRegions,
       {
-        id: newId,
         title: `Audio Region ${audioRegions.length + 1}`,
         description: "",
         regionType: "sphere",
@@ -117,6 +161,7 @@ export default function CreateTour() {
 
   const removeAudioRegion = (id: string) => {
     setAudioRegions(audioRegions.filter((a) => a.id !== id));
+    setAudioFiles(audioFiles.filter((_, i) => audioRegions[i].id !== id));
   };
 
   const updateAudioRegion = (
@@ -131,11 +176,9 @@ export default function CreateTour() {
 
   // Effects Management
   const addEffect = () => {
-    const newId = Date.now().toString();
     setEffects([
       ...effects,
       {
-        id: newId,
         effectType: "visual",
         effectName: "fog",
         triggerType: "on_enter",
@@ -163,6 +206,7 @@ export default function CreateTour() {
 
   const removeEffect = (id: string) => {
     setEffects(effects.filter((e) => e.id !== id));
+    setEffectSoundFiles(effectSoundFiles.filter((_, i) => effects[i].id !== id));
   };
 
   const updateEffect = (
@@ -175,7 +219,7 @@ export default function CreateTour() {
     );
   };
 
-  // File Handlers - Updated to match backend expectations
+  // File Handlers
   const handleTourFileUpload = (file: File) => {
     setTourFile(file);
   };
@@ -212,12 +256,28 @@ export default function CreateTour() {
     setEffectSoundFiles(newFiles);
   };
 
-  // Form Submission - Updated to match backend
+  // Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      // Prepare nested data without files
+    const payload = new FormData();
+
+    // Append basic fields
+    payload.append('title', formData.title);
+    payload.append('description', formData.description);
+    payload.append('location', formData.location);
+    payload.append('tourType', formData.tourType);
+    if (formData.embedUrl) payload.append('embedUrl', formData.embedUrl);
+    payload.append('status', formData.status);
+    payload.append('isPublished', formData.isPublished.toString());
+
+    // Append tour file if present
+    if (tourFile) {
+      payload.append('tourFile', tourFile);
+    }
+
+    // Append hotspots and related files
+    if (hotspots.length > 0) {
       const hotspotsData = hotspots.map((hotspot, index) => ({
         type: hotspot.type,
         title: hotspot.title,
@@ -236,7 +296,21 @@ export default function CreateTour() {
         showOnHover: hotspot.showOnHover,
         order: index,
       }));
+      payload.append('hotspots', JSON.stringify(hotspotsData));
 
+      hotspotAudioFiles.forEach((file) => {
+        if (file) payload.append('hotspotAudioFiles', file);
+      });
+      hotspotImageFiles.forEach((file) => {
+        if (file) payload.append('hotspotImageFiles', file);
+      });
+      hotspotVideoFiles.forEach((file) => {
+        if (file) payload.append('hotspotVideoFiles', file);
+      });
+    }
+
+    // Append audio regions and files
+    if (audioRegions.length > 0) {
       const audioRegionsData = audioRegions.map((region, index) => ({
         regionType: region.regionType,
         centerX: region.centerX,
@@ -259,7 +333,15 @@ export default function CreateTour() {
         description: region.description,
         order: index,
       }));
+      payload.append('audioRegions', JSON.stringify(audioRegionsData));
 
+      audioFiles.forEach((file) => {
+        if (file) payload.append('audioFiles', file);
+      });
+    }
+
+    // Append effects and files
+    if (effects.length > 0) {
       const effectsData = effects.map((effect, index) => ({
         effectType: effect.effectType,
         triggerType: effect.triggerType,
@@ -283,77 +365,22 @@ export default function CreateTour() {
         description: effect.description,
         order: index,
       }));
+      payload.append('effects', JSON.stringify(effectsData));
 
-      // Filter out undefined files
-      const filteredAudioFiles = audioFiles.filter(file => file !== undefined);
-      const filteredHotspotAudioFiles = hotspotAudioFiles.filter(file => file !== undefined);
-      const filteredHotspotImageFiles = hotspotImageFiles.filter(file => file !== undefined);
-      const filteredHotspotVideoFiles = hotspotVideoFiles.filter(file => file !== undefined);
-      const filteredEffectSoundFiles = effectSoundFiles.filter(file => file !== undefined);
-
-      await createTourMutation.mutateAsync({
-        ...formData,
-        tourFile: tourFile || undefined,
-        hotspots: hotspotsData.length > 0 ? hotspotsData : undefined,
-        audioRegions: audioRegionsData.length > 0 ? audioRegionsData : undefined,
-        effects: effectsData.length > 0 ? effectsData : undefined,
-        audioFiles: filteredAudioFiles.length > 0 ? filteredAudioFiles : undefined,
-        hotspotAudioFiles: filteredHotspotAudioFiles.length > 0 ? filteredHotspotAudioFiles : undefined,
-        hotspotImageFiles: filteredHotspotImageFiles.length > 0 ? filteredHotspotImageFiles : undefined,
-        hotspotVideoFiles: filteredHotspotVideoFiles.length > 0 ? filteredHotspotVideoFiles : undefined,
-        effectSoundFiles: filteredEffectSoundFiles.length > 0 ? filteredEffectSoundFiles : undefined,
+      effectSoundFiles.forEach((file) => {
+        if (file) payload.append('effectSoundFiles', file);
       });
+    }
 
-      // only if success redirect
-      // router.push("/dashboard/virtual-tour")
-
+    try {
+      await createTourMutation.mutateAsync(payload);
+      router.push("/dashboard/virtual-tour");
     } catch (error) {
       console.error("Failed to create tour:", error);
+      toast.error("Failed to create tour");
     }
   };
 
-  // File Upload Component
-  const FileUpload = ({
-    onFileSelect,
-    accept,
-    label,
-    currentFile,
-  }: {
-    onFileSelect: (file: File) => void;
-    accept: string;
-    label: string;
-    currentFile?: File;
-  }) => {
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        onFileSelect(file);
-      }
-    };
-
-    return (
-      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
-        <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-        <p className="text-gray-900 font-medium mb-1">{label}</p>
-        <p className="text-sm text-gray-500 mb-3">
-          {currentFile ? `Selected: ${currentFile.name}` : 'Drag and drop or click to browse'}
-        </p>
-        <input
-          type="file"
-          accept={accept}
-          onChange={handleFileChange}
-          className="hidden"
-          id={`file-upload-${label.replace(/\s+/g, '-')}`}
-        />
-        <label
-          htmlFor={`file-upload-${label.replace(/\s+/g, '-')}`}
-          className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium cursor-pointer text-sm"
-        >
-          {currentFile ? 'Change File' : 'Browse Files'}
-        </label>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -458,7 +485,7 @@ export default function CreateTour() {
                       : ".glb,.gltf,.obj,.fbx"
                   }
                   label={`Upload ${formData.tourType.replace("_", " ")} file`}
-                  currentFile={tourFile}
+                  currentFile={tourFile || undefined}
                 />
               )}
 
@@ -524,7 +551,7 @@ export default function CreateTour() {
                       type="text"
                       value={hotspot.title}
                       onChange={(e) =>
-                        updateHotspot(hotspot.id, "title", e.target.value)
+                        updateHotspot(hotspot.id!, "title", e.target.value)
                       }
                       placeholder="Hotspot title"
                       className="flex-1 px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-400"
@@ -532,7 +559,7 @@ export default function CreateTour() {
                     <select
                       value={hotspot.type}
                       onChange={(e) =>
-                        updateHotspot(hotspot.id, "type", e.target.value)
+                        updateHotspot(hotspot.id!, "type", e.target.value)
                       }
                       className="px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
                     >
@@ -545,7 +572,7 @@ export default function CreateTour() {
                     </select>
                     <button
                       type="button"
-                      onClick={() => removeHotspot(hotspot.id)}
+                      onClick={() => removeHotspot(hotspot.id!)}
                       className="p-2 rounded hover:bg-red-50 text-red-600 transition-colors"
                     >
                       <X className="w-5 h-5" />
@@ -563,7 +590,7 @@ export default function CreateTour() {
                         value={hotspot.positionX}
                         onChange={(e) =>
                           updateHotspot(
-                            hotspot.id,
+                            hotspot.id!,
                             "positionX",
                             parseFloat(e.target.value)
                           )
@@ -581,7 +608,7 @@ export default function CreateTour() {
                         value={hotspot.positionY}
                         onChange={(e) =>
                           updateHotspot(
-                            hotspot.id,
+                            hotspot.id!,
                             "positionY",
                             parseFloat(e.target.value)
                           )
@@ -599,7 +626,7 @@ export default function CreateTour() {
                         value={hotspot.positionZ}
                         onChange={(e) =>
                           updateHotspot(
-                            hotspot.id,
+                            hotspot.id!,
                             "positionZ",
                             parseFloat(e.target.value)
                           )
@@ -617,7 +644,7 @@ export default function CreateTour() {
                         value={hotspot.triggerDistance}
                         onChange={(e) =>
                           updateHotspot(
-                            hotspot.id,
+                            hotspot.id!,
                             "triggerDistance",
                             parseFloat(e.target.value)
                           )
@@ -634,7 +661,7 @@ export default function CreateTour() {
                     <textarea
                       value={hotspot.description}
                       onChange={(e) =>
-                        updateHotspot(hotspot.id, "description", e.target.value)
+                        updateHotspot(hotspot.id!, "description", e.target.value)
                       }
                       placeholder="Hotspot description"
                       rows={2}
@@ -679,7 +706,7 @@ export default function CreateTour() {
                         type="checkbox"
                         checked={hotspot.autoTrigger}
                         onChange={(e) =>
-                          updateHotspot(hotspot.id, "autoTrigger", e.target.checked)
+                          updateHotspot(hotspot.id!, "autoTrigger", e.target.checked)
                         }
                         className="w-4 h-4 rounded border-gray-300 cursor-pointer"
                       />
@@ -693,7 +720,7 @@ export default function CreateTour() {
                         type="checkbox"
                         checked={hotspot.showOnHover}
                         onChange={(e) =>
-                          updateHotspot(hotspot.id, "showOnHover", e.target.checked)
+                          updateHotspot(hotspot.id!, "showOnHover", e.target.checked)
                         }
                         className="w-4 h-4 rounded border-gray-300 cursor-pointer"
                       />
@@ -740,7 +767,7 @@ export default function CreateTour() {
                     className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() =>
                       setEditingAudio(
-                        editingAudio === region.id ? null : region.id
+                        editingAudio === region.id! ? null : region.id!
                       )
                     }
                   >
@@ -760,7 +787,7 @@ export default function CreateTour() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeAudioRegion(region.id);
+                        removeAudioRegion(region.id!);
                       }}
                       className="p-2 rounded hover:bg-red-50 text-red-600 transition-colors"
                     >
@@ -779,7 +806,7 @@ export default function CreateTour() {
                           value={region.title}
                           onChange={(e) =>
                             updateAudioRegion(
-                              region.id,
+                              region.id!,
                               "title",
                               e.target.value
                             )
@@ -797,7 +824,7 @@ export default function CreateTour() {
                             value={region.regionType}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "regionType",
                                 e.target.value
                               )
@@ -819,7 +846,7 @@ export default function CreateTour() {
                             value={region.radius}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "radius",
                                 parseFloat(e.target.value)
                               )
@@ -840,7 +867,7 @@ export default function CreateTour() {
                             value={region.centerX}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "centerX",
                                 parseFloat(e.target.value)
                               )
@@ -858,7 +885,7 @@ export default function CreateTour() {
                             value={region.centerY}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "centerY",
                                 parseFloat(e.target.value)
                               )
@@ -876,7 +903,7 @@ export default function CreateTour() {
                             value={region.centerZ}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "centerZ",
                                 parseFloat(e.target.value)
                               )
@@ -898,7 +925,7 @@ export default function CreateTour() {
                           value={region.volume}
                           onChange={(e) =>
                             updateAudioRegion(
-                              region.id,
+                              region.id!,
                               "volume",
                               parseFloat(e.target.value)
                             )
@@ -928,7 +955,7 @@ export default function CreateTour() {
                             checked={region.spatialAudio}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "spatialAudio",
                                 e.target.checked
                               )
@@ -946,7 +973,7 @@ export default function CreateTour() {
                             checked={region.autoPlay}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "autoPlay",
                                 e.target.checked
                               )
@@ -964,7 +991,7 @@ export default function CreateTour() {
                             checked={region.loop}
                             onChange={(e) =>
                               updateAudioRegion(
-                                region.id,
+                                region.id!,
                                 "loop",
                                 e.target.checked
                               )
@@ -1016,7 +1043,7 @@ export default function CreateTour() {
                     className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() =>
                       setEditingEffect(
-                        editingEffect === effect.id ? null : effect.id
+                        editingEffect === effect.id! ? null : effect.id!
                       )
                     }
                   >
@@ -1032,7 +1059,7 @@ export default function CreateTour() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeEffect(effect.id);
+                        removeEffect(effect.id!);
                       }}
                       className="p-2 rounded hover:bg-red-50 text-red-600 transition-colors"
                     >
@@ -1051,7 +1078,7 @@ export default function CreateTour() {
                             value={effect.effectType}
                             onChange={(e) =>
                               updateEffect(
-                                effect.id,
+                                effect.id!,
                                 "effectType",
                                 e.target.value
                               )
@@ -1074,7 +1101,7 @@ export default function CreateTour() {
                             value={effect.effectName}
                             onChange={(e) =>
                               updateEffect(
-                                effect.id,
+                                effect.id!,
                                 "effectName",
                                 e.target.value
                               )
@@ -1094,7 +1121,7 @@ export default function CreateTour() {
                             value={effect.triggerType}
                             onChange={(e) =>
                               updateEffect(
-                                effect.id,
+                                effect.id!,
                                 "triggerType",
                                 e.target.value
                               )
@@ -1121,7 +1148,7 @@ export default function CreateTour() {
                             value={effect.intensity}
                             onChange={(e) =>
                               updateEffect(
-                                effect.id,
+                                effect.id!,
                                 "intensity",
                                 parseFloat(e.target.value)
                               )
@@ -1142,7 +1169,7 @@ export default function CreateTour() {
                             value={effect.positionX}
                             onChange={(e) =>
                               updateEffect(
-                                effect.id,
+                                effect.id!,
                                 "positionX",
                                 parseFloat(e.target.value)
                               )
@@ -1160,7 +1187,7 @@ export default function CreateTour() {
                             value={effect.positionY}
                             onChange={(e) =>
                               updateEffect(
-                                effect.id,
+                                effect.id!,
                                 "positionY",
                                 parseFloat(e.target.value)
                               )
@@ -1178,7 +1205,7 @@ export default function CreateTour() {
                             value={effect.positionZ}
                             onChange={(e) =>
                               updateEffect(
-                                effect.id,
+                                effect.id!,
                                 "positionZ",
                                 parseFloat(e.target.value)
                               )

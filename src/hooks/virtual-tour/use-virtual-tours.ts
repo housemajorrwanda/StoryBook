@@ -11,7 +11,6 @@ import {
   CreateAudioRegionData,
   CreateEffectData,
   CreateHotspotData,
-  CreateVirtualTourRequest,
   UpdateAudioRegionRequest,
   UpdateEffectRequest,
   UpdateHotspotRequest,
@@ -72,24 +71,16 @@ export const useVirtualTour = (
 };
 
 // Virtual Tours Mutations
+
 export const useCreateVirtualTour = (): UseMutationResult<
   VirtualTour,
   Error,
-  CreateVirtualTourRequest & {
-    hotspots?: CreateHotspotData[];
-    audioRegions?: CreateAudioRegionData[];
-    effects?: CreateEffectData[];
-    audioFiles?: File[];
-    hotspotAudioFiles?: File[];
-    hotspotImageFiles?: File[];
-    hotspotVideoFiles?: File[];
-    effectSoundFiles?: File[];
-  }
+  FormData
 > => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => virtualTourService.createTour(data),
+    mutationFn: (formData: FormData) => virtualTourService.createTour(formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.lists() });
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.myTours({}) });

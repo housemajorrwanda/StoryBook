@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { use } from "react";
-import { X, Volume2, VolumeX, Eye, Compass, Info, Link as Links, Music, Video, Image, Zap } from "lucide-react";
+import { X, Volume2, VolumeX, Eye, Compass, Info, Link as Links, Music, Video, Image as Ifoto, Zap } from "lucide-react";
 import Link from "next/link";
 import ImageComponent from "next/image";
 import PageLayout from "@/layout/PageLayout";
@@ -32,7 +32,7 @@ const getHotspotIcon = (type: VirtualTourHotspot['type']) => {
     case 'video':
       return <Video className="w-3 h-3" />;
     case 'image':
-      return <Image className="w-3 h-3" />;
+      return <Ifoto className="w-3 h-3" />;
     case 'effect':
       return <Zap className="w-3 h-3" />;
     default:
@@ -186,7 +186,7 @@ export default function TourViewer({
             {virtualTour.tourType === '360_image' && mediaSource && (
               <ImageComponent
                 src={mediaSource}
-                alt={`${virtualTour.title}-title`}
+                alt={virtualTour.title}
                 className="w-full h-full object-cover"
                 fill
                 priority
@@ -212,7 +212,7 @@ export default function TourViewer({
             {!mediaSource && virtualTour.tourType !== '3d_model' && (
               <ImageComponent
                 src="/immersive-360-tour-environment.jpg"
-                alt={`${virtualTour.title}-title`}
+                alt={virtualTour.title}
                 className="w-full h-full object-cover"
                 fill
                 priority

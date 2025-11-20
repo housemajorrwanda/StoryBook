@@ -2,7 +2,6 @@ import {
   CreateAudioRegionData,
   CreateEffectData,
   CreateHotspotData,
-  CreateVirtualTourRequest,
   UpdateAudioRegionRequest,
   UpdateEffectRequest,
   UpdateHotspotRequest,
@@ -56,24 +55,15 @@ class VirtualTourService {
   }
 
   // POST /virtual-tours 
-  async createTour(tourData: CreateVirtualTourRequest & {
-    hotspots?: CreateHotspotData[];
-    audioRegions?: CreateAudioRegionData[];
-    effects?: CreateEffectData[];
-    audioFiles?: File[];
-    hotspotAudioFiles?: File[];
-    hotspotImageFiles?: File[];
-    hotspotVideoFiles?: File[];
-    effectSoundFiles?: File[];
-  }): Promise<VirtualTour> {
 
-    const response = await axiosInstance.post<VirtualTour>('/virtual-tours', tourData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  }
+  async createTour(formData: FormData): Promise<VirtualTour> {
+  const response = await axiosInstance.post<VirtualTour>('/virtual-tours', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+}
 
   // PATCH /virtual-tours/{id} - Update a virtual tour
   async updateTour(id: number, tourData: UpdateVirtualTourRequest): Promise<VirtualTour> {

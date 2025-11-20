@@ -54,7 +54,7 @@ const TYPE_META = {
   },
 };
 
-const formatReads = (value?: number) => {
+export const formatReads = (value?: number) => {
   if (!value || value <= 0) return "0 reads";
   if (value < 1000) return `${value} reads`;
   const abbreviated = (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1);
