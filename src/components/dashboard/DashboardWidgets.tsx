@@ -73,18 +73,21 @@ function BarChart() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="flex items-center justify-between text-xs text-gray-500 px-2">
         <span>0</span>
         <span>25</span>
         <span>50</span>
       </div>
 
-      <div className="flex items-end justify-between h-32 gap-2">
+      <div className="flex items-end justify-between h-32 gap-2 px-2">
         {data.map((item) => (
-          <div key={item.day} className="flex flex-col items-center flex-1">
-            <div className="bg-gray-100 w-full rounded-t-lg" style={{ height: `${(item.submissions / maxValue) * 100}%` }} />
-            <span className="text-xs text-gray-600 mt-2">{item.day}</span>
-            <span className="text-xs text-gray-400">{item.submissions}</span>
+          <div key={item.day} className="flex flex-col items-center flex-1 gap-1">
+            <div
+              className="w-full rounded-t-lg bg-gray-900/90 transition-all duration-200 hover:bg-gray-800 min-h-2"
+              style={{ height: `${(item.submissions / maxValue) * 100}%` }}
+            />
+            <span className="text-xs text-gray-600 font-medium">{item.day}</span>
+            <span className="text-xs text-gray-500">{item.submissions}</span>
           </div>
         ))}
       </div>
@@ -94,9 +97,9 @@ function BarChart() {
 
 function StatusSummary() {
   const statuses = [
-    { label: "Published", value: 68 },
-    { label: "Pending Review", value: 21 },
-    { label: "Flagged", value: 11 },
+    { label: "Published", value: 68, color: "bg-green-500" },
+    { label: "Pending Review", value: 21, color: "bg-yellow-500" },
+    { label: "Flagged", value: 11, color: "bg-red-500" },
   ];
 
   return (
@@ -107,15 +110,15 @@ function StatusSummary() {
             <span>{status.label}</span>
             <span className="font-semibold text-gray-900">{status.value}%</span>
           </div>
-          <div className="h-2 w-full bg-gray-100 rounded-full">
+          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-2 rounded-full bg-gray-400"
+              className={`h-2 rounded-full ${status.color} transition-all duration-300`}
               style={{ width: `${status.value}%` }}
             />
           </div>
         </div>
       ))}
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 pt-2">
         The breakdown is based on the last 30 days of submissions.
       </p>
     </div>
@@ -134,17 +137,17 @@ function TopStoriesTable() {
       <table className="w-full text-left text-sm">
         <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
           <tr>
-            <th className="px-4 py-3">Story</th>
-            <th className="px-4 py-3">Author</th>
-            <th className="px-4 py-3">Reads</th>
+            <th className="px-4 py-3 font-medium">Story</th>
+            <th className="px-4 py-3 font-medium">Author</th>
+            <th className="px-4 py-3 font-medium">Reads</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
-          {stories.map((story) => (
-            <tr key={story.title}>
+          {stories.map((story, index) => (
+            <tr key={story.title} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
               <td className="px-4 py-3 font-medium text-gray-900">{story.title}</td>
               <td className="px-4 py-3 text-gray-600">{story.author}</td>
-              <td className="px-4 py-3 text-gray-600">{story.reads}</td>
+              <td className="px-4 py-3 text-gray-600 font-semibold">{story.reads}</td>
             </tr>
           ))}
         </tbody>
@@ -155,22 +158,22 @@ function TopStoriesTable() {
 
 function RecentActivity() {
   const items = [
-    { name: "Alice Niyonsaba", action: "Shared a testimony", time: "2 hours ago", status: "Published" },
-    { name: "Jean Claude", action: "Requested edit", time: "5 hours ago", status: "Pending" },
-    { name: "Solange M.", action: "Flagged content", time: "Yesterday", status: "Escalated" },
+    { name: "Alice Niyonsaba", action: "Shared a testimony", time: "2 hours ago", status: "Published", statusColor: "bg-green-100 text-green-800 border-green-200" },
+    { name: "Jean Claude", action: "Requested edit", time: "5 hours ago", status: "Pending", statusColor: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    { name: "Solange M.", action: "Flagged content", time: "Yesterday", status: "Escalated", statusColor: "bg-red-100 text-red-800 border-red-200" },
   ];
 
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <div key={item.name} className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 bg-white">
+        <div key={item.name} className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 bg-white hover:bg-gray-50 transition-colors duration-150">
           <div>
             <p className="text-sm font-semibold text-gray-900">{item.name}</p>
-            <p className="text-xs text-gray-500">{item.action}</p>
+            <p className="text-xs text-gray-500 mt-1">{item.action}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-400">{item.time}</p>
-            <span className="inline-flex items-center rounded-full border border-gray-200 px-3 py-0.5 text-xs font-medium text-gray-700">
+            <p className="text-xs text-gray-400 mb-1">{item.time}</p>
+            <span className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${item.statusColor}`}>
               {item.status}
             </span>
           </div>
@@ -185,57 +188,58 @@ const metrics = [
     title: "Total Testimonies",
     value: "1,247",
     change: "+18%",
-    colorClass: "bg-gray-400",
+    colorClass: "bg-blue-100 text-blue-600",
     icon: <LuShare2 className="w-5 h-5" />,
   },
   {
     title: "AI Connections",
     value: "3,421",
     change: "+5%",
-    colorClass: "bg-green-400",
+    colorClass: "bg-green-100 text-green-600",
     icon: <LuActivity className="w-5 h-5" />,
   },
   {
     title: "Locations",
     value: "89",
     change: "+2%",
-    colorClass: "bg-purple-400",
+    colorClass: "bg-purple-100 text-purple-600",
     icon: <LuMap className="w-5 h-5" />,
   },
   {
     title: "Active Storytellers",
     value: "342",
     change: "-3%",
-    colorClass: "bg-orange-400",
+    colorClass: "bg-orange-100 text-orange-600",
     icon: <LuUsers className="w-5 h-5" />,
   },
 ];
 
 export default function DashboardWidgets() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 bg-gray-50 min-h-screen">
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((metric) => (
           <MetricCard key={metric.title} {...metric} />
         ))}
       </div>
+
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Weekly submissions">
+        <ChartCard title="Weekly Submissions" dropdownValue="Weekly">
           <BarChart />
         </ChartCard>
-        <ChartCard title="Publishing status">
+        <ChartCard title="Publishing Status">
           <StatusSummary />
         </ChartCard>
       </div>
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Top performing stories" dropdownValue="Last 30 days">
+        <ChartCard title="Top Performing Stories" dropdownValue="Last 30 days">
           <TopStoriesTable />
         </ChartCard>
-        <ChartCard title="Latest activity" dropdownValue="Realtime">
+        <ChartCard title="Latest Activity" dropdownValue="Realtime">
           <RecentActivity />
         </ChartCard>
       </div>
