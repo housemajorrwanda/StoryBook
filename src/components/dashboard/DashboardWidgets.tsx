@@ -1,33 +1,30 @@
+import { LuUsers, LuShare2, LuMap, LuActivity } from "react-icons/lu";
+
 interface MetricCardProps {
   title: string;
-  value: string | number;
+  value: string;
   icon: React.ReactNode;
-  color?: string;
+  change: string;
+  colorClass: string;
 }
 
-function MetricCard({ title, value, icon, color = "blue" }: MetricCardProps) {
-  const colorClasses = {
-    blue: "bg-blue-500",
-    green: "bg-green-500",
-    purple: "bg-purple-500",
-    orange: "bg-orange-500",
-  };
+function MetricCard({ title, value, icon, change, colorClass }: MetricCardProps) {
+  const isNegative = change.startsWith("-");
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center">
-        <div
-          className={`w-12 h-12 ${
-            colorClasses[color as keyof typeof colorClasses]
-          } rounded-lg flex items-center justify-center`}
-        >
-          <div className="text-white">{icon}</div>
-        </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4">
+      <div className={`w-12 h-12 rounded-lg ${colorClass} flex items-center justify-center text-gray-500`}>
+        {icon}
       </div>
+      <div className="flex-1">
+        <p className="text-sm font-medium text-gray-600">{title}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+      </div>
+      <span
+        className={`text-sm font-semibold ${isNegative ? "text-red-600" : "text-green-600"}`}
+      >
+        {change}
+      </span>
     </div>
   );
 }
@@ -47,10 +44,13 @@ function ChartCard({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <select className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-gray-800 focus:border-transparent">
-          <option value="daily">{dropdownValue}</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
+        <select
+          className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-gray-800 focus:border-transparent text-gray-600 cursor-pointer outline-none"
+          defaultValue="current"
+        >
+          <option value="current" className="text-gray-600">{dropdownValue}</option>
+          <option value="weekly" className="text-gray-600">Weekly</option>
+          <option value="monthly" className="text-gray-600">Monthly</option>
         </select>
       </div>
       {children}
@@ -60,48 +60,31 @@ function ChartCard({
 
 function BarChart() {
   const data = [
-    { day: "Mon", value: 0 },
-    { day: "Tue", value: 0 },
-    { day: "Wed", value: 0 },
-    { day: "Thu", value: 8500 },
-    { day: "Fri", value: 0 },
-    { day: "Sat", value: 0 },
-    { day: "Sun", value: 0 },
+    { day: "Mon", submissions: 22 },
+    { day: "Tue", submissions: 35 },
+    { day: "Wed", submissions: 41 },
+    { day: "Thu", submissions: 28 },
+    { day: "Fri", submissions: 52 },
+    { day: "Sat", submissions: 30 },
+    { day: "Sun", submissions: 18 },
   ];
 
-  const maxValue = Math.max(...data.map((d) => d.value));
+  const maxValue = Math.max(...data.map((d) => d.submissions));
 
   return (
     <div className="space-y-4">
-      {/* Y-axis labels */}
-      <div className="flex justify-between text-xs text-gray-500">
-        <span>$8500</span>
-        <span>$4000</span>
-        <span>$350</span>
-        <span>$0</span>
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span>0</span>
+        <span>25</span>
+        <span>50</span>
       </div>
 
-      {/* Chart */}
-      <div className="flex items-end justify-between h-32 space-x-2">
-        {data.map((item, index) => (
-          <div key={index} className="flex flex-col items-center flex-1">
-            {/* Bar */}
-            <div className="w-full flex flex-col items-center justify-end h-24">
-              {item.value > 0 ? (
-                <div
-                  className="w-full bg-gray-300 rounded-t-lg"
-                  style={{ height: `${(item.value / maxValue) * 100}%` }}
-                >
-                  {/* Red dot at top */}
-                  <div className="w-2 h-2 bg-red-500 rounded-full mx-auto -mt-1"></div>
-                </div>
-              ) : (
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              )}
-            </div>
-
-            {/* Day label */}
+      <div className="flex items-end justify-between h-32 gap-2">
+        {data.map((item) => (
+          <div key={item.day} className="flex flex-col items-center flex-1">
+            <div className="bg-gray-100 w-full rounded-t-lg" style={{ height: `${(item.submissions / maxValue) * 100}%` }} />
             <span className="text-xs text-gray-600 mt-2">{item.day}</span>
+            <span className="text-xs text-gray-400">{item.submissions}</span>
           </div>
         ))}
       </div>
@@ -109,165 +92,151 @@ function BarChart() {
   );
 }
 
-function DonutChart() {
-  return (
-    <div className="flex flex-col items-center space-y-4">
-      {/* Donut chart placeholder */}
-      <div className="relative w-24 h-24">
-        <div className="w-24 h-24 rounded-full border-8 border-gray-200 flex items-center justify-center">
-          <span className="text-lg font-bold text-gray-900">0%</span>
-        </div>
-        <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></div>
-      </div>
+function StatusSummary() {
+  const statuses = [
+    { label: "Published", value: 68 },
+    { label: "Pending Review", value: 21 },
+    { label: "Flagged", value: 11 },
+  ];
 
-      {/* Legend */}
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between">
-          <span className="text-gray-600">Abandoned Cart</span>
-          <span className="font-medium">0</span>
+  return (
+    <div className="space-y-4">
+      {statuses.map((status) => (
+        <div key={status.label} className="space-y-2">
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>{status.label}</span>
+            <span className="font-semibold text-gray-900">{status.value}%</span>
+          </div>
+          <div className="h-2 w-full bg-gray-100 rounded-full">
+            <div
+              className="h-2 rounded-full bg-gray-400"
+              style={{ width: `${status.value}%` }}
+            />
+          </div>
         </div>
-        <div className="flex justify-between">
-          <span className="text-gray-600">Abandoned Revenue</span>
-          <span className="font-medium">$0</span>
-        </div>
-      </div>
+      ))}
+      <p className="text-xs text-gray-500">
+        The breakdown is based on the last 30 days of submissions.
+      </p>
     </div>
   );
 }
 
-function EmptyState({ title }: { title: string }) {
+function TopStoriesTable() {
+  const stories = [
+    { title: "Letters from Kigali", author: "Marie Umutoni", reads: "4,210" },
+    { title: "Guardians of Memory", author: "Didier Nkurikiyimana", reads: "3,884" },
+    { title: "Through My Father's Eyes", author: "Chantal Mukamana", reads: "2,671" },
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center py-8">
-      <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mb-4">
-        <svg
-          className="w-8 h-8 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      </div>
-      <p className="text-gray-500 text-sm">{title}</p>
+    <div className="overflow-hidden rounded-xl border border-gray-200">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+          <tr>
+            <th className="px-4 py-3">Story</th>
+            <th className="px-4 py-3">Author</th>
+            <th className="px-4 py-3">Reads</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100 bg-white">
+          {stories.map((story) => (
+            <tr key={story.title}>
+              <td className="px-4 py-3 font-medium text-gray-900">{story.title}</td>
+              <td className="px-4 py-3 text-gray-600">{story.author}</td>
+              <td className="px-4 py-3 text-gray-600">{story.reads}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
+
+function RecentActivity() {
+  const items = [
+    { name: "Alice Niyonsaba", action: "Shared a testimony", time: "2 hours ago", status: "Published" },
+    { name: "Jean Claude", action: "Requested edit", time: "5 hours ago", status: "Pending" },
+    { name: "Solange M.", action: "Flagged content", time: "Yesterday", status: "Escalated" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {items.map((item) => (
+        <div key={item.name} className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 bg-white">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{item.name}</p>
+            <p className="text-xs text-gray-500">{item.action}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-gray-400">{item.time}</p>
+            <span className="inline-flex items-center rounded-full border border-gray-200 px-3 py-0.5 text-xs font-medium text-gray-700">
+              {item.status}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const metrics = [
+  {
+    title: "Total Testimonies",
+    value: "1,247",
+    change: "+18%",
+    colorClass: "bg-gray-400",
+    icon: <LuShare2 className="w-5 h-5" />,
+  },
+  {
+    title: "AI Connections",
+    value: "3,421",
+    change: "+5%",
+    colorClass: "bg-green-400",
+    icon: <LuActivity className="w-5 h-5" />,
+  },
+  {
+    title: "Locations",
+    value: "89",
+    change: "+2%",
+    colorClass: "bg-purple-400",
+    icon: <LuMap className="w-5 h-5" />,
+  },
+  {
+    title: "Active Storytellers",
+    value: "342",
+    change: "-3%",
+    colorClass: "bg-orange-400",
+    icon: <LuUsers className="w-5 h-5" />,
+  },
+];
 
 export default function DashboardWidgets() {
   return (
     <div className="space-y-6">
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Total Testimonies"
-          value="1247"
-          color="blue"
-          icon={
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          }
-        />
-        <MetricCard
-          title="AI Connections"
-          value="3421"
-          color="green"
-          icon={
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-          }
-        />
-        <MetricCard
-          title="Locations"
-          value="89"
-          color="purple"
-          icon={
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-          }
-        />
-        <MetricCard
-          title="Active Users"
-          value="342"
-          color="orange"
-          icon={
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-              />
-            </svg>
-          }
-        />
+        {metrics.map((metric) => (
+          <MetricCard key={metric.title} {...metric} />
+        ))}
       </div>
-
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Dashboard">
+        <ChartCard title="Weekly submissions">
           <BarChart />
         </ChartCard>
-        <ChartCard title="Cart">
-          <DonutChart />
+        <ChartCard title="Publishing status">
+          <StatusSummary />
         </ChartCard>
       </div>
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="BestSellers">
-          <EmptyState title="No best seller yet!" />
+        <ChartCard title="Top performing stories" dropdownValue="Last 30 days">
+          <TopStoriesTable />
         </ChartCard>
-        <ChartCard title="Latest Orders">
-          <EmptyState title="No Latest orders yet!" />
+        <ChartCard title="Latest activity" dropdownValue="Realtime">
+          <RecentActivity />
         </ChartCard>
       </div>
     </div>
