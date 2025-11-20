@@ -1,12 +1,27 @@
-import { CreateAudioRegionRequest, CreateEffectRequest, CreateHotspotRequest, CreateVirtualTourRequest, UpdateAudioRegionRequest, UpdateEffectRequest, UpdateHotspotRequest, UpdateVirtualTourRequest, VirtualTour, VirtualTourAudioRegion, VirtualTourEffect, VirtualTourFilters, VirtualTourHotspot, VirtualToursResponse } from "@/types/tour";
+import {
+  CreateAudioRegionRequest,
+  CreateEffectRequest,
+  CreateHotspotRequest,
+  CreateVirtualTourRequest,
+  UpdateAudioRegionRequest,
+  UpdateEffectRequest,
+  UpdateHotspotRequest,
+  UpdateVirtualTourRequest,
+  VirtualTour,
+  VirtualTourAudioRegion,
+  VirtualTourEffect,
+  VirtualTourFilters,
+  VirtualTourHotspot,
+  VirtualToursResponse,
+} from "@/types/tour";
 import axiosInstance from "@/config/axiosInstance";
+
 class VirtualTourService {
-  private baseUrl = '/virtual-tours';
 
   // GET /virtual-tours - Get all virtual tours with optional filters
   async getAllTours(filters: VirtualTourFilters = {}): Promise<VirtualToursResponse> {
     const params: Record<string, string> = {};
-    
+
     if (filters.skip !== undefined) params.skip = filters.skip.toString();
     if (filters.limit !== undefined) params.limit = filters.limit.toString();
     if (filters.search) params.search = filters.search;
@@ -15,14 +30,14 @@ class VirtualTourService {
     if (filters.userId !== undefined) params.userId = filters.userId.toString();
     if (filters.isPublished !== undefined) params.isPublished = filters.isPublished.toString();
 
-    const response = await axiosInstance.get<VirtualToursResponse>(this.baseUrl, { params });
+    const response = await axiosInstance.get<VirtualToursResponse>('/virtual-tours', { params });
     return response.data;
   }
 
   // GET /virtual-tours/my-tours - Get current user's virtual tours
   async getMyTours(filters: Omit<VirtualTourFilters, 'userId'> = {}): Promise<VirtualToursResponse> {
     const params: Record<string, string> = {};
-    
+
     if (filters.skip !== undefined) params.skip = filters.skip.toString();
     if (filters.limit !== undefined) params.limit = filters.limit.toString();
     if (filters.search) params.search = filters.search;
@@ -30,38 +45,104 @@ class VirtualTourService {
     if (filters.status) params.status = filters.status;
     if (filters.isPublished !== undefined) params.isPublished = filters.isPublished.toString();
 
-    const response = await axiosInstance.get<VirtualToursResponse>(`${this.baseUrl}/my-tours`, { params });
+    const response = await axiosInstance.get<VirtualToursResponse>(`/virtual-tours/my-tours`, { params });
     return response.data;
   }
 
   // GET /virtual-tours/{id} - Get a virtual tour by ID with all interactive elements
   async getTourById(id: number): Promise<VirtualTour> {
-    const response = await axiosInstance.get<VirtualTour>(`${this.baseUrl}/${id}`);
+    const response = await axiosInstance.get<VirtualTour>(`/virtual-tours/${id}`);
     return response.data;
   }
 
-  // POST /virtual-tours - Create a new virtual tour (Admin only)
-  async createTour(tourData: CreateVirtualTourRequest): Promise<VirtualTour> {
+  // POST /virtual-tours - Create a new virtual tour with nested elements
+  async createTour(tourData: CreateVirtualTourRequest & {
+    hotspots?: any[];
+    audioRegions?: any[];
+    effects?: any[];
+    audioFiles?: File[];
+    hotspotAudioFiles?: File[];
+    hotspotImageFiles?: File[];
+    hotspotVideoFiles?: File[];
+    effectSoundFiles?: File[];
+  }): Promise<VirtualTour> {
     const formData = new FormData();
-    
+
+    // Append main tour data
     formData.append('title', tourData.title);
     formData.append('description', tourData.description);
     formData.append('location', tourData.location);
     formData.append('tourType', tourData.tourType);
-    
-    if (tourData.embedUrl) formData.append('embedUrl', tourData.embedUrl);
-    if (tourData.image360File) formData.append('image360File', tourData.image360File);
-    if (tourData.video360File) formData.append('video360File', tourData.video360File);
-    if (tourData.model3dFile) formData.append('model3dFile', tourData.model3dFile);
 
-    const response = await axiosInstance.post<VirtualTour>(this.baseUrl, formData);
+    if (tourData.embedUrl) formData.append('embedUrl', tourData.embedUrl);
+    if (tourData.status) formData.append('status', tourData.status);
+    if (tourData.isPublished !== undefined) formData.append('isPublished', tourData.isPublished.toString());
+
+    // FIX: Append tour file with correct field name
+    if (tourData.image360File) {
+      formData.append('tourFile', tourData.image360File);
+    } else if (tourData.video360File) {
+      formData.append('tourFile', tourData.video360File);
+    } else if (tourData.model3dFile) {
+      formData.append('tourFile', tourData.model3dFile);
+    }
+
+    // Append nested data as JSON strings - only if they exist
+    if (tourData.hotspots && tourData.hotspots.length > 0) {
+      formData.append('hotspots', JSON.stringify(tourData.hotspots));
+    }
+
+    if (tourData.audioRegions && tourData.audioRegions.length > 0) {
+      formData.append('audioRegions', JSON.stringify(tourData.audioRegions));
+    }
+
+    if (tourData.effects && tourData.effects.length > 0) {
+      formData.append('effects', JSON.stringify(tourData.effects));
+    }
+
+    // Append files arrays - only if they exist
+    if (tourData.audioFiles) {
+      tourData.audioFiles.forEach(file => {
+        formData.append('audioFiles', file);
+      });
+    }
+
+    if (tourData.hotspotAudioFiles) {
+      tourData.hotspotAudioFiles.forEach(file => {
+        formData.append('hotspotAudioFiles', file);
+      });
+    }
+
+    if (tourData.hotspotImageFiles) {
+      tourData.hotspotImageFiles.forEach(file => {
+        formData.append('hotspotImageFiles', file);
+      });
+    }
+
+    if (tourData.hotspotVideoFiles) {
+      tourData.hotspotVideoFiles.forEach(file => {
+        formData.append('hotspotVideoFiles', file);
+      });
+    }
+
+    if (tourData.effectSoundFiles) {
+      tourData.effectSoundFiles.forEach(file => {
+        formData.append('effectSoundFiles', file);
+      });
+    }
+
+    const response = await axiosInstance.post<VirtualTour>('/virtual-tours', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
-  // PATCH /virtual-tours/{id} - Update a virtual tour (Admin only)
+  // PATCH /virtual-tours/{id} - Update a virtual tour
   async updateTour(id: number, tourData: UpdateVirtualTourRequest): Promise<VirtualTour> {
     const formData = new FormData();
-    
+
     if (tourData.title !== undefined) formData.append('title', tourData.title);
     if (tourData.description !== undefined) formData.append('description', tourData.description);
     if (tourData.location !== undefined) formData.append('location', tourData.location);
@@ -69,35 +150,39 @@ class VirtualTourService {
     if (tourData.embedUrl !== undefined) formData.append('embedUrl', tourData.embedUrl);
     if (tourData.status !== undefined) formData.append('status', tourData.status);
     if (tourData.isPublished !== undefined) formData.append('isPublished', tourData.isPublished.toString());
-    
+
     if (tourData.image360File) formData.append('image360File', tourData.image360File);
     if (tourData.video360File) formData.append('video360File', tourData.video360File);
     if (tourData.model3dFile) formData.append('model3dFile', tourData.model3dFile);
 
-    const response = await axiosInstance.patch<VirtualTour>(`${this.baseUrl}/${id}`, formData);
+    const response = await axiosInstance.patch<VirtualTour>(`/virtual-tours/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
-  // DELETE /virtual-tours/{id} - Delete a virtual tour (Admin only)
+  // DELETE /virtual-tours/{id} - Delete a virtual tour
   async deleteTour(id: number): Promise<void> {
-    await axiosInstance.delete(`${this.baseUrl}/${id}`);
+    await axiosInstance.delete(`/virtual-tours/${id}`);
   }
 
-  // PATCH /virtual-tours/{id}/publish - Publish a virtual tour (Admin only)
+  // PATCH /virtual-tours/{id}/publish - Publish a virtual tour
   async publishTour(id: number): Promise<VirtualTour> {
-    const response = await axiosInstance.patch<VirtualTour>(`${this.baseUrl}/${id}/publish`);
+    const response = await axiosInstance.patch<VirtualTour>(`/virtual-tours/${id}/publish`);
     return response.data;
   }
 
-  // PATCH /virtual-tours/{id}/unpublish - Unpublish a virtual tour (Admin only)
+  // PATCH /virtual-tours/{id}/unpublish - Unpublish a virtual tour
   async unpublishTour(id: number): Promise<VirtualTour> {
-    const response = await axiosInstance.patch<VirtualTour>(`${this.baseUrl}/${id}/unpublish`);
+    const response = await axiosInstance.patch<VirtualTour>(`/virtual-tours/${id}/unpublish`);
     return response.data;
   }
 
-  // PATCH /virtual-tours/{id}/archive - Archive a virtual tour (Admin only)
+  // PATCH /virtual-tours/{id}/archive - Archive a virtual tour
   async archiveTour(id: number): Promise<VirtualTour> {
-    const response = await axiosInstance.patch<VirtualTour>(`${this.baseUrl}/${id}/archive`);
+    const response = await axiosInstance.patch<VirtualTour>(`/virtual-tours/${id}/archive`);
     return response.data;
   }
 
@@ -109,7 +194,7 @@ class VirtualTourService {
   // Hotspot Management
   async createHotspot(tourId: number, hotspotData: CreateHotspotRequest): Promise<VirtualTourHotspot> {
     const formData = new FormData();
-    
+
     formData.append('type', hotspotData.type);
     if (hotspotData.positionX !== undefined) formData.append('positionX', hotspotData.positionX.toString());
     if (hotspotData.positionY !== undefined) formData.append('positionY', hotspotData.positionY.toString());
@@ -127,18 +212,22 @@ class VirtualTourService {
     if (hotspotData.color) formData.append('color', hotspotData.color);
     if (hotspotData.size !== undefined) formData.append('size', hotspotData.size.toString());
     if (hotspotData.order !== undefined) formData.append('order', hotspotData.order.toString());
-    
+
     if (hotspotData.actionAudioFile) formData.append('actionAudioFile', hotspotData.actionAudioFile);
     if (hotspotData.actionVideoFile) formData.append('actionVideoFile', hotspotData.actionVideoFile);
     if (hotspotData.actionImageFile) formData.append('actionImageFile', hotspotData.actionImageFile);
 
-    const response = await axiosInstance.post<VirtualTourHotspot>(`${this.baseUrl}/${tourId}/hotspots`, formData);
+    const response = await axiosInstance.post<VirtualTourHotspot>(`/virtual-tours/${tourId}/hotspots`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
   async updateHotspot(tourId: number, hotspotId: number, hotspotData: UpdateHotspotRequest): Promise<VirtualTourHotspot> {
     const formData = new FormData();
-    
+
     if (hotspotData.type !== undefined) formData.append('type', hotspotData.type);
     if (hotspotData.positionX !== undefined) formData.append('positionX', hotspotData.positionX.toString());
     if (hotspotData.positionY !== undefined) formData.append('positionY', hotspotData.positionY.toString());
@@ -156,29 +245,33 @@ class VirtualTourService {
     if (hotspotData.color !== undefined) formData.append('color', hotspotData.color);
     if (hotspotData.size !== undefined) formData.append('size', hotspotData.size.toString());
     if (hotspotData.order !== undefined) formData.append('order', hotspotData.order.toString());
-    
+
     if (hotspotData.actionAudioFile) formData.append('actionAudioFile', hotspotData.actionAudioFile);
     if (hotspotData.actionVideoFile) formData.append('actionVideoFile', hotspotData.actionVideoFile);
     if (hotspotData.actionImageFile) formData.append('actionImageFile', hotspotData.actionImageFile);
 
-    const response = await axiosInstance.patch<VirtualTourHotspot>(`${this.baseUrl}/${tourId}/hotspots/${hotspotId}`, formData);
+    const response = await axiosInstance.patch<VirtualTourHotspot>(`/virtual-tours/${tourId}/hotspots/${hotspotId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
   async deleteHotspot(tourId: number, hotspotId: number): Promise<void> {
-    await axiosInstance.delete(`${this.baseUrl}/${tourId}/hotspots/${hotspotId}`);
+    await axiosInstance.delete(`/virtual-tours/${tourId}/hotspots/${hotspotId}`);
   }
 
   // Audio Region Management
   async createAudioRegion(tourId: number, audioRegionData: CreateAudioRegionRequest): Promise<VirtualTourAudioRegion> {
     const formData = new FormData();
-    
+
     formData.append('regionType', audioRegionData.regionType);
     formData.append('centerX', audioRegionData.centerX.toString());
     formData.append('centerY', audioRegionData.centerY.toString());
     formData.append('centerZ', audioRegionData.centerZ.toString());
     formData.append('audioFile', audioRegionData.audioFile);
-    
+
     if (audioRegionData.radius !== undefined) formData.append('radius', audioRegionData.radius.toString());
     if (audioRegionData.width !== undefined) formData.append('width', audioRegionData.width.toString());
     if (audioRegionData.height !== undefined) formData.append('height', audioRegionData.height.toString());
@@ -196,18 +289,22 @@ class VirtualTourService {
     if (audioRegionData.description) formData.append('description', audioRegionData.description);
     if (audioRegionData.order !== undefined) formData.append('order', audioRegionData.order.toString());
 
-    const response = await axiosInstance.post<VirtualTourAudioRegion>(`${this.baseUrl}/${tourId}/audio-regions`, formData);
+    const response = await axiosInstance.post<VirtualTourAudioRegion>(`/virtual-tours/${tourId}/audio-regions`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
   async updateAudioRegion(tourId: number, audioRegionId: number, audioRegionData: UpdateAudioRegionRequest): Promise<VirtualTourAudioRegion> {
     const formData = new FormData();
-    
+
     if (audioRegionData.regionType !== undefined) formData.append('regionType', audioRegionData.regionType);
     if (audioRegionData.centerX !== undefined) formData.append('centerX', audioRegionData.centerX.toString());
     if (audioRegionData.centerY !== undefined) formData.append('centerY', audioRegionData.centerY.toString());
     if (audioRegionData.centerZ !== undefined) formData.append('centerZ', audioRegionData.centerZ.toString());
-    
+
     if (audioRegionData.audioFile) formData.append('audioFile', audioRegionData.audioFile);
     if (audioRegionData.radius !== undefined) formData.append('radius', audioRegionData.radius.toString());
     if (audioRegionData.width !== undefined) formData.append('width', audioRegionData.width.toString());
@@ -226,22 +323,26 @@ class VirtualTourService {
     if (audioRegionData.description !== undefined) formData.append('description', audioRegionData.description);
     if (audioRegionData.order !== undefined) formData.append('order', audioRegionData.order.toString());
 
-    const response = await axiosInstance.patch<VirtualTourAudioRegion>(`${this.baseUrl}/${tourId}/audio-regions/${audioRegionId}`, formData);
+    const response = await axiosInstance.patch<VirtualTourAudioRegion>(`/virtual-tours/${tourId}/audio-regions/${audioRegionId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
   async deleteAudioRegion(tourId: number, audioRegionId: number): Promise<void> {
-    await axiosInstance.delete(`${this.baseUrl}/${tourId}/audio-regions/${audioRegionId}`);
+    await axiosInstance.delete(`/virtual-tours/${tourId}/audio-regions/${audioRegionId}`);
   }
 
   // Effect Management
   async createEffect(tourId: number, effectData: CreateEffectRequest): Promise<VirtualTourEffect> {
     const formData = new FormData();
-    
+
     formData.append('effectType', effectData.effectType);
     formData.append('triggerType', effectData.triggerType);
     formData.append('effectName', effectData.effectName);
-    
+
     if (effectData.positionX !== undefined) formData.append('positionX', effectData.positionX.toString());
     if (effectData.positionY !== undefined) formData.append('positionY', effectData.positionY.toString());
     if (effectData.positionZ !== undefined) formData.append('positionZ', effectData.positionZ.toString());
@@ -260,16 +361,20 @@ class VirtualTourService {
     if (effectData.title) formData.append('title', effectData.title);
     if (effectData.description) formData.append('description', effectData.description);
     if (effectData.order !== undefined) formData.append('order', effectData.order.toString());
-    
+
     if (effectData.soundFile) formData.append('soundFile', effectData.soundFile);
 
-    const response = await axiosInstance.post<VirtualTourEffect>(`${this.baseUrl}/${tourId}/effects`, formData);
+    const response = await axiosInstance.post<VirtualTourEffect>(`/virtual-tours/${tourId}/effects`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
   async updateEffect(tourId: number, effectId: number, effectData: UpdateEffectRequest): Promise<VirtualTourEffect> {
     const formData = new FormData();
-    
+
     if (effectData.effectType !== undefined) formData.append('effectType', effectData.effectType);
     if (effectData.triggerType !== undefined) formData.append('triggerType', effectData.triggerType);
     if (effectData.effectName !== undefined) formData.append('effectName', effectData.effectName);
@@ -291,15 +396,19 @@ class VirtualTourService {
     if (effectData.title !== undefined) formData.append('title', effectData.title);
     if (effectData.description !== undefined) formData.append('description', effectData.description);
     if (effectData.order !== undefined) formData.append('order', effectData.order.toString());
-    
+
     if (effectData.soundFile) formData.append('soundFile', effectData.soundFile);
 
-    const response = await axiosInstance.patch<VirtualTourEffect>(`${this.baseUrl}/${tourId}/effects/${effectId}`, formData);
+    const response = await axiosInstance.patch<VirtualTourEffect>(`/virtual-tours/${tourId}/effects/${effectId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 
   async deleteEffect(tourId: number, effectId: number): Promise<void> {
-    await axiosInstance.delete(`${this.baseUrl}/${tourId}/effects/${effectId}`);
+    await axiosInstance.delete(`/virtual-tours/${tourId}/effects/${effectId}`);
   }
 }
 

@@ -8,10 +8,13 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import {
+  AudioRegionForm,
   CreateAudioRegionRequest,
   CreateEffectRequest,
   CreateHotspotRequest,
   CreateVirtualTourRequest,
+  EffectForm,
+  HotspotForm,
   UpdateAudioRegionRequest,
   UpdateEffectRequest,
   UpdateHotspotRequest,
@@ -73,12 +76,21 @@ export const useVirtualTour = (
 export const useCreateVirtualTour = (): UseMutationResult<
   VirtualTour,
   Error,
-  CreateVirtualTourRequest
+  CreateVirtualTourRequest & {
+    hotspots?: HotspotForm[];
+    audioRegions?: AudioRegionForm[];
+    effects?: EffectForm[];
+    audioFiles?: File[];
+    hotspotAudioFiles?: File[];
+    hotspotImageFiles?: File[];
+    hotspotVideoFiles?: File[];
+    effectSoundFiles?: File[];
+  }
 > => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: virtualTourService.createTour,
+    mutationFn: (data) => virtualTourService.createTour(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.lists() });
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.myTours({}) });
@@ -100,16 +112,12 @@ export const useUpdateVirtualTour = (): UseMutationResult<
   return useMutation({
     mutationFn: ({ id, data }) => virtualTourService.updateTour(id, data),
     onSuccess: (updatedTour, variables) => {
-      // Update the specific tour in cache
       queryClient.setQueryData(
         virtualTourKeys.detail(variables.id),
         updatedTour
       );
-      
-      // Invalidate lists
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.lists() });
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.myTours({}) });
-      
       toast.success("Virtual tour updated successfully");
     },
     onError: (error) => {
@@ -128,13 +136,9 @@ export const useDeleteVirtualTour = (): UseMutationResult<
   return useMutation({
     mutationFn: virtualTourService.deleteTour,
     onSuccess: (_, deletedId) => {
-      // Remove the tour from cache
       queryClient.removeQueries({ queryKey: virtualTourKeys.detail(deletedId) });
-      
-      // Invalidate lists
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.lists() });
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.myTours({}) });
-      
       toast.success("Virtual tour deleted successfully");
     },
     onError: (error) => {
@@ -227,7 +231,6 @@ export const useCreateHotspot = (tourId: number): UseMutationResult<
   return useMutation({
     mutationFn: (data) => virtualTourService.createHotspot(tourId, data),
     onSuccess: (newHotspot) => {
-      // Update the tour cache to include the new hotspot
       queryClient.setQueryData<VirtualTour>(
         virtualTourKeys.detail(tourId),
         (old) => old ? {
@@ -235,7 +238,6 @@ export const useCreateHotspot = (tourId: number): UseMutationResult<
           hotspots: [...old.hotspots, newHotspot],
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.hotspots(tourId) });
       toast.success("Hotspot created successfully");
     },
@@ -255,7 +257,6 @@ export const useUpdateHotspot = (tourId: number): UseMutationResult<
   return useMutation({
     mutationFn: ({ hotspotId, data }) => virtualTourService.updateHotspot(tourId, hotspotId, data),
     onSuccess: (updatedHotspot, variables) => {
-      // Update the specific hotspot in the tour cache
       queryClient.setQueryData<VirtualTour>(
         virtualTourKeys.detail(tourId),
         (old) => old ? {
@@ -265,7 +266,6 @@ export const useUpdateHotspot = (tourId: number): UseMutationResult<
           ),
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.hotspots(tourId) });
       toast.success("Hotspot updated successfully");
     },
@@ -285,7 +285,6 @@ export const useDeleteHotspot = (tourId: number): UseMutationResult<
   return useMutation({
     mutationFn: (hotspotId) => virtualTourService.deleteHotspot(tourId, hotspotId),
     onSuccess: (_, deletedHotspotId) => {
-      // Remove the hotspot from the tour cache
       queryClient.setQueryData<VirtualTour>(
         virtualTourKeys.detail(tourId),
         (old) => old ? {
@@ -293,7 +292,6 @@ export const useDeleteHotspot = (tourId: number): UseMutationResult<
           hotspots: old.hotspots.filter(hotspot => hotspot.id !== deletedHotspotId),
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.hotspots(tourId) });
       toast.success("Hotspot deleted successfully");
     },
@@ -321,7 +319,6 @@ export const useCreateAudioRegion = (tourId: number): UseMutationResult<
           audioRegions: [...old.audioRegions, newAudioRegion],
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.audioRegions(tourId) });
       toast.success("Audio region created successfully");
     },
@@ -350,7 +347,6 @@ export const useUpdateAudioRegion = (tourId: number): UseMutationResult<
           ),
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.audioRegions(tourId) });
       toast.success("Audio region updated successfully");
     },
@@ -377,7 +373,6 @@ export const useDeleteAudioRegion = (tourId: number): UseMutationResult<
           audioRegions: old.audioRegions.filter(region => region.id !== deletedAudioRegionId),
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.audioRegions(tourId) });
       toast.success("Audio region deleted successfully");
     },
@@ -405,7 +400,6 @@ export const useCreateEffect = (tourId: number): UseMutationResult<
           effects: [...old.effects, newEffect],
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.effects(tourId) });
       toast.success("Effect created successfully");
     },
@@ -434,7 +428,6 @@ export const useUpdateEffect = (tourId: number): UseMutationResult<
           ),
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.effects(tourId) });
       toast.success("Effect updated successfully");
     },
@@ -461,7 +454,6 @@ export const useDeleteEffect = (tourId: number): UseMutationResult<
           effects: old.effects.filter(effect => effect.id !== deletedEffectId),
         } : undefined
       );
-      
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.effects(tourId) });
       toast.success("Effect deleted successfully");
     },
