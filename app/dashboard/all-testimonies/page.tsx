@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  BarChart3,
-  Eye,
-  TrendingUp,
-  MoreVertical,
-  Edit,
-  Trash2,
   Plus,
   Search,
   ChevronLeft,
@@ -16,9 +10,6 @@ import {
   Video,
   User,
   MapPin,
-  CheckCircle,
-  XCircle,
-  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useMemo } from "react";
@@ -33,7 +24,6 @@ export default function AllTestimonials() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilterType>("all");
-  const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const skip = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -65,71 +55,8 @@ const totalTestimonies = useMemo(
     [totalTestimonies]
   );
 
-  const stats = useMemo(() => {
-    const approvedTestimonies = testimonies.filter(
-      (testimony) => testimony.status === "approved"
-    );
-    const pendingTestimonies = testimonies.filter(
-      (testimony) => testimony.status === "pending"
-    );
-    const rejectedTestimonies = testimonies.filter(
-      (testimony) => testimony.status === "rejected"
-    );
-    const totalImpressions = testimonies.reduce(
-      (sum, testimony) => sum + (testimony.impressions || 0),
-      0
-    );
 
-    return [
-      {
-        label: "Total Testimonies",
-        value: totalTestimonies.toLocaleString(),
-        icon: BarChart3,
-        description: "All submitted testimonies",
-      },
-      {
-        label: "Approved",
-        value: approvedTestimonies.length.toString(),
-        icon: CheckCircle,
-        description: "Published testimonies",
-      },
-      {
-        label: "Pending",
-        value: pendingTestimonies.length.toString(),
-        icon: Clock,
-        description: "Awaiting review",
-      },
-      {
-        label: "Rejected",
-        value: rejectedTestimonies.length.toString(),
-        icon: XCircle,
-        description: "Not approved",
-      },
-      {
-        label: "Total Views",
-        value: totalImpressions.toLocaleString(),
-        icon: TrendingUp,
-        description: "Total impressions",
-      },
-    ];
-  }, [testimonies, totalTestimonies]);
 
-  const handleDeleteTestimony = (id: number) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this testimony? This action cannot be undone."
-      )
-    ) {
-      // Implement delete mutation here
-      console.log("Delete testimony:", id);
-    }
-  };
-
-  const handleStatusChange = (id: number, newStatus: string) => {
-    // Implement status update mutation here
-    console.log(`Update testimony ${id} to: ${newStatus}`);
-    setOpenMenu(null);
-  };
 
   const getStatusInfo = (testimony: Testimony) => {
     switch (testimony.status) {
@@ -202,7 +129,6 @@ const totalTestimonies = useMemo(
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
-      setOpenMenu(null);
     }
   };
 
@@ -231,23 +157,6 @@ const totalTestimonies = useMemo(
             <div className="h-4 bg-gray-200 rounded w-96 animate-pulse" />
           </div>
 
-          {/* Stats Grid Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="border border-gray-200 rounded-xl p-6 bg-white animate-pulse"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-20" />
-                    <div className="h-8 bg-gray-200 rounded w-16" />
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-gray-200" />
-                </div>
-              </div>
-            ))}
-          </div>
 
           {/* Table Skeleton */}
           <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
@@ -303,31 +212,6 @@ const totalTestimonies = useMemo(
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={i}
-                className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs text-gray-500">{stat.description}</p>
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
 
         {/* Testimonies Management */}
         <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
@@ -425,9 +309,7 @@ const totalTestimonies = useMemo(
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-900">
                     Submitted
                   </th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-gray-900">
-                    Actions
-                  </th>
+                
                 </tr>
               </thead>
               <tbody>
@@ -485,62 +367,7 @@ const totalTestimonies = useMemo(
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {formatDate(testimony.createdAt)}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="relative flex justify-center">
-                          <button
-                            onClick={() =>
-                              setOpenMenu(openMenu === testimony.id ? null : testimony.id)
-                            }
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
-                          >
-                            <MoreVertical className="w-5 h-5" />
-                          </button>
-
-                          {openMenu === testimony.id && (
-                            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg shadow-gray-400/20 overflow-hidden z-50 w-48">
-                              <Link
-                                href={`/testimonies/${testimony.id}`}
-                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm"
-                              >
-                                <Eye className="w-4 h-4" />
-                                View
-                              </Link>
-                              <Link
-                                href={`/admin/testimonies/edit/${testimony.id}`}
-                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm"
-                              >
-                                <Edit className="w-4 h-4" />
-                                Edit
-                              </Link>
-                              {testimony.status !== "approved" && (
-                                <button
-                                  onClick={() => handleStatusChange(testimony.id, "approved")}
-                                  className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-900 text-sm"
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                  Approve
-                                </button>
-                              )}
-                              {testimony.status !== "rejected" && (
-                                <button
-                                  onClick={() => handleStatusChange(testimony.id, "rejected")}
-                                  className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-600 text-sm"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                  Reject
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleDeleteTestimony(testimony.id)}
-                                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-red-50 transition-colors text-red-600 text-sm"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
+                   
                     </tr>
                   );
                 })}
