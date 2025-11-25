@@ -65,51 +65,6 @@ export default function AdminDashboard() {
 
   const filteredTours = tours;
 
-  const stats = useMemo(() => {
-    const publishedTours = tours.filter(
-      (tour) => tour.isPublished && !tour.isArchived
-    );
-    const draftTours = tours.filter(
-      (tour) => !tour.isPublished && !tour.isArchived
-    );
-    const archivedTours = tours.filter((tour) => tour.isArchived);
-    const totalImpressions = tours.reduce(
-      (sum, tour) => sum + (tour.impressions || 0),
-      0
-    );
-    return [
-      {
-        label: "Total Tours",
-        value: totalTours.toLocaleString(),
-        icon: BarChart3,
-        description: "All virtual tours",
-      },
-      {
-        label: "Published (on page)",
-        value: publishedTours.length.toString(),
-        icon: Eye,
-        description: "Live tours on this page",
-      },
-      {
-        label: "Archived (on page)",
-        value: archivedTours.length.toString(),
-        icon: Archive,
-        description: "Archived tours on this page",
-      },
-      {
-        label: "Drafts (on page)",
-        value: draftTours.length.toString(),
-        icon: Edit,
-        description: "In progress on this page",
-      },
-      {
-        label: "Total Views (on page)",
-        value: totalImpressions.toLocaleString(),
-        icon: TrendingUp,
-        description: "Impressions on this page",
-      },
-    ];
-  }, [tours, totalTours]);
 
   const handleDeleteTour = (id: number) => {
     if (
@@ -196,23 +151,6 @@ export default function AdminDashboard() {
             <div className="h-4 bg-gray-200 rounded w-96 animate-pulse" />
           </div>
 
-          {/* Stats Grid Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="border border-gray-200 rounded-xl p-6 bg-white animate-pulse"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-20" />
-                    <div className="h-8 bg-gray-200 rounded w-16" />
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-gray-200" />
-                </div>
-              </div>
-            ))}
-          </div>
 
           {/* Table Skeleton */}
           <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
@@ -268,31 +206,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={i}
-                className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs text-gray-500">{stat.description}</p>
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      
 
         {/* Tours Management */}
         <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
