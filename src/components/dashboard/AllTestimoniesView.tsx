@@ -28,6 +28,7 @@ import { TESTIMONY_KEYS } from "@/hooks/useTestimonies";
 import {
   formatImpressions,
   generateTestimonySlug,
+  formatDateRange,
 } from "@/utils/testimony.utils";
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/shared/Pagination";
@@ -138,16 +139,6 @@ export default function AllTestimoniesView() {
   const testimonies: Testimony[] = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
 
-  const handleResetFilters = () => {
-    setSearch("");
-    setStatus("all");
-    setSubmissionType("all");
-    setPublishState("all");
-    setDateFrom("");
-    setDateTo("");
-    setPage(0);
-  };
-
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
     setPage(0);
@@ -187,14 +178,7 @@ export default function AllTestimoniesView() {
               Monitor every submission with granular filters and instant search.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleResetFilters}
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:bg-gray-50 cursor-pointer"
-            >
-              <LuRefreshCw className="h-4 w-4" />
-              Reset filters
-            </button>
+          <div className="flex flex-wrap items-center">
             <button
               onClick={() => setFiltersOpen((prev) => !prev)}
               className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:bg-gray-50 cursor-pointer"
@@ -335,6 +319,9 @@ export default function AllTestimoniesView() {
                   Created
                 </th>
                 <th className="px-6 py-3 text-left font-medium text-gray-500">
+                  Event date
+                </th>
+                <th className="px-6 py-3 text-left font-medium text-gray-500">
                   Impressions
                 </th>
                 <th className="px-6 py-3 text-left font-medium text-gray-500"></th>
@@ -346,7 +333,7 @@ export default function AllTestimoniesView() {
               ) : testimonies.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-12 text-center text-sm text-gray-500"
                   >
                     No testimonies match the current filters.
@@ -392,6 +379,13 @@ function TestimonyRow({ testimony }: { testimony: Testimony }) {
         <p className="text-xs text-gray-500">
           {testimony.fullName} • {testimony.identityPreference ?? "identity N/A"}
         </p>
+        <p className="text-xs text-gray-400">
+          {formatEventDateRange(
+            testimony.dateOfEventFrom,
+            testimony.dateOfEventTo
+          )}
+          {testimony.location ? ` • ${testimony.location}` : ""}
+        </p>
       </td>
       <td className="px-6 py-4">
         <TypeBadge type={testimony.submissionType} />
@@ -420,8 +414,14 @@ function TestimonyRow({ testimony }: { testimony: Testimony }) {
       <td className="px-6 py-4 text-sm text-gray-600">
         {formatDate(testimony.createdAt)}
       </td>
+      <td className="px-6 py-4 text-sm text-gray-600">
+        {formatEventDateRange(
+          testimony.dateOfEventFrom,
+          testimony.dateOfEventTo
+        )}
+      </td>
       <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-        {formatImpressions(testimony.impressions || 0)}
+        {formatImpressions(testimony.impressions || 0)} reads
       </td>
       <td className="px-6 py-4 text-right">
         <Link
@@ -495,7 +495,7 @@ function LoadingRows() {
     <>
       {Array.from({ length: 5 }).map((_, idx) => (
         <tr key={idx} className="animate-pulse">
-          {Array.from({ length: 7 }).map((__, cellIdx) => (
+          {Array.from({ length: 8 }).map((__, cellIdx) => (
             <td key={cellIdx} className="px-6 py-4">
               <div className="h-4 rounded-full bg-gray-100" />
             </td>
@@ -515,6 +515,14 @@ function formatDate(value?: string) {
     day: "numeric",
     year: "numeric",
   }).format(date);
+}
+
+function formatEventDateRange(
+  from?: string,
+  to?: string
+): string {
+  if (!from && !to) return "Event date not set";
+  return formatDateRange(from, to);
 }
 
 function useDebouncedValue<T>(value: T, delay = 300) {

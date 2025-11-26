@@ -303,3 +303,44 @@ export const formatImpressions = (impressions: number) => {
   }
   return impressions.toString();
 };
+
+export function formatDateRange(
+  from?: string,
+  to?: string 
+): string {
+  if (!from && !to) {
+    return "Date not specified";
+  }
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const parseDate = (value?: string) => {
+    if (!value) return undefined;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  };
+
+  const fromDate = parseDate(from);
+  const toDate = parseDate(to);
+
+  if (fromDate && toDate) {
+    if (fromDate.getTime() === toDate.getTime()) {
+      return formatter.format(fromDate);
+    }
+    return `${formatter.format(fromDate)} – ${formatter.format(toDate)}`;
+  }
+
+  if (fromDate) {
+    return formatter.format(fromDate);
+  }
+
+  if (toDate) {
+    return formatter.format(toDate);
+  }
+
+  return "Date not specified";
+}

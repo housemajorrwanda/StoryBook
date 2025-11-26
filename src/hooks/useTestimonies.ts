@@ -8,7 +8,10 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { Testimony, CreateOrUpdateTestimonyRequest } from "@/types/testimonies";
-import { testimoniesService } from "@/services/testimonies.service";
+import {
+  testimoniesService,
+  buildTestimonyFormData,
+} from "@/services/testimonies.service";
 
 // Helper function to extract error message
 const getErrorMessage = (error: unknown, defaultMessage: string): string => {
@@ -193,6 +196,37 @@ export function useUpdateTestimony(): UseMutationResult<
           : "Failed to update testimony. Please try again."
       );
       toast.error(message);
+    },
+  });
+}
+
+export function useUpdateTestimonyMultipart(): UseMutationResult<
+  Testimony,
+  unknown,
+  { id: number; request: CreateOrUpdateTestimonyRequest }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      request,
+    }: {
+      id: number;
+      request: CreateOrUpdateTestimonyRequest;
+    }) => {
+      const fd = buildTestimonyFormData(request);
+      return testimoniesService.updateTestimonyMultipart(id, fd);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: TESTIMONY_KEYS.lists(),
+      });
+      queryClient.setQueryData(TESTIMONY_KEYS.detail(data.id), data);
+      toast.success("Testimony updated successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to update testimony. Please try again.");
     },
   });
 }

@@ -17,6 +17,7 @@ import {
   LuAlignRight,
 } from "react-icons/lu";
 import { FormData } from "@/types/testimonies";
+import { formatDuration } from "@/utils/testimony.utils";
 import AudioRecorderModal from "@/components/recording/AudioRecorderModal";
 import VideoRecorderModal from "@/components/recording/VideoRecorderModal";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -143,6 +144,65 @@ You can use the formatting tools above to:
   const imageInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+
+  const [localAudioPreview, setLocalAudioPreview] = useState<string | null>(
+    null
+  );
+  const [audioPreviewDuration, setAudioPreviewDuration] = useState<
+    number | null
+  >(formData.audioDuration ?? null);
+
+  useEffect(() => {
+    let frame: number | null = null;
+    if (formData.audioFile) {
+      const objectUrl = URL.createObjectURL(formData.audioFile);
+      frame = requestAnimationFrame(() => setLocalAudioPreview(objectUrl));
+      return () => {
+        if (frame) cancelAnimationFrame(frame);
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+    frame = requestAnimationFrame(() => setLocalAudioPreview(null));
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [formData.audioFile]);
+
+  useEffect(() => {
+    let frame: number | null = null;
+    if (!formData.audioFile && !formData.audioUrl) {
+      frame = requestAnimationFrame(() => setAudioPreviewDuration(null));
+    }
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [formData.audioFile, formData.audioUrl]);
+
+  useEffect(() => {
+    const audioEl = audioPreviewRef.current;
+    if (!audioEl) return;
+
+    const handleLoadedMetadata = () => {
+      if (
+        audioEl.duration &&
+        Number.isFinite(audioEl.duration) &&
+        audioEl.duration > 0
+      ) {
+        const duration = Math.round(audioEl.duration);
+        setAudioPreviewDuration(duration);
+        setFormData((prev) => ({
+          ...prev,
+          audioDuration: duration,
+        }));
+      }
+    };
+
+    audioEl.addEventListener("loadedmetadata", handleLoadedMetadata);
+    return () => {
+      audioEl.removeEventListener("loadedmetadata", handleLoadedMetadata);
+    };
+  }, [setFormData, formData.audioUrl, localAudioPreview]);
 
   // File upload handlers
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,6 +225,9 @@ You can use the formatting tools above to:
       setFormData((prev) => ({
         ...prev,
         audioFile: file,
+        audioUrl: undefined,
+        audioFileName: file.name,
+        audioDuration: undefined,
       }));
     }
   };
@@ -192,6 +255,9 @@ You can use the formatting tools above to:
     setFormData((prev) => ({
       ...prev,
       audioFile: audioFile,
+      audioUrl: undefined,
+      audioFileName: audioFile.name,
+      audioDuration: undefined,
     }));
   };
 
@@ -222,6 +288,25 @@ You can use the formatting tools above to:
     setFormData((prev) => ({
       ...prev,
       images: prev.images.map((img, i) =>
+        i === index ? { ...img, description } : img
+      ),
+    }));
+  };
+
+  const removeExistingImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      existingImages: prev.existingImages.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateExistingImageDescription = (
+    index: number,
+    description: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      existingImages: prev.existingImages.map((img, i) =>
         i === index ? { ...img, description } : img
       ),
     }));
@@ -546,7 +631,7 @@ You can use the formatting tools above to:
                 </p>
                 {formData.audioFile || formData.audioUrl ? (
                   <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                       <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
                         <LuMic className="w-4 h-4 text-white" />
                       </div>
@@ -563,12 +648,27 @@ You can use the formatting tools above to:
                               : formData.audioFile.name
                             : formData.audioFileName || "Audio file"}
                         </p>
-                        {formData.audioUrl && (
+                        {audioPreviewDuration !== null && (
+                          <p className="text-xs text-gray-500">
+                            Duration: {formatDuration(audioPreviewDuration)}
+                          </p>
+                        )}
+                        {(formData.audioUrl || localAudioPreview) && (
                           <audio
+                            key={formData.audioUrl || localAudioPreview}
+                            ref={(node) => {
+                              audioPreviewRef.current = node;
+                            }}
                             controls
-                            src={formData.audioUrl}
-                            className="mt-2 w-full h-8"
+                            preload="metadata"
+                            src={formData.audioUrl || localAudioPreview || ""}
+                            className="mt-3 w-full rounded-lg"
                           />
+                        )}
+                        {!formData.audioUrl && !localAudioPreview && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            Uploading... we&apos;ll display a preview shortly.
+                          </p>
                         )}
                       </div>
                       <button
@@ -579,6 +679,7 @@ You can use the formatting tools above to:
                             audioFile: null,
                             audioUrl: undefined,
                             audioFileName: undefined,
+                            audioDuration: undefined,
                           }))
                         }
                         className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
@@ -738,6 +839,57 @@ You can use the formatting tools above to:
               className="hidden"
             />
           </div>
+
+          {formData.existingImages.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+                Existing images
+              </p>
+              {formData.existingImages.map((image, index) => (
+                <div key={image.id ?? index} className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-200 shrink-0">
+                      <Image
+                        src={image.imageUrl}
+                        alt={image.imageFileName || `Existing image ${index + 1}`}
+                        width={80}
+                        height={80}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {image.imageFileName || `Image ${index + 1}`}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="text-red-600 hover:text-red-700 p-1 cursor-pointer"
+                        >
+                          <LuX className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Description (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={image.description || ""}
+                          onChange={(e) =>
+                            updateExistingImageDescription(index, e.target.value)
+                          }
+                          placeholder="Add a description for this image..."
+                          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-colors duration-200 text-gray-900 placeholder:text-gray-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Display uploaded images with optional descriptions */}
           {formData.images.length > 0 && (

@@ -25,6 +25,7 @@ import {
 import {
   useCreateTestimony,
   useUpdateTestimony,
+  useUpdateTestimonyMultipart,
   useTestimony,
   useDrafts,
 } from "@/hooks/useTestimonies";
@@ -37,15 +38,19 @@ import {
   transformRelativesToApi,
   transformRelativesFromApi,
 } from "@/utils/relatives.utils";
-import { isAuthenticated } from "@/lib/decodeToken";
+import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
 import PageLayout from "@/layout/PageLayout";
 
 function ShareStoryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftIdParam = searchParams.get("draft");
+  const editIdParam = searchParams.get("edit");
   const viewParam = searchParams.get("view");
   const draftId = draftIdParam ? parseInt(draftIdParam, 10) : null;
+  const editId = editIdParam ? parseInt(editIdParam, 10) : null;
+  const activeEditId = editId ?? draftId;
+  const isEditingPublished = Boolean(editId);
   const showDraftsList = viewParam === "drafts";
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -77,8 +82,10 @@ function ShareStoryPageContent() {
     eventTitle: "",
     consent: false,
     images: [],
+    existingImages: [],
     audioFile: null,
     videoFile: null,
+    audioDuration: undefined,
     audioUrl: undefined,
     videoUrl: undefined,
     audioFileName: undefined,
@@ -89,11 +96,11 @@ function ShareStoryPageContent() {
   // TanStack Query hooks
   const createTestimony = useCreateTestimony();
   const updateTestimony = useUpdateTestimony();
+  const updateTestimonyMultipart = useUpdateTestimonyMultipart();
 
   // Fetch draft if draftId is present in URL
-  const { data: draftData, isLoading: isFetchingDraft } = useTestimony(
-    draftId && draftId > 0 ? draftId : 0
-  );
+  const { data: editableTestimony, isLoading: isFetchingEditable } =
+    useTestimony(activeEditId && activeEditId > 0 ? activeEditId : 0);
 
   // Fetch all drafts if viewing drafts list
   const { data: allDrafts = [], isLoading: isLoadingAllDrafts } = useDrafts();
@@ -117,9 +124,34 @@ function ShareStoryPageContent() {
   };
 
   useEffect(() => {
-    if (draftId && draftData && !draftLoaded && !isFetchingDraft) {
+    if (
+      activeEditId &&
+      editableTestimony &&
+      !draftLoaded &&
+      !isFetchingEditable
+    ) {
       setIsLoadingDraft(true);
       try {
+        const currentUser = getCurrentUser();
+        const viewerId =
+          (currentUser?.id && String(currentUser.id)) ??
+          (currentUser?.sub ? String(currentUser.sub) : null);
+        const ownerId =
+          (editableTestimony.user?.id &&
+            String(editableTestimony.user?.id)) ??
+          (editableTestimony.userId ? String(editableTestimony.userId) : null);
+
+        if (
+          isEditingPublished &&
+          ownerId &&
+          viewerId &&
+          ownerId !== viewerId
+        ) {
+          toast.error("You can only edit testimonies you created.");
+          router.push(`/testimonies/${editableTestimony.id}`);
+          return;
+        }
+
         const formatDateForInput = (dateString: string | undefined): string => {
           if (!dateString) return "";
           try {
@@ -154,36 +186,50 @@ function ShareStoryPageContent() {
           return mapping[normalized] || normalized;
         };
 
-        const transformedRelatives = draftData.relatives?.length
-          ? transformRelativesFromApi(draftData.relatives as ApiRelative[])
+        const transformedRelatives = editableTestimony.relatives?.length
+          ? transformRelativesFromApi(
+              editableTestimony.relatives as ApiRelative[]
+            )
           : [];
 
         const loadedFormData: FormData = {
-          type: draftData.submissionType || null,
-          identity: draftData.identityPreference || null,
-          fullName: draftData.fullName || "",
-          relationToEvent: normalizeRelationToEvent(draftData.relationToEvent),
-          location: draftData.location || "",
-          dateOfEventFrom: formatDateForInput(draftData.dateOfEventFrom),
-          dateOfEventTo: formatDateForInput(draftData.dateOfEventTo),
-          testimony: draftData.fullTestimony || "",
-          eventTitle: draftData.eventTitle || "",
-          consent: draftData.agreedToTerms || false,
+          type: editableTestimony.submissionType || null,
+          identity: editableTestimony.identityPreference || null,
+          fullName: editableTestimony.fullName || "",
+          relationToEvent: normalizeRelationToEvent(
+            editableTestimony.relationToEvent
+          ),
+          location: editableTestimony.location || "",
+          dateOfEventFrom: formatDateForInput(
+            editableTestimony.dateOfEventFrom
+          ),
+          dateOfEventTo: formatDateForInput(editableTestimony.dateOfEventTo),
+          testimony: editableTestimony.fullTestimony || "",
+          eventTitle: editableTestimony.eventTitle || "",
+          consent: editableTestimony.agreedToTerms || false,
           images: [],
+          existingImages:
+            editableTestimony.images?.map((image) => ({
+              id: image.id,
+              imageUrl: image.imageUrl,
+              description: image.description,
+              imageFileName: image.imageFileName,
+            })) ?? [],
           audioFile: null,
           videoFile: null,
-          audioUrl: draftData.audioUrl,
-          videoUrl: draftData.videoUrl,
-          audioFileName: draftData.audioFileName,
-          videoFileName: draftData.videoFileName,
+          audioUrl: editableTestimony.audioUrl,
+          videoUrl: editableTestimony.videoUrl,
+          audioFileName: editableTestimony.audioFileName,
+          videoFileName: editableTestimony.videoFileName,
+          audioDuration: editableTestimony.audioDuration,
           relatives: transformedRelatives,
         };
 
         setFormData(loadedFormData);
-        setSavedDraftId(draftId);
+        setSavedDraftId(activeEditId);
 
-        if (draftData.draftCursorPosition) {
-          setCursorPosition(draftData.draftCursorPosition);
+        if (editableTestimony.draftCursorPosition) {
+          setCursorPosition(editableTestimony.draftCursorPosition);
         }
 
         if (loadedFormData.type && loadedFormData.identity) {
@@ -195,12 +241,20 @@ function ShareStoryPageContent() {
         }
 
         setDraftLoaded(true);
-        toast.success(
-          "Draft loaded successfully! Continue where you left off.",
-          {
+        if (isEditingPublished) {
+          toast.success("Testimony loaded. Make your updates and resubmit.", {
             duration: 4000,
-          }
-        );
+            id: "load-testimony",
+          });
+        } else {
+          toast.success(
+            "Draft loaded successfully! Continue where you left off.",
+            {
+              duration: 4000,
+              id: "load-draft",
+            }
+          );
+        }
       } catch (error) {
         console.error("Error loading draft:", error);
         toast.error("Failed to load draft. Please try again.");
@@ -208,9 +262,21 @@ function ShareStoryPageContent() {
         setIsLoadingDraft(false);
       }
     }
-  }, [draftId, draftData, draftLoaded, isFetchingDraft]);
+  }, [
+    activeEditId,
+    editableTestimony,
+    draftLoaded,
+    isFetchingEditable,
+    isEditingPublished,
+    router,
+  ]);
 
   const handleSaveDraft = useCallback(async () => {
+    if (isEditingPublished) {
+      toast.error("Published testimonies cannot be saved as drafts.");
+      return;
+    }
+
     if (!mounted || !isAuth) {
       toast.error("Please log in to save drafts");
       return;
@@ -257,6 +323,7 @@ function ShareStoryPageContent() {
             ? formData.images.map((img) => img.description || "")
             : undefined,
         audio: formData.audioFile || undefined,
+        audioDuration: formData.audioDuration,
         video: formData.videoFile || undefined,
       };
 
@@ -289,6 +356,7 @@ function ShareStoryPageContent() {
     updateTestimony,
     mounted,
     isAuth,
+    isEditingPublished,
   ]);
 
   const handleSubmit = async () => {
@@ -361,6 +429,19 @@ function ShareStoryPageContent() {
 
 
       // Build request
+      const combinedImages: (string | File)[] = [];
+      const combinedImageDescriptions: string[] = [];
+
+      formData.existingImages.forEach((image) => {
+        combinedImages.push(image.imageUrl);
+        combinedImageDescriptions.push(image.description || "");
+      });
+
+      formData.images.forEach((image) => {
+        combinedImages.push(image.file);
+        combinedImageDescriptions.push(image.description || "");
+      });
+
       const request: CreateOrUpdateTestimonyRequest = {
         submissionType: formData.type!,
         identityPreference: formData.identity!,
@@ -375,13 +456,10 @@ function ShareStoryPageContent() {
         fullTestimony: formData.testimony || undefined,
         isDraft: false,
         agreedToTerms: formData.consent,
-        images:
-          formData.images.length > 0
-            ? formData.images.map((img) => img.file)
-            : undefined,
+        images: combinedImages.length > 0 ? combinedImages : undefined,
         imageDescriptions:
-          formData.images.length > 0
-            ? formData.images.map((img) => img.description || "")
+          combinedImageDescriptions.length > 0
+            ? combinedImageDescriptions
             : undefined,
         audio: formData.audioFile || undefined,
         video: formData.videoFile || undefined,
@@ -394,7 +472,12 @@ function ShareStoryPageContent() {
 
       // Submit (hooks will show success toast)
       let submissionResult;
-      if (savedDraftId) {
+      if (isEditingPublished && activeEditId) {
+        submissionResult = await updateTestimonyMultipart.mutateAsync({
+          id: activeEditId,
+          request,
+        });
+      } else if (savedDraftId) {
         submissionResult = await updateTestimony.mutateAsync({
           id: savedDraftId,
           request,
@@ -576,7 +659,7 @@ function ShareStoryPageContent() {
     <PageLayout showBackgroundEffects={true} variant="default">
       <div className="min-h-screen bg-gray-50">
         {/* Loading overlay when fetching draft */}
-        {(isFetchingDraft || isLoadingDraft) && (
+        {(isFetchingEditable || isLoadingDraft) && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
             <div className="bg-white rounded-xl p-6 max-w-sm mx-4 text-center">
               <LuLoader className="w-8 h-8 animate-spin text-gray-800 mx-auto mb-4" />
