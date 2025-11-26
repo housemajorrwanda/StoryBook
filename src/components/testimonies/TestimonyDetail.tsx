@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -8,8 +9,10 @@ import {
   LuMapPin,
   LuArrowLeft,
   LuLoaderCircle,
+  LuPencilLine,
 } from "react-icons/lu";
 import { useTestimony } from "@/hooks/useTestimonies";
+import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
 
@@ -17,8 +20,39 @@ interface TestimonyDetailProps {
   id: number;
 }
 
+type AuthState = {
+  initialized: boolean;
+  loggedIn: boolean;
+  userId: string | null;
+};
+
 export default function TestimonyDetail({ id }: TestimonyDetailProps) {
   const { data: testimony, isLoading, error } = useTestimony(id);
+  const [authState, setAuthState] = useState<AuthState>({
+    initialized: false,
+    loggedIn: false,
+    userId: null,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const frame = requestAnimationFrame(() => {
+      const authenticated = isAuthenticated();
+      const currentUser = getCurrentUser();
+      const derivedId =
+        (currentUser?.id && String(currentUser.id)) ??
+        (currentUser?.sub ? String(currentUser.sub) : null);
+
+      setAuthState({
+        initialized: true,
+        loggedIn: authenticated,
+        userId: derivedId,
+      });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   if (isLoading) {
     return (
@@ -91,6 +125,16 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
     });
   };
 
+  const ownerId =
+    (testimony.user?.id && String(testimony.user.id)) ??
+    (testimony.userId ? String(testimony.userId) : null);
+  const canEdit = Boolean(
+    authState.loggedIn &&
+      ownerId &&
+      authState.userId &&
+      ownerId === authState.userId
+  );
+
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-gray-100 to-gray-50">
       {/* Content */}
@@ -98,12 +142,25 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
         <article className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Hero Section */}
           <div className="p-6 sm:p-8 md:p-12 bg-linear-to-br from-gray-50 via-gray-100 to-gray-50 border-b border-gray-100">
-            <div className="flex items-center gap-3 text-sm mb-6">
-              <span className="px-4 py-1.5 bg-gray-900 text-white rounded-full capitalize font-medium shadow-sm">
-                {testimony.submissionType} Testimony
-              </span>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-600">{formatDate(testimony.createdAt)}</span>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3 text-sm">
+                <span className="px-4 py-1.5 bg-gray-900 text-white rounded-full capitalize font-medium shadow-sm">
+                  {testimony.submissionType} Testimony
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="text-gray-600">
+                  {formatDate(testimony.createdAt)}
+                </span>
+              </div>
+              {canEdit && (
+                <Link
+                  href={`/share-testimony?edit=${testimony.id}`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white/80 px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:border-gray-300 hover:bg-white transition-colors"
+                >
+                  <LuPencilLine className="w-4 h-4" />
+                  Edit my testimony
+                </Link>
+              )}
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">

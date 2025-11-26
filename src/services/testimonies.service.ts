@@ -17,7 +17,7 @@ async function testServerConnectivity(): Promise<boolean> {
   }
 }
 
-function buildTestimonyFormData(
+export function buildTestimonyFormData(
   request: CreateOrUpdateTestimonyRequest
 ): FormData {
   const fd = new FormData();

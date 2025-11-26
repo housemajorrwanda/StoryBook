@@ -100,6 +100,7 @@ export interface CreateOrUpdateTestimonyRequest {
   images?: (string | File)[];
   imageDescriptions?: string[];
   audio?: File | null;
+  audioDuration?: number;
   video?: File | null;
 }
 
@@ -143,10 +144,17 @@ export interface FormData {
   eventTitle: string;
   consent: boolean;
   images: Array<{ file: File; description: string }>;
+  existingImages: Array<{
+    id?: number;
+    imageUrl: string;
+    description?: string;
+    imageFileName?: string;
+  }>;
   audioFile: File | null;
   videoFile: File | null;
   audioUrl?: string;
   videoUrl?: string;
   audioFileName?: string;
   videoFileName?: string;
+  audioDuration?: number;
 }
