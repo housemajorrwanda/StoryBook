@@ -403,13 +403,6 @@ export default function AdminDashboard() {
                 <BarChart3 className="w-16 h-16 mx-auto" />
               </div>
               <p className="text-gray-600 mb-4">No virtual tours created yet</p>
-              <Link
-                href="/dashboard/create"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                Create Your First Tour
-              </Link>
             </div>
           ) : filteredTours.length === 0 &&
             (searchTerm || statusFilter !== "all") ? (

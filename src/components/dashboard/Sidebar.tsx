@@ -121,7 +121,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                       onMouseEnter={() => setHoveredItem(item.name)}
                       onMouseLeave={() => setHoveredItem(null)}
                       className={`relative flex items-center transition-all duration-200 group cursor-pointer ${
-                        collapsed ? 'justify-center px-3 py-3 rounded-xl' : 'px-3 py-3 rounded-xl mx-2'
+                        collapsed ? 'justify-center px-3 py-3 rounded-lg' : 'px-3 py-3 rounded-lg mx-2'
                       } ${
                         active
                           ? "bg-gray-100 text-gray-900 shadow-sm"
@@ -171,7 +171,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                       onMouseEnter={() => setHoveredItem(item.name)}
                       onMouseLeave={() => setHoveredItem(null)}
                       className={`relative flex items-center transition-all duration-200 group ${
-                        collapsed ? 'justify-center px-3 py-3 rounded-xl' : 'px-3 py-3 rounded-xl mx-2'
+                        collapsed ? 'justify-center px-3 py-3 rounded-lg' : 'px-3 py-3 rounded-lg mx-2'
                       } ${
                         active
                           ? "bg-gray-100 text-gray-900 shadow-sm"
