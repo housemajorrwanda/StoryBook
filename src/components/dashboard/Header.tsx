@@ -264,10 +264,10 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                         type="button"
                         key={notification.id}
                         onClick={() => handleNotificationClick(notification)}
-                        className={`w-full text-left px-4 py-3 border-b border-gray-100 last:border-b-0 transition-colors ${
+                        className={`w-full text-left px-4 py-3 border-b border-gray-100 last:border-b-0 transition-colors cursor-pointer ${
                           notification.status === "unread"
-                            ? "bg-blue-50/60 hover:bg-blue-50"
-                            : "hover:bg-gray-50"
+                            ? "bg-blue-50/60 hover:bg-blue-50 cursor-pointer"
+                            : "hover:bg-gray-50 cursor-pointer"
                         }`}
                       >
                         <div className="flex items-start gap-3">
