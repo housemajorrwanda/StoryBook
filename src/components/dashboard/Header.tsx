@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { JWTPayload } from "@/types/auth";
 import { useLogout } from "@/hooks/auth/use-auth-queries";
+import {
+  useInfiniteNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+} from "@/hooks/useNotifications";
+import { Notification } from "@/types/notifications";
 import { 
   LuMenu, 
   LuChevronDown, 
@@ -10,6 +16,8 @@ import {
   LuSettings, 
   LuLogOut,
   LuBell,
+  LuCheck,
+  LuRefreshCcw,
 } from "react-icons/lu";
 
 interface HeaderProps {
@@ -19,10 +27,100 @@ interface HeaderProps {
   sidebarCollapsed: boolean;
 }
 
+const RELATIVE_TIME_DIVISIONS: Array<[number, Intl.RelativeTimeFormatUnit]> = [
+  [60, "second"],
+  [60, "minute"],
+  [24, "hour"],
+  [7, "day"],
+  [4.34524, "week"],
+  [12, "month"],
+  [Infinity, "year"],
+];
+
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  let duration = (date.getTime() - now.getTime()) / 1000;
+  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+  for (const [amount, unit] of RELATIVE_TIME_DIVISIONS) {
+    if (Math.abs(duration) < amount) {
+      return rtf.format(Math.round(duration), unit);
+    }
+    duration /= amount;
+  }
+
+  return rtf.format(Math.round(duration), "year");
+}
+
 export default function Header({ title, user, onMenuClick, sidebarCollapsed }: HeaderProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [infiniteMode, setInfiniteMode] = useState(false);
   const logoutMutation = useLogout();
+  const notificationsScrollRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const notificationFilters = useMemo(() => ({ limit: 5 }), []);
+  const {
+    data: notificationsPages,
+    isLoading: isLoadingNotifications,
+    isError: notificationsError,
+    isFetching: isFetchingNotifications,
+    refetch: refetchNotifications,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteNotifications(notificationFilters);
+  const markNotificationRead = useMarkNotificationRead();
+  const markAllNotificationsRead = useMarkAllNotificationsRead();
+
+  const notifications =
+    notificationsPages?.pages.flatMap((page) => page.data) ?? [];
+  const unreadCount = notifications.filter((notif) => notif.status === "unread").length;
+  const handleNotificationClick = (notification: Notification) => {
+    if (notification.status === "unread" && !markNotificationRead.isPending) {
+      markNotificationRead.mutate(notification.id);
+    }
+  };
+
+  const handleViewMore = () => {
+    if (!infiniteMode) {
+      setInfiniteMode(true);
+    }
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  useEffect(() => {
+    if (!infiniteMode || !showNotifications || !hasNextPage) return;
+    const root = notificationsScrollRef.current;
+    const target = loadMoreRef.current;
+    if (!root || !target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          fetchNextPage();
+        }
+      },
+      {
+        root,
+        rootMargin: "0px",
+        threshold: 1.0,
+      }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [infiniteMode, showNotifications, hasNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    if (showNotifications) return;
+    const frame = requestAnimationFrame(() => setInfiniteMode(false));
+    return () => cancelAnimationFrame(frame);
+  }, [showNotifications]);
 
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -80,39 +178,175 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
           {/* Notifications */}
           <div className="relative notifications-dropdown">
             <button
+              type="button"
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer"
             >
               <LuBell className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span
+                  className={`absolute -top-1 -right-1 w-5 h-5 text-xs rounded-full flex items-center justify-center font-semibold border ${
+                    unreadCount > 9
+                      ? "bg-white text-red-600 border-red-500"
+                      : "bg-red-500 text-white border-red-500"
+                  }`}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+              {isFetchingNotifications && (
+                <span className="absolute -bottom-1 -right-1 w-3 h-3 border-2 border-white rounded-full bg-blue-500 animate-pulse" />
+              )}
             </button>
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 py-3 z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-900">Notifications</p>
+              <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-xl border border-gray-200 py-3 z-50">
+                <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Notifications</p>
+                    <p className="text-xs text-gray-500">
+                      {unreadCount > 0
+                        ? `${unreadCount} unread`
+                        : "You're all caught up"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => refetchNotifications()}
+                      disabled={isFetchingNotifications}
+                      className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-300 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      <LuRefreshCcw className="w-4 h-4" />
+                    </button>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => markAllNotificationsRead.mutate()}
+                        disabled={markAllNotificationsRead.isPending}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <LuCheck className="w-3.5 h-3.5" />
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {[1, 2, 3].map((item) => (
-                    <div key={item} className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-gray-500 rounded-full mt-2 shrink-0"></div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">New testimony submitted</p>
-                          <p className="text-xs text-gray-500 mt-1">A user has submitted a new testimony for review</p>
-                          <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
+
+                <div
+                  className="max-h-96 overflow-y-auto"
+                  ref={notificationsScrollRef}
+                >
+                  {isLoadingNotifications ? (
+                    <div className="space-y-3 px-4 py-3">
+                      {[...Array(3)].map((_, idx) => (
+                        <div
+                          key={`skeleton-${idx}`}
+                          className="animate-pulse space-y-2"
+                        >
+                          <div className="h-3 bg-gray-200 rounded-full w-1/3" />
+                          <div className="h-3 bg-gray-100 rounded-full w-2/3" />
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : notificationsError ? (
+                    <div className="px-4 py-6 text-center text-sm text-red-600">
+                      Unable to load notifications. Please try again.
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="px-4 py-12 text-center text-sm text-gray-500">
+                      No notifications just yet.
+                    </div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <button
+                        type="button"
+                        key={notification.id}
+                        onClick={() => handleNotificationClick(notification)}
+                        className={`w-full text-left px-4 py-3 border-b border-gray-100 last:border-b-0 transition-colors ${
+                          notification.status === "unread"
+                            ? "bg-blue-50/60 hover:bg-blue-50"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
+                              notification.status === "unread"
+                                ? "bg-gray-500"
+                                : "bg-gray-300"
+                            }`}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-sm font-semibold text-gray-900">
+                                {notification.title}
+                              </p>
+                              <span className="text-xs text-gray-400 whitespace-nowrap">
+                                {formatRelativeTime(notification.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {notification.message}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                              {notification.metadata?.submissionType && (
+                                <span className="px-2 py-0.5 text-[11px] rounded-full bg-gray-100 text-gray-600 capitalize">
+                                  {notification.metadata.submissionType}
+                                </span>
+                              )}
+                              <span
+                                className={`px-2 py-0.5 text-[11px] rounded-full capitalize ${
+                                  notification.priority === "high"
+                                    ? "bg-red-100 text-red-700"
+                                    : notification.priority === "medium"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {notification.priority} priority
+                              </span>
+                              {notification.status === "unread" && (
+                                <span className="text-[11px] font-semibold text-gray-600">
+                                  Tap to mark as read
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+
+                  {infiniteMode && hasNextPage && (
+                    <div
+                      ref={loadMoreRef}
+                      className="py-3 text-center text-xs text-gray-500"
+                    >
+                      {isFetchingNextPage
+                        ? "Loading more notifications..."
+                        : "Scroll to load more"}
+                    </div>
+                  )}
                 </div>
-                <div className="px-4 py-2 border-t border-gray-100">
-                  <button className="w-full text-center text-sm text-gray-600 font-medium hover:text-gray-700 py-2">
-                    View All Notifications
-                  </button>
+                <div className="px-4 py-2 border-t border-gray-100 text-center">
+                  {hasNextPage ? (
+                    <button
+                      type="button"
+                      onClick={() => handleViewMore()}
+                      disabled={isFetchingNextPage}
+                      className="text-sm font-semibold text-gray-900 hover:text-gray-600 disabled:opacity-60 cursor-pointer"
+                    >
+                      {infiniteMode
+                        ? isFetchingNextPage
+                          ? "Loading..."
+                          : "Keep scrolling for more"
+                        : "View more"}
+                    </button>
+                  ) : (
+                    <p className="text-xs text-gray-500">No more notifications</p>
+                  )}
                 </div>
               </div>
             )}
