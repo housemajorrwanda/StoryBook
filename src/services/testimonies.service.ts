@@ -57,25 +57,16 @@ export function buildTestimonyFormData(
   if (request.relatives && Array.isArray(request.relatives)) {
     fd.append("relatives", JSON.stringify(request.relatives));
   }
-  if (request.images && Array.isArray(request.images) && request.images.length > 0) {
-    console.log("[FormData] Images array length:", request.images.length);
-    let fileCount = 0;
-    request.images.forEach((image, index) => {
+  if (
+    request.images &&
+    Array.isArray(request.images) &&
+    request.images.length > 0
+  ) {
+    request.images.forEach((image) => {
       if (image instanceof File) {
-        console.log(`[FormData] Appending image ${index + 1}:`, {
-          name: image.name,
-          size: image.size,
-          type: image.type,
-        });
         fd.append("images", image);
-        fileCount++;
-      } else {
-        console.log(`[FormData] Image ${index + 1} is not a File:`, typeof image);
       }
     });
-    console.log(`[FormData] Total files appended: ${fileCount}`);
-  } else {
-    console.log("[FormData] No images to append");
   }
 
   if (
@@ -220,6 +211,7 @@ async getDrafts(): Promise<Testimony[]> {
     );
     return response.data;
   },
+
 
   async uploadImage(file: File, retryCount = 0): Promise<ImageUploadResponse> {
     const maxRetries = 3;
