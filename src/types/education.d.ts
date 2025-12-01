@@ -21,7 +21,10 @@ export interface EducationContent {
     fullName: string
     email: string
   }
-  simulations: []
+  simulations: [],
+  _count: {
+    userProgress: number
+  }
 }
 
 export interface EducationResponse {
@@ -41,4 +44,28 @@ export interface UseEducationContentParams {
   category?: string
   status?: string
   isPublished?: boolean
+}
+
+
+export interface EducationStatistics {
+  totalContent: number;
+  publishedContent: number;
+  draftContent: number;
+  totalViews: number;
+  mostViewedContent: {
+    id: number;
+    title: string;
+    views: number;
+    author: string;
+  } | null;
+  contentByType: Record<string, number>;
+  contentByCategory: Record<string, number>;
+  totalUserProgress: number;
+}
+
+export interface UserProgressResponse {
+  totalContent: number;
+  completedContent: number;
+  inProgressContent: number;
+  progressPercentage: number;
 }

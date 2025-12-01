@@ -3,6 +3,8 @@ import {
   EducationResponse,
   EducationContent,
   UseEducationContentParams,
+  EducationStatistics,
+  UserProgressResponse,
 } from "@/types/education";
 
 class EducationService {
@@ -55,6 +57,24 @@ class EducationService {
     return response.data;
   }
 
+  // GET /education/popular
+  async getPopular(limit?: number): Promise<EducationContent[]> {
+    const query: Record<string, string> = {};
+    if (limit !== undefined) query.limit = limit.toString();
+
+    const response = await axiosInstance.get<EducationContent[]>(
+      "/education/popular",
+      { params: query }
+    );
+    return response.data;
+  }
+
+  // GET /education/statistics
+  async getStatistics(): Promise<EducationStatistics> {
+    const response = await axiosInstance.get<EducationStatistics>("/education/statistics");
+    return response.data;
+  }
+
   // GET /education/my-content
   async getMyContent(params: UseEducationContentParams = {}): Promise<EducationResponse> {
     const query: Record<string, string> = {};
@@ -71,10 +91,26 @@ class EducationService {
     return response.data;
   }
 
+  // GET /education/my-progress
+  async getMyProgress(): Promise<UserProgressResponse> {
+    const response = await axiosInstance.get<UserProgressResponse>("/education/my-progress");
+    return response.data;
+  }
+
   // GET /education/{id}
   async getById(id: number): Promise<EducationContent> {
     const response = await axiosInstance.get<EducationContent>(`/education/${id}`);
     return response.data;
+  }
+
+  // POST /education/{id}/view
+  async incrementViews(id: number): Promise<void> {
+    await axiosInstance.post(`/education/${id}/view`);
+  }
+
+  // POST /education/{id}/progress
+  async trackProgress(id: number, completed: boolean = true): Promise<void> {
+    await axiosInstance.post(`/education/${id}/progress`, { completed });
   }
 
   // POST /education

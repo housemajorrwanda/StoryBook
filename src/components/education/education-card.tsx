@@ -3,6 +3,8 @@ import { EducationContent } from "@/types/education";
 import Image from "next/image";
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useIncrementViews } from "@/hooks/education/use-education-content";
+
 
 interface EducationCardProps {
   content: EducationContent;
@@ -45,6 +47,7 @@ export default function EducationCard({ content }: EducationCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { mutate: incrementViews } = useIncrementViews(); 
 
   const IconComponent = isValidContentType(content.type)
     ? typeIcons[content.type]
@@ -53,6 +56,18 @@ export default function EducationCard({ content }: EducationCardProps) {
   const hasMedia =
     content.imageUrl || (content.type === "video" && content.videoUrl);
   const isVideoContent = content.type === "video" && content.videoUrl;
+
+  // Handle click to track view count
+  const handleCardClick = useCallback(() => {
+    incrementViews(content.id, {
+      onSuccess: () => {
+        console.log("View count incremented for education ID:", content.id);
+      },
+      onError: (error) => {
+        console.error("Failed to increment view count:", error);
+      },
+    });
+  }, [content.id, incrementViews]);
 
   const handleMouseEnter = useCallback(async () => {
     if (isVideoContent && videoRef.current) {
@@ -76,6 +91,7 @@ export default function EducationCard({ content }: EducationCardProps) {
   const handleVideoClick = useCallback(
     async (e: React.MouseEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       if (videoRef.current) {
         try {
           if (isPlaying) {
@@ -109,7 +125,12 @@ export default function EducationCard({ content }: EducationCardProps) {
   }, []);
 
   return (
-    <Link href={`/education/content/${content.id}`} className="block">
+    <Link 
+      key={content.id} 
+      href={`/education/${content.id}`} 
+      onClick={handleCardClick}
+      className="block"
+    >
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -255,7 +276,10 @@ export default function EducationCard({ content }: EducationCardProps) {
 
         {/* Action Button */}
         <div className="px-6 pb-6">
-          <button className="w-full px-4 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 flex items-center justify-center gap-2 group-hover:bg-gray-700 group-hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2">
+          <button 
+            onClick={handleCardClick} 
+            className="w-full px-4 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 flex items-center justify-center gap-2 group-hover:bg-gray-700 group-hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2"
+          >
             {getActionLabel(content.type)}
             {content.type === "video" && <Play className="h-4 w-4" />}
             {content.type === "article" && <BookOpen className="h-4 w-4" />}
