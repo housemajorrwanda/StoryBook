@@ -12,6 +12,7 @@ import {
   LuSettings,
   LuChevronLeft,
   LuChevronRight,
+  LuGraduationCap,
 } from "react-icons/lu";
 
 interface SidebarProps {
@@ -50,6 +51,11 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
       name: "All Testimonies",
       href: "/dashboard/all-testimonies",
       icon: <LuMessageSquareQuote className="w-5 h-5" />,
+    },
+    {
+      name: "Education",
+      href: "/dashboard/education",
+      icon: <LuGraduationCap className="w-5 h-5" />,
     },
   ];
 

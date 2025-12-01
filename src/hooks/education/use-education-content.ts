@@ -3,7 +3,9 @@ import { educationService } from "@/services/education.service";
 import { 
   UseEducationContentParams, 
   EducationResponse, 
-  EducationContent 
+  EducationContent,
+  EducationStatistics,
+  UserProgressResponse
 } from "@/types/education";
 
 
@@ -49,6 +51,30 @@ export function useEducationByCategory(
 
 
 // =========================
+// GET /education/popular
+// =========================
+export function usePopularEducation(limit?: number) {
+  return useQuery<EducationContent[]>({
+    queryKey: ["education-popular", limit],
+    queryFn: () => educationService.getPopular(limit),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+
+// =========================
+// GET /education/statistics
+// =========================
+export function useEducationStatistics() {
+  return useQuery<EducationStatistics>({
+    queryKey: ["education-statistics"],
+    queryFn: () => educationService.getStatistics(),
+    staleTime: 10 * 60 * 1000, // Longer cache for statistics
+  });
+}
+
+
+// =========================
 // GET /education/my-content
 // =========================
 export function useMyEducationContent(params: UseEducationContentParams = {}) {
@@ -56,6 +82,18 @@ export function useMyEducationContent(params: UseEducationContentParams = {}) {
     queryKey: ["education-my-content", params],
     queryFn: () => educationService.getMyContent(params),
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+
+// =========================
+// GET /education/my-progress
+// =========================
+export function useMyEducationProgress() {
+  return useQuery<UserProgressResponse>({
+    queryKey: ["education-my-progress"],
+    queryFn: () => educationService.getMyProgress(),
+    staleTime: 2 * 60 * 1000, // Shorter cache for progress data
   });
 }
 
@@ -73,6 +111,48 @@ export function useEducationById(id: number) {
 
 
 // =========================
+// POST /education/{id}/view
+// =========================
+export function useIncrementViews() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => educationService.incrementViews(id),
+
+    onSuccess: (_, id) => {
+      // Invalidate specific content and popular content
+      queryClient.invalidateQueries({ queryKey: ["education-by-id", id] });
+      queryClient.invalidateQueries({ queryKey: ["education-popular"] });
+      queryClient.invalidateQueries({ queryKey: ["education-content"] });
+    },
+
+    onError: (error: Error) => {
+      console.error("Failed to increment view count:", error);
+    },
+  });
+}
+
+// =========================
+// POST /education/{id}/progress
+// =========================
+export function useTrackProgress() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, completed = true }: { id: number; completed?: boolean }) => 
+      educationService.trackProgress(id, completed),
+
+    onSuccess: (_, { id }) => {
+      // Invalidate progress-related queries
+      queryClient.invalidateQueries({ queryKey: ["education-by-id", id] });
+      queryClient.invalidateQueries({ queryKey: ["education-my-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["education-popular"] });
+    },
+  });
+}
+
+
+// =========================
 // POST /education
 // =========================
 export function useCreateEducation() {
@@ -85,6 +165,7 @@ export function useCreateEducation() {
       queryClient.invalidateQueries({ queryKey: ["education-content"] });
       queryClient.invalidateQueries({ queryKey: ["education-my-content"] });
       queryClient.invalidateQueries({ queryKey: ["education-published"] });
+      queryClient.invalidateQueries({ queryKey: ["education-statistics"] });
     },
   });
 }
@@ -104,6 +185,7 @@ export function useUpdateEducation(id: number) {
       queryClient.invalidateQueries({ queryKey: ["education-by-id", id] });
       queryClient.invalidateQueries({ queryKey: ["education-my-content"] });
       queryClient.invalidateQueries({ queryKey: ["education-published"] });
+      queryClient.invalidateQueries({ queryKey: ["education-statistics"] });
     },
   });
 }
@@ -122,6 +204,7 @@ export function useDeleteEducation() {
       queryClient.invalidateQueries({ queryKey: ["education-content"] });
       queryClient.invalidateQueries({ queryKey: ["education-my-content"] });
       queryClient.invalidateQueries({ queryKey: ["education-published"] });
+      queryClient.invalidateQueries({ queryKey: ["education-statistics"] });
     },
   });
 }
