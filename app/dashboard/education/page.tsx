@@ -16,7 +16,6 @@ import {
   Zap,
   Clock,
   Play,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useMemo } from "react";
@@ -251,7 +250,7 @@ export default function EducationDashboard() {
             </div>
             <div className="flex items-center gap-3">
               <Link
-                href="/dashboard/education/create"
+                href="/dashboard/education-create"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium"
               >
                 <Plus className="w-4 h-4" />
@@ -467,7 +466,7 @@ export default function EducationDashboard() {
               </div>
               <p className="text-gray-600 mb-4">No educational content created yet</p>
               <Link
-                href="/dashboard/education/create"
+                href="/dashboard/education-create"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium"
               >
                 <Plus className="w-4 h-4" />
