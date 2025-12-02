@@ -267,17 +267,17 @@ export default function Navigation({
               <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-black rounded-xl sm:rounded-2xl flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.15)] group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-500 relative overflow-hidden">
                 <div className="absolute inset-[2px] bg-white/5 rounded-[10px] sm:rounded-[14px]" />
                 <span className="text-white font-black text-lg sm:text-xl md:text-2xl relative z-10 tracking-tight">
-                  S
+                  i
                 </span>
               </div>
               <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </div>
             <div className="flex flex-col min-w-0 relative z-10 md:hidden lg:flex">
               <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-black tracking-tight truncate">
-                StoryBook
+                iHame
               </span>
               <span className="text-[9px] sm:text-[10px] md:text-xs font-bold text-gray-500 tracking-wider uppercase mt-0.5 sm:mt-1 opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-0 sm:translate-y-1 group-hover:translate-y-0">
-                Kwibuka
+                StoryBook
               </span>
             </div>
           </Link>

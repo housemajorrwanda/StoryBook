@@ -14,8 +14,17 @@ export default function LoginPage() {
   const googleAuth = useGoogleAuth();
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (values: LoginCredentials) => {
-    loginMutation.mutate(values);
+  const handleSubmit = async (
+    values: LoginCredentials,
+    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
+  ) => {
+    try {
+      await loginMutation.mutateAsync(values);
+    } catch {
+      // Error is handled by the mutation's onError callback
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -226,7 +235,9 @@ export default function LoginPage() {
                     disabled={isSubmitting || loginMutation.isPending}
                     className="w-full bg-gray-800 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm cursor-pointer"
                   >
-                    {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                    {isSubmitting || loginMutation.isPending
+                      ? "Signing in..."
+                      : "Sign In"}
                   </button>
                 </Form>
               )}

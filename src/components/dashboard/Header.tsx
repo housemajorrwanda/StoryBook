@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { JWTPayload } from "@/types/auth";
 import { useLogout } from "@/hooks/auth/use-auth-queries";
 import {
@@ -54,6 +55,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 export default function Header({ title, user, onMenuClick, sidebarCollapsed }: HeaderProps) {
+  const router = useRouter();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [infiniteMode, setInfiniteMode] = useState(false);
@@ -78,8 +80,15 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
     notificationsPages?.pages.flatMap((page) => page.data) ?? [];
   const unreadCount = notifications.filter((notif) => notif.status === "unread").length;
   const handleNotificationClick = (notification: Notification) => {
+    // Mark as read if unread
     if (notification.status === "unread" && !markNotificationRead.isPending) {
       markNotificationRead.mutate(notification.id);
+    }
+    
+    // Navigate to URL if present in metadata
+    if (notification.metadata?.url) {
+      setShowNotifications(false);
+      router.push(notification.metadata.url);
     }
   };
 
@@ -290,10 +299,28 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                             <p className="text-xs text-gray-600 mt-1">
                               {notification.message}
                             </p>
+                            {notification.metadata?.feedback && (
+                              <p className="text-xs text-gray-500 mt-1.5 italic">
+                                &ldquo;{notification.metadata.feedback}&rdquo;
+                              </p>
+                            )}
                             <div className="flex flex-wrap items-center gap-2 mt-2">
                               {notification.metadata?.submissionType && (
                                 <span className="px-2 py-0.5 text-[11px] rounded-full bg-gray-100 text-gray-600 capitalize">
                                   {notification.metadata.submissionType}
+                                </span>
+                              )}
+                              {notification.metadata?.status && (
+                                <span
+                                  className={`px-2 py-0.5 text-[11px] rounded-full capitalize font-medium ${
+                                    notification.metadata.status === "approved"
+                                      ? "bg-green-100 text-green-700"
+                                      : notification.metadata.status === "rejected"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-gray-100 text-gray-600"
+                                  }`}
+                                >
+                                  {notification.metadata.status}
                                 </span>
                               )}
                               <span
@@ -302,6 +329,8 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                                     ? "bg-red-100 text-red-700"
                                     : notification.priority === "medium"
                                     ? "bg-amber-100 text-amber-700"
+                                    : notification.priority === "normal"
+                                    ? "bg-blue-100 text-blue-700"
                                     : "bg-gray-100 text-gray-600"
                                 }`}
                               >
@@ -309,7 +338,14 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                               </span>
                               {notification.status === "unread" && (
                                 <span className="text-[11px] font-semibold text-gray-600">
-                                  Tap to mark as read
+                                  {notification.metadata?.url
+                                    ? "Tap to view"
+                                    : "Tap to mark as read"}
+                                </span>
+                              )}
+                              {notification.status === "read" && notification.metadata?.url && (
+                                <span className="text-[11px] text-blue-600">
+                                  Tap to view
                                 </span>
                               )}
                             </div>

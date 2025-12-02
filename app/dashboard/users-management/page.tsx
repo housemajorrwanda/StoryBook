@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { LuLoader, LuSearch } from "react-icons/lu";
-
 import { ConfirmModal, Pagination } from "@/components/shared";
 import { useUsers, useUpdateUserRole } from "@/hooks/users/use-users";
 import type { UserProfile } from "@/types/user";

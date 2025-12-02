@@ -1,15 +1,22 @@
 export type NotificationAudience = "admin" | "owner" | "user" | string;
 export type NotificationStatus = "read" | "unread";
-export type NotificationPriority = "low" | "medium" | "high" | string;
+export type NotificationPriority = "low" | "medium" | "high" | "normal" | string;
 export type NotificationType =
   | "testimony_submitted"
   | "testimony_updated"
   | "testimony_published"
+  | "testimony_approved"
+  | "testimony_rejected"
+  | "feedback_resolved"
+  | "user_reported"
   | string;
 
 export interface NotificationMetadata {
   testimonyId?: number;
   submissionType?: string;
+  url?: string;
+  status?: string;
+  feedback?: string;
   [key: string]: unknown;
 }
 
