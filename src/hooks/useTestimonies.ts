@@ -7,7 +7,7 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { Testimony, CreateOrUpdateTestimonyRequest } from "@/types/testimonies";
+import { Testimony, CreateOrUpdateTestimonyRequest, TranscriptResponse } from "@/types/testimonies";
 import {
   testimoniesService,
   buildTestimonyFormData,
@@ -38,6 +38,8 @@ export const TESTIMONY_KEYS = {
   details: () => [...TESTIMONY_KEYS.all, "detail"] as const,
   detail: (id: number) => [...TESTIMONY_KEYS.details(), id] as const,
   drafts: () => [...TESTIMONY_KEYS.all, "drafts"] as const,
+  transcripts: () => [...TESTIMONY_KEYS.all, "transcript"] as const,
+  transcript: (id: number) => [...TESTIMONY_KEYS.transcripts(), id] as const,
 };
 
 type TestimoniesPage = {
@@ -258,5 +260,17 @@ export function useCreateTestimonyMultipart(): UseMutationResult<
       );
       toast.error(message);
     },
+  });
+}
+
+// Get transcript for a testimony
+export function useTranscript(id: number): UseQueryResult<TranscriptResponse, Error> {
+  return useQuery({
+    queryKey: TESTIMONY_KEYS.transcript(id),
+    queryFn: () => testimoniesService.getTranscript(id),
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
   });
 }

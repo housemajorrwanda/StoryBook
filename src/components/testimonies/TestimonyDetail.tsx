@@ -15,6 +15,7 @@ import { useTestimony } from "@/hooks/useTestimonies";
 import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
+import TestimonyConnections from "./TestimonyConnections";
 
 interface TestimonyDetailProps {
   id: number;
@@ -251,6 +252,7 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
                   <AudioPlayer
                     src={testimony.audioUrl}
                     duration={testimony.audioDuration}
+                    testimonyId={testimony.id}
                   />
                 </div>
               )}
@@ -261,6 +263,7 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
                   <VideoPlayer
                     src={testimony.videoUrl}
                     duration={testimony.videoDuration}
+                    testimonyId={testimony.id}
                   />
                 </div>
               )}
@@ -305,41 +308,53 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
             </div>
           )}
 
-          {/* Testimony Content */}
-          <div className="p-6 sm:p-8 md:p-12">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-1 w-12 bg-gray-900 rounded-full"></div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {testimony.submissionType === "written" 
-                  ? "Full Testimony" 
-                  : "Full Transcript"}
-              </h2>
-            </div>
-            <div
-              className="prose prose-lg max-w-none text-gray-700 leading-relaxed prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900"
-              dangerouslySetInnerHTML={{ __html: testimony.fullTestimony }}
-            />
+          {/* Testimony Content - Only show for written testimonies or when no audio/video */}
+          {(testimony.submissionType === "written" || (!testimony.audioUrl && !testimony.videoUrl)) && (
+            <div className="p-6 sm:p-8 md:p-12">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="h-1 w-12 bg-gray-900 rounded-full"></div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {testimony.submissionType === "written" 
+                    ? "Full Testimony" 
+                    : "Full Transcript"}
+                </h2>
+              </div>
+              <div
+                className="prose prose-lg max-w-none text-gray-700 leading-relaxed prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900"
+                dangerouslySetInnerHTML={{ __html: testimony.fullTestimony }}
+              />
 
-            {/* Author Info */}
-            {testimony.identityPreference === "public" && (
-              <div className="mt-12 pt-8 border-t border-gray-200">
-                <div className="flex items-center gap-4 p-6 bg-gray-50 rounded-2xl">
-                  <div className="w-14 h-14 bg-linear-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center shadow-inner">
-                    <LuUser className="w-7 h-7 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {testimony.fullName}
-                    </p>
-                    <p className="text-sm text-gray-600 capitalize">
-                      {testimony.relationToEvent || "Witness"}
-                    </p>
+              {/* Author Info */}
+              {testimony.identityPreference === "public" && (
+                <div className="mt-12 pt-8 border-t border-gray-200">
+                  <div className="flex items-center gap-4 p-6 bg-gray-50 rounded-2xl">
+                    <div className="w-14 h-14 bg-linear-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center shadow-inner">
+                      <LuUser className="w-7 h-7 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg">
+                        {testimony.fullName}
+                      </p>
+                      <p className="text-sm text-gray-600 capitalize">
+                        {testimony.relationToEvent || "Witness"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </article>
+
+        {/* AI Connections Section */}
+        {testimony.connections && testimony.connections.length > 0 && (
+          <div className="mt-12">
+            <TestimonyConnections
+              connections={testimony.connections}
+              currentTestimonyId={testimony.id}
+            />
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="mt-12 text-center">

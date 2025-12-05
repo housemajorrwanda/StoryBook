@@ -14,6 +14,24 @@ export interface TestimonyImage {
   updatedAt?: string;
 }
 
+export interface TestimonyConnection {
+  id: number;
+  eventTitle: string;
+  eventDescription?: string | null;
+  connectionDetails: {
+    accuracyScore: number;
+    rawScore: number;
+    connectionType: string;
+    connectionReason: string;
+    source: string;
+  };
+  contactInfo: {
+    email: string;
+    fullName: string;
+    residentPlace?: string | null;
+  };
+}
+
 export interface Testimony {
   id: number;
   submissionType: StoryType;
@@ -52,6 +70,11 @@ export interface Testimony {
   } | null;
   isDraft?: boolean;
   draftCursorPosition?: number;
+  transcript?: string | null;
+  summary?: string | null;
+  keyPhrases?: string[];
+  connections?: TestimonyConnection[];
+  resumePosition?: number;
 }
 
 // Request Types
@@ -157,4 +180,24 @@ export interface FormData {
   audioFileName?: string;
   videoFileName?: string;
   audioDuration?: number;
+}
+
+// Transcript Types
+export type TranscriptStatus = "available" | "pending" | "processing" | "error";
+
+export interface TranscriptResponse {
+  id: number;
+  transcript: string | null;
+  hasTranscript: boolean;
+  submissionType: StoryType;
+  canHaveTranscript: boolean;
+  hasMedia: boolean;
+  transcriptStatus: TranscriptStatus | string;
+}
+
+export interface TranscriptSegment {
+  text: string;
+  startTime: number;
+  endTime: number;
+  confidence?: number;
 }

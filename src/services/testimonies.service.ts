@@ -3,6 +3,7 @@ import {
   ImageUploadResponse,
   AudioUploadResponse,
   CreateOrUpdateTestimonyRequest,
+  TranscriptResponse,
 } from "@/types/testimonies";
 import axiosInstance from "@/config/axiosInstance";
 import { getAuthToken, isTokenExpired } from "@/lib/cookies";
@@ -146,6 +147,14 @@ export const testimoniesService = {
   // Get a single testimony by ID
   async getTestimonyById(id: number): Promise<Testimony> {
     const response = await axiosInstance.get<Testimony>(`/testimonies/${id}`);
+    return response.data;
+  },
+
+  // Get transcript for a testimony
+  async getTranscript(id: number): Promise<TranscriptResponse> {
+    const response = await axiosInstance.get<TranscriptResponse>(
+      `/testimonies/${id}/transcript`
+    );
     return response.data;
   },
 
@@ -379,6 +388,61 @@ async getDrafts(): Promise<Testimony[]> {
     }
 
     return successfulUploads;
+  },
+
+  // Stream transcript for live transcription (Server-Sent Events)
+  streamTranscript(
+    id: number,
+    onMessage: (data: { type: string; [key: string]: unknown }) => void,
+    onError?: (error: Event) => void,
+    onComplete?: () => void
+  ): EventSource {
+    const baseURL =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      "https://storybook-backend-production-574d.up.railway.app";
+    const token = getAuthToken();
+    
+    const url = token
+      ? `${baseURL}/testimonies/${id}/transcript/stream?token=${encodeURIComponent(token)}`
+      : `${baseURL}/testimonies/${id}/transcript/stream`;
+    
+    const eventSource = new EventSource(url);
+
+    eventSource.onmessage = (event) => {
+      try {
+        // Parse the SSE data format: "data: {...}"
+        const dataStr = event.data.trim();
+        if (dataStr.startsWith("data: ")) {
+          const jsonStr = dataStr.substring(6); // Remove "data: " prefix
+          const data = JSON.parse(jsonStr);
+          onMessage(data);
+        } else {
+          // Try parsing directly
+          const data = JSON.parse(dataStr);
+          onMessage(data);
+        }
+      } catch (error) {
+        console.error("Error parsing transcript stream data:", error, event.data);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("Transcript stream error:", error);
+      if (onError) {
+        onError(error);
+      }
+      // Don't close on error - let it retry
+    };
+
+    // Listen for complete event
+    eventSource.addEventListener("complete", () => {
+      if (onComplete) {
+        onComplete();
+      }
+      eventSource.close();
+    });
+
+    return eventSource;
   },
 };
 
