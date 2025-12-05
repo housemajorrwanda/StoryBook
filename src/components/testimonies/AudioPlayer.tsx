@@ -11,13 +11,15 @@ import {
   LuSkipBack,
   LuSkipForward,
 } from "react-icons/lu";
+import Transcript from "./Transcript";
 
 interface AudioPlayerProps {
   src: string;
   duration?: number;
+  testimonyId?: number;
 }
 
-export default function AudioPlayer({ src, duration }: AudioPlayerProps) {
+export default function AudioPlayer({ src, duration, testimonyId }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -658,6 +660,25 @@ export default function AudioPlayer({ src, duration }: AudioPlayerProps) {
           />
         </div>
       </div>
+
+      {/* Transcript Section */}
+      {testimonyId && (
+        <div className="mt-6">
+          <Transcript
+            testimonyId={testimonyId}
+            currentTime={currentTime * 1000}
+            isPlaying={isPlaying}
+            duration={totalDuration}
+            onSeek={(time) => {
+              const audio = audioRef.current;
+              if (audio) {
+                audio.currentTime = time / 1000; 
+                setCurrentTime(time / 1000);
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

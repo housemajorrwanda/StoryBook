@@ -8,7 +8,6 @@ import { useLogin, useGoogleAuth } from "@/hooks/auth/use-auth-queries";
 import { loginValidationSchema } from "@/lib/validation/auth.validation";
 import { LoginCredentials } from "@/types/auth";
 import { CheckIcon, EyeIcon, EyeOffIcon } from "lucide-react";
-
 export default function LoginPage() {
   const loginMutation = useLogin();
   const googleAuth = useGoogleAuth();

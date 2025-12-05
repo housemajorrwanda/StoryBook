@@ -12,13 +12,15 @@ import {
   LuMaximize,
   LuMinimize,
 } from "react-icons/lu";
+import Transcript from "./Transcript";
 
 interface VideoPlayerProps {
   src: string;
   duration?: number;
+  testimonyId?: number;
 }
 
-export default function VideoPlayer({ src, duration }: VideoPlayerProps) {
+export default function VideoPlayer({ src, duration, testimonyId }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -270,6 +272,25 @@ export default function VideoPlayer({ src, duration }: VideoPlayerProps) {
           </div>
         </div>
       </div>
+
+      {/* Transcript Section */}
+      {testimonyId && (
+        <div className="mt-6">
+          <Transcript
+            testimonyId={testimonyId}
+            currentTime={currentTime * 1000} 
+            isPlaying={isPlaying}
+            duration={totalDuration} 
+            onSeek={(time) => {
+              const video = videoRef.current;
+              if (video) {
+                video.currentTime = time / 1000; 
+                setCurrentTime(time / 1000);
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
