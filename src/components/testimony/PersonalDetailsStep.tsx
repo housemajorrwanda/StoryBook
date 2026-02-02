@@ -30,19 +30,15 @@ export default function PersonalDetailsStep({
   }, []);
 
   const relationshipOptions = [
-    { value: "brother", label: "Brother" },
-    { value: "sister", label: "Sister" },
-    { value: "father", label: "Father" },
-    { value: "mother", label: "Mother" },
-    { value: "son", label: "Son" },
-    { value: "daughter", label: "Daughter" },
-    { value: "uncle", label: "Uncle" },
-    { value: "aunt", label: "Aunt" },
+    { value: "survivor", label: "Survivor" },
+    { value: "parent", label: "Parent" },
+    { value: "child", label: "Child" },
+    { value: "sibling", label: "Sibling" },
+    { value: "spouse", label: "Spouse" },
+    { value: "grandparent", label: "Grandparent" },
+    { value: "uncle_aunt", label: "Uncle/Aunt" },
     { value: "cousin", label: "Cousin" },
-    { value: "grandfather", label: "Grandfather" },
-    { value: "grandmother", label: "Grandmother" },
-    { value: "nephew", label: "Nephew" },
-    { value: "niece", label: "Niece" },
+    { value: "friend", label: "Friend" },
     { value: "neighbor", label: "Neighbor" },
     { value: "other", label: "Other" },
   ];
@@ -64,7 +60,7 @@ export default function PersonalDetailsStep({
   const updateRelative = (
     index: number,
     field: "value" | "name",
-    newValue: string
+    newValue: string,
   ) => {
     setFormData((prev) => {
       const currentRelatives = prev.relatives || [];
@@ -129,7 +125,9 @@ export default function PersonalDetailsStep({
               required
               className="w-full px-3 sm:px-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:border-black focus:outline-none transition-all duration-200 text-gray-900 bg-white hover:border-gray-400 cursor-pointer appearance-none text-sm sm:text-base placeholder:text-gray-400"
             >
-              <option value="" className="text-gray-400">Select your connection to these events</option>
+              <option value="" className="text-gray-400">
+                Select your connection to these events
+              </option>
               {formData.type === "written" && (
                 <>
                   <option value="survivor">Survivor</option>
