@@ -3,36 +3,62 @@
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGoogleAuth } from "@/hooks/auth/use-auth-queries";
 import { setAuthToken } from "@/lib/cookies";
 import { decodeAuthToken } from "@/lib/decodeToken";
 import axiosInstance from "@/config/axiosInstance";
 import toast from "react-hot-toast";
 import { LuLoader } from "react-icons/lu";
 
-function AuthSuccessContent() {
+function GoogleCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { handleCallback } = useGoogleAuth();
-  const token = searchParams.get("token");
 
   useEffect(() => {
-    const processAuth = async () => {
+    const handleGoogleCallback = async () => {
       try {
-        if (token) {
-          setAuthToken(token);
+        // Get the authorization code from URL
+        const code = searchParams.get("code");
+        const error = searchParams.get("error");
 
+        if (error) {
+          console.error("[GoogleCallback] OAuth error:", error);
+          toast.error("Google authentication was cancelled or failed.");
+          router.push("/login?error=oauth_cancelled");
+          return;
+        }
+
+        if (!code) {
+          console.error("[GoogleCallback] No authorization code found");
+          toast.error("No authorization code received from Google.");
+          router.push("/login?error=no_code");
+          return;
+        }
+
+        // Send the code to backend to exchange for access token
+        console.log("[GoogleCallback] Exchanging code for token...");
+        const response = await axiosInstance.post("/auth/google/callback", {
+          code,
+        });
+
+        const { access_token, user } = response.data;
+
+        if (!access_token) {
+          throw new Error("No access token received from backend");
+        }
+
+        // Store the token
+        setAuthToken(access_token);
+
+        // Fetch and set user data
+        if (user) {
+          queryClient.setQueryData(["user"], user);
+        } else {
+          // Fallback: try to fetch user data or decode from token
           try {
-            const response = await axiosInstance.get("/auth/me");
-            if (response.data) {
-              queryClient.setQueryData(["user"], response.data);
-            }
+            const userResponse = await axiosInstance.get("/auth/me");
+            queryClient.setQueryData(["user"], userResponse.data);
           } catch {
-            console.warn(
-              "[AuthSuccess] Could not fetch user data, using token payload",
-            );
-
             const decoded = decodeAuthToken();
             if (decoded) {
               queryClient.setQueryData(["user"], {
@@ -43,40 +69,33 @@ function AuthSuccessContent() {
               });
             }
           }
-
-          if (typeof window !== "undefined") {
-            sessionStorage.setItem("lastLoginTime", Date.now().toString());
-          }
-
-          toast.success("Authentication successful!");
-
-          // Decode token to get user info for redirect
-          const decoded = decodeAuthToken();
-          if (decoded) {
-            const userRole = decoded.role;
-            if (userRole === "admin") {
-              router.push("/dashboard");
-            } else {
-              router.push("/");
-            }
-          } else {
-            router.push("/");
-          }
-          return;
         }
 
-        // Otherwise, try to handle Google callback (for /auth/google/success route)
-        console.log("[AuthSuccess] No token in URL, trying Google callback");
-        await handleCallback();
+        // Store login time
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("lastLoginTime", Date.now().toString());
+        }
+
+        toast.success("Google authentication successful!");
+
+        // Redirect based on user role
+        const decoded = decodeAuthToken();
+        const userRole = user?.role || decoded?.role;
+
+        if (userRole === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
       } catch (error) {
-        console.error("[AuthSuccess] Error processing auth:", error);
+        console.error("[GoogleCallback] Error:", error);
         toast.error("Authentication failed. Please try again.");
         router.push("/login?error=auth_failed");
       }
     };
 
-    processAuth();
-  }, [token, handleCallback, router, queryClient]);
+    handleGoogleCallback();
+  }, [searchParams, router, queryClient]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-white flex items-center justify-center p-4">
@@ -88,10 +107,10 @@ function AuthSuccessContent() {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Completing Authentication
+            Authenticating with Google
           </h1>
           <p className="text-gray-600">
-            Please wait while we complete your authentication...
+            Please wait while we complete your Google sign-in...
           </p>
         </div>
       </div>
@@ -99,7 +118,7 @@ function AuthSuccessContent() {
   );
 }
 
-export default function AuthSuccessPage() {
+export default function GoogleCallbackPage() {
   return (
     <Suspense
       fallback={
@@ -137,7 +156,7 @@ export default function AuthSuccessPage() {
         </div>
       }
     >
-      <AuthSuccessContent />
+      <GoogleCallbackContent />
     </Suspense>
   );
 }
