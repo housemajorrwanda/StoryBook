@@ -52,7 +52,7 @@ const ToolbarButton = ({
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className={`p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-all duration-200 cursor-pointer min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] flex items-center justify-center ${
+    className={`p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-all duration-200 cursor-pointer min-w-8 sm:min-w-9 min-h-8 sm:min-h-9 flex items-center justify-center ${
       isActive
         ? "bg-gray-900 text-white shadow-md cursor-pointer"
         : disabled
