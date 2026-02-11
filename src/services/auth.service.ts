@@ -19,7 +19,9 @@ export const authService = {
       email: apiCredentials.email,
       password: apiCredentials.password,
       fullName: apiCredentials.fullName,
-      ...(apiCredentials.residentPlace && { residentPlace: apiCredentials.residentPlace }),
+      ...(apiCredentials.residentPlace && {
+        residentPlace: apiCredentials.residentPlace,
+      }),
     };
     const response = await axiosInstance.post("/auth/register", requestBody);
     return response.data;
@@ -32,8 +34,7 @@ export const authService = {
 
   initiateGoogleAuth: (): void => {
     const baseURL =
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      "https://storybook-backend-production-574d.up.railway.app";
+      process.env.NEXT_PUBLIC_API_BASE_URL || "https://storybook.andasy.dev";
     // Redirect to backend Google OAuth endpoint
     window.location.href = `${baseURL}/auth/google`;
   },
@@ -43,9 +44,7 @@ export const authService = {
     return response.data;
   },
 
-  forgotPassword: async (
-    email: string
-  ): Promise<{ message: string }> => {
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
     const response = await axiosInstance.post("/auth/forgot-password", {
       email,
     });
@@ -54,7 +53,7 @@ export const authService = {
 
   resetPassword: async (
     token: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<{ message: string }> => {
     const response = await axiosInstance.post("/auth/reset-password", {
       token,
