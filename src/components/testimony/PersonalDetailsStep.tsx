@@ -30,17 +30,15 @@ export default function PersonalDetailsStep({
   }, []);
 
   const relationshipOptions = [
-    { value: "survivor", label: "Survivor" },
-    { value: "parent", label: "Parent" },
-    { value: "child", label: "Child" },
-    { value: "sibling", label: "Sibling" },
-    { value: "spouse", label: "Spouse" },
-    { value: "grandparent", label: "Grandparent" },
-    { value: "uncle_aunt", label: "Uncle/Aunt" },
+    { value: "mother", label: "Mother" },
+    { value: "father", label: "Father" },
+    { value: "grandmother", label: "Grandmother" },
+    { value: "grandfather", label: "Grandfather" },
+    { value: "brother", label: "Brother" },
+    { value: "sister", label: "Sister" },
+    { value: "uncle", label: "Uncle" },
+    { value: "aunt", label: "Aunt" },
     { value: "cousin", label: "Cousin" },
-    { value: "friend", label: "Friend" },
-    { value: "neighbor", label: "Neighbor" },
-    { value: "other", label: "Other" },
   ];
 
   const addRelative = () => {

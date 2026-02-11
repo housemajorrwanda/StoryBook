@@ -2,7 +2,6 @@ import { FormRelative, ApiRelative } from "@/types/testimonies";
 
 const RELATIONSHIP_TYPE_MAP: Record<string, number> = {
   survivor: 1,
-  parent: 2,
   child: 3,
   sibling: 4,
   spouse: 5,
@@ -12,6 +11,14 @@ const RELATIONSHIP_TYPE_MAP: Record<string, number> = {
   friend: 9,
   neighbor: 10,
   other: 11,
+  mother: 12,
+  father: 13,
+  grandmother: 14,
+  grandfather: 15,
+  brother: 16,
+  sister: 17,
+  uncle: 18,
+  aunt: 19,
 };
 
 const REVERSE_RELATIONSHIP_MAP: Record<number, string> = Object.fromEntries(
