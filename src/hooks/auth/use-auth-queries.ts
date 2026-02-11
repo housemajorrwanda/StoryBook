@@ -110,6 +110,40 @@ export const useLogout = () => {
   });
 };
 
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: (email: string) => authService.forgotPassword(email),
+    onSuccess: () => {
+      toast.success("If the email exists, a password reset link has been sent.");
+    },
+    onError: (error: unknown) => {
+      const message =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Something went wrong. Please try again.";
+      toast.error(message);
+    },
+  });
+};
+
+export const useResetPassword = () => {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
+      authService.resetPassword(token, newPassword),
+    onSuccess: () => {
+      toast.success("Password reset successfully! Please sign in.");
+      router.push("/login");
+    },
+    onError: (error: unknown) => {
+      const message =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Invalid or expired reset token. Please try again.";
+      toast.error(message);
+    },
+  });
+};
+
 export const useGoogleAuth = () => {
   const router = useRouter();
   const queryClient = useQueryClient();

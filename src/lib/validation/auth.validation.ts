@@ -28,3 +28,23 @@ export const signupValidationSchema = Yup.object({
     .oneOf([Yup.ref("password")], "Passwords must match")
     .required("Please confirm your password"),
 });
+
+export const forgotPasswordValidationSchema = Yup.object({
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required"),
+});
+
+export const resetPasswordValidationSchema = Yup.object({
+  newPassword: Yup.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password must be less than 128 characters")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+    )
+    .required("Password is required"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("newPassword")], "Passwords must match")
+    .required("Please confirm your password"),
+});

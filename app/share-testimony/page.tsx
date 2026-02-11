@@ -57,7 +57,7 @@ function ShareStoryPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedDraftId, setSavedDraftId] = useState<number | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
-    "idle"
+    "idle",
   );
   const [cursorPosition, setCursorPosition] = useState(0);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
@@ -137,16 +137,10 @@ function ShareStoryPageContent() {
           (currentUser?.id && String(currentUser.id)) ??
           (currentUser?.sub ? String(currentUser.sub) : null);
         const ownerId =
-          (editableTestimony.user?.id &&
-            String(editableTestimony.user?.id)) ??
+          (editableTestimony.user?.id && String(editableTestimony.user?.id)) ??
           (editableTestimony.userId ? String(editableTestimony.userId) : null);
 
-        if (
-          isEditingPublished &&
-          ownerId &&
-          viewerId &&
-          ownerId !== viewerId
-        ) {
+        if (isEditingPublished && ownerId && viewerId && ownerId !== viewerId) {
           toast.error("You can only edit testimonies you created.");
           router.push(`/testimonies/${editableTestimony.id}`);
           return;
@@ -168,7 +162,7 @@ function ShareStoryPageContent() {
         };
 
         const normalizeRelationToEvent = (
-          value: string | undefined
+          value: string | undefined,
         ): string => {
           if (!value) return "";
           const normalized = value.toLowerCase().trim();
@@ -188,7 +182,7 @@ function ShareStoryPageContent() {
 
         const transformedRelatives = editableTestimony.relatives?.length
           ? transformRelativesFromApi(
-              editableTestimony.relatives as ApiRelative[]
+              editableTestimony.relatives as ApiRelative[],
             )
           : [];
 
@@ -197,11 +191,11 @@ function ShareStoryPageContent() {
           identity: editableTestimony.identityPreference || null,
           fullName: editableTestimony.fullName || "",
           relationToEvent: normalizeRelationToEvent(
-            editableTestimony.relationToEvent
+            editableTestimony.relationToEvent,
           ),
           location: editableTestimony.location || "",
           dateOfEventFrom: formatDateForInput(
-            editableTestimony.dateOfEventFrom
+            editableTestimony.dateOfEventFrom,
           ),
           dateOfEventTo: formatDateForInput(editableTestimony.dateOfEventTo),
           testimony: editableTestimony.fullTestimony || "",
@@ -252,7 +246,7 @@ function ShareStoryPageContent() {
             {
               duration: 4000,
               id: "load-draft",
-            }
+            },
           );
         }
       } catch (error) {
@@ -284,7 +278,7 @@ function ShareStoryPageContent() {
 
     if (!formData.type || !formData.identity || !formData.eventTitle) {
       toast.error(
-        "Please fill in at least the submission type, identity, and event title"
+        "Please fill in at least the submission type, identity, and event title",
       );
       return;
     }
@@ -298,7 +292,6 @@ function ShareStoryPageContent() {
         ? transformRelativesToApi(formData.relatives)
         : undefined;
 
-      
       const request: CreateOrUpdateTestimonyRequest = {
         submissionType: formData.type,
         identityPreference: formData.identity,
@@ -387,7 +380,7 @@ function ShareStoryPageContent() {
         const v = validateFile(
           imageData.file,
           FILE_CONSTRAINTS.image.types,
-          FILE_CONSTRAINTS.image.maxSize
+          FILE_CONSTRAINTS.image.maxSize,
         );
         if (!v.isValid) {
           toast.error(`Image ${imageData.file.name}: ${v.error}`);
@@ -400,7 +393,7 @@ function ShareStoryPageContent() {
         const v = validateFile(
           formData.audioFile,
           FILE_CONSTRAINTS.audio.types,
-          FILE_CONSTRAINTS.audio.maxSize
+          FILE_CONSTRAINTS.audio.maxSize,
         );
         if (!v.isValid) {
           toast.error(`Audio: ${v.error}`);
@@ -413,7 +406,7 @@ function ShareStoryPageContent() {
         const v = validateFile(
           formData.videoFile,
           FILE_CONSTRAINTS.video.types,
-          FILE_CONSTRAINTS.video.maxSize
+          FILE_CONSTRAINTS.video.maxSize,
         );
         if (!v.isValid) {
           toast.error(`Video: ${v.error}`);
@@ -422,11 +415,9 @@ function ShareStoryPageContent() {
         }
       }
 
-
       const transformedRelatives = formData.relatives?.length
         ? transformRelativesToApi(formData.relatives)
         : undefined;
-
 
       // Build request
       const combinedImages: (string | File)[] = [];
@@ -508,13 +499,12 @@ function ShareStoryPageContent() {
         "message" in error.response.data
           ? String(error.response.data.message)
           : error instanceof Error
-          ? error.message
-          : "Failed to submit testimony. Please try again.";
+            ? error.message
+            : "Failed to submit testimony. Please try again.";
       toast.error(errorMessage, {
         id: "submit-testimony",
         duration: 5000,
       });
- 
     } finally {
       setIsSubmitting(false);
     }
@@ -558,7 +548,6 @@ function ShareStoryPageContent() {
   if (showDraftsList) {
     return (
       <div className="min-h-screen bg-gray-50">
-      
         <main className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8">
           <div className="mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -631,7 +620,7 @@ function ShareStoryPageContent() {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",
-                                  }
+                                  },
                                 )}
                               </span>
                             </div>
@@ -713,8 +702,8 @@ function ShareStoryPageContent() {
                         currentStep === step.number
                           ? "bg-black text-white shadow-lg scale-110"
                           : currentStep > step.number
-                          ? "bg-black text-white"
-                          : "bg-gray-200 text-gray-600"
+                            ? "bg-black text-white"
+                            : "bg-gray-200 text-gray-600"
                       }`}
                     >
                       {step.number}
