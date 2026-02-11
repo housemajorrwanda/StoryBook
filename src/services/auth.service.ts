@@ -44,7 +44,9 @@ export const authService = {
     return response.data;
   },
 
-  forgotPassword: async (email: string): Promise<{ message: string }> => {
+  forgotPassword: async (
+    email: string
+  ): Promise<{ message: string }> => {
     const response = await axiosInstance.post("/auth/forgot-password", {
       email,
     });
@@ -53,7 +55,7 @@ export const authService = {
 
   resetPassword: async (
     token: string,
-    newPassword: string,
+    newPassword: string
   ): Promise<{ message: string }> => {
     const response = await axiosInstance.post("/auth/reset-password", {
       token,
