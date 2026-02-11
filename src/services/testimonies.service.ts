@@ -19,7 +19,7 @@ async function testServerConnectivity(): Promise<boolean> {
 }
 
 export function buildTestimonyFormData(
-  request: CreateOrUpdateTestimonyRequest
+  request: CreateOrUpdateTestimonyRequest,
 ): FormData {
   const fd = new FormData();
 
@@ -38,13 +38,16 @@ export function buildTestimonyFormData(
 
   // Optional string fields
   if (request.fullName) fd.append("fullName", request.fullName);
-  if (request.relationToEvent) fd.append("relationToEvent", request.relationToEvent);
+  if (request.relationToEvent)
+    fd.append("relationToEvent", request.relationToEvent);
   if (request.location) fd.append("location", request.location);
-  if (request.eventDescription) fd.append("eventDescription", request.eventDescription);
+  if (request.eventDescription)
+    fd.append("eventDescription", request.eventDescription);
   if (request.fullTestimony) fd.append("fullTestimony", request.fullTestimony);
 
   // Date fields
-  if (request.dateOfEventFrom) fd.append("dateOfEventFrom", request.dateOfEventFrom);
+  if (request.dateOfEventFrom)
+    fd.append("dateOfEventFrom", request.dateOfEventFrom);
   if (request.dateOfEventTo) fd.append("dateOfEventTo", request.dateOfEventTo);
 
   // Boolean and number fields
@@ -88,7 +91,7 @@ export function buildTestimonyFormData(
 // Testimonies API Service
 export const testimoniesService = {
   async createTestimony(
-    request: CreateOrUpdateTestimonyRequest
+    request: CreateOrUpdateTestimonyRequest,
   ): Promise<Testimony> {
     const fd = buildTestimonyFormData(request);
     const response = await axiosInstance.post<Testimony>("/testimonies", fd, {
@@ -123,7 +126,8 @@ export const testimoniesService = {
     if (filters?.search) params.search = filters.search;
     if (filters?.submissionType) params.submissionType = filters.submissionType;
     if (filters?.status) params.status = filters.status;
-    if (filters?.isPublished !== undefined) params.isPublished = filters.isPublished;
+    if (filters?.isPublished !== undefined)
+      params.isPublished = filters.isPublished;
     if (filters?.dateFrom) params.dateFrom = filters.dateFrom;
     if (filters?.dateTo) params.dateTo = filters.dateTo;
     if (filters?.skip !== undefined) params.skip = filters.skip;
@@ -153,51 +157,53 @@ export const testimoniesService = {
   // Get transcript for a testimony
   async getTranscript(id: number): Promise<TranscriptResponse> {
     const response = await axiosInstance.get<TranscriptResponse>(
-      `/testimonies/${id}/transcript`
+      `/testimonies/${id}/transcript`,
     );
     return response.data;
   },
 
+  // Get user's draft testimonies
+  async getDrafts(): Promise<Testimony[]> {
+    try {
+      const token = getAuthToken();
 
-// Get user's draft testimonies
-async getDrafts(): Promise<Testimony[]> {
-  try {
-    const token = getAuthToken();
-    
-    if (!token) {
-      console.error("No token available for getDrafts");
+      if (!token) {
+        console.error("No token available for getDrafts");
+        return [];
+      }
+
+      if (isTokenExpired(token)) {
+        console.error("Token is expired!");
+        localStorage.removeItem("authToken");
+        return [];
+      }
+
+      const response = await axiosInstance.get<{ data: Testimony[] }>(
+        "/testimonies/drafts",
+      );
+
+      return response.data.data.filter(
+        (testimony: Testimony) => testimony.isDraft === true,
+      );
+    } catch (error) {
+      console.error("Failed to get drafts:", error);
+
+      // More detailed error logging
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: unknown; status?: number; headers?: unknown };
+        };
+        console.error("Error details:", axiosError.response?.data);
+      }
+
       return [];
     }
-    
-    if (isTokenExpired(token)) {
-      console.error("Token is expired!");
-      localStorage.removeItem("authToken");
-      return [];
-    }
-    
-    
-    const response = await axiosInstance.get<{ data: Testimony[] }>("/testimonies/drafts");
-    
-    return response.data.data.filter((testimony: Testimony) => testimony.isDraft === true);
-  } catch (error) {
-    console.error("Failed to get drafts:", error);
-    
-    // More detailed error logging
-    if (error && typeof error === "object" && "response" in error) {
-      const axiosError = error as {
-        response?: { data?: unknown; status?: number; headers?: unknown };
-      };
-      console.error("Error details:", axiosError.response?.data);
-    }
-    
-    return [];
-  }
-},
+  },
 
   // Update testimony
   async updateTestimony(
     id: number,
-    request: CreateOrUpdateTestimonyRequest
+    request: CreateOrUpdateTestimonyRequest,
   ): Promise<Testimony> {
     const fd = buildTestimonyFormData(request);
     const response = await axiosInstance.patch<Testimony>(
@@ -205,7 +211,7 @@ async getDrafts(): Promise<Testimony[]> {
       fd,
       {
         timeout: 300000,
-      }
+      },
     );
     return response.data;
   },
@@ -216,11 +222,10 @@ async getDrafts(): Promise<Testimony[]> {
       fd,
       {
         timeout: 300000,
-      }
+      },
     );
     return response.data;
   },
-
 
   async uploadImage(file: File, retryCount = 0): Promise<ImageUploadResponse> {
     const maxRetries = 3;
@@ -228,7 +233,7 @@ async getDrafts(): Promise<Testimony[]> {
 
     if (file.size > maxSize) {
       throw new Error(
-        `File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 10MB`
+        `File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 10MB`,
       );
     }
 
@@ -242,7 +247,7 @@ async getDrafts(): Promise<Testimony[]> {
         {
           timeout: 120000,
           onUploadProgress: () => {},
-        }
+        },
       );
       return response.data;
     } catch (error: unknown) {
@@ -261,7 +266,7 @@ async getDrafts(): Promise<Testimony[]> {
         (errorCode === "ECONNABORTED" || errorCode === "NETWORK_ERROR")
       ) {
         await new Promise((resolve) =>
-          setTimeout(resolve, (retryCount + 1) * 2000)
+          setTimeout(resolve, (retryCount + 1) * 2000),
         );
         return this.uploadImage(file, retryCount + 1);
       }
@@ -291,7 +296,7 @@ async getDrafts(): Promise<Testimony[]> {
 
     if (file.size > maxSize) {
       throw new Error(
-        `Audio file too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 50MB`
+        `Audio file too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 50MB`,
       );
     }
 
@@ -305,7 +310,7 @@ async getDrafts(): Promise<Testimony[]> {
         {
           timeout: 180000,
           onUploadProgress: () => {},
-        }
+        },
       );
       return response.data;
     } catch (error: unknown) {
@@ -339,7 +344,7 @@ async getDrafts(): Promise<Testimony[]> {
 
     if (file.size > maxSize) {
       throw new Error(
-        `Video file too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 100MB`
+        `Video file too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Max: 100MB`,
       );
     }
 
@@ -352,7 +357,7 @@ async getDrafts(): Promise<Testimony[]> {
       {
         timeout: 300000,
         onUploadProgress: () => {},
-      }
+      },
     );
     return response.data;
   },
@@ -383,7 +388,7 @@ async getDrafts(): Promise<Testimony[]> {
       throw new Error(
         `Failed to upload all images: ${failedUploads
           .map((f) => f.fileName)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -395,17 +400,16 @@ async getDrafts(): Promise<Testimony[]> {
     id: number,
     onMessage: (data: { type: string; [key: string]: unknown }) => void,
     onError?: (error: Event) => void,
-    onComplete?: () => void
+    onComplete?: () => void,
   ): EventSource {
     const baseURL =
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      "https://storybook-backend-production-574d.up.railway.app";
+      process.env.NEXT_PUBLIC_API_BASE_URL || "https://storybook.andasy.dev";
     const token = getAuthToken();
-    
+
     const url = token
       ? `${baseURL}/testimonies/${id}/transcript/stream?token=${encodeURIComponent(token)}`
       : `${baseURL}/testimonies/${id}/transcript/stream`;
-    
+
     const eventSource = new EventSource(url);
 
     eventSource.onmessage = (event) => {
@@ -413,7 +417,7 @@ async getDrafts(): Promise<Testimony[]> {
         // Parse the SSE data format: "data: {...}"
         const dataStr = event.data.trim();
         if (dataStr.startsWith("data: ")) {
-          const jsonStr = dataStr.substring(6); // Remove "data: " prefix
+          const jsonStr = dataStr.substring(6);
           const data = JSON.parse(jsonStr);
           onMessage(data);
         } else {
@@ -422,7 +426,11 @@ async getDrafts(): Promise<Testimony[]> {
           onMessage(data);
         }
       } catch (error) {
-        console.error("Error parsing transcript stream data:", error, event.data);
+        console.error(
+          "Error parsing transcript stream data:",
+          error,
+          event.data,
+        );
       }
     };
 
@@ -431,7 +439,6 @@ async getDrafts(): Promise<Testimony[]> {
       if (onError) {
         onError(error);
       }
-      // Don't close on error - let it retry
     };
 
     // Listen for complete event
@@ -445,6 +452,5 @@ async getDrafts(): Promise<Testimony[]> {
     return eventSource;
   },
 };
-
 
 export default testimoniesService;
