@@ -265,7 +265,7 @@ export default function Navigation({
           >
             <div className="relative shrink-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-black rounded-xl sm:rounded-2xl flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.15)] group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-500 relative overflow-hidden">
-                <div className="absolute inset-[2px] bg-white/5 rounded-[10px] sm:rounded-[14px]" />
+                <div className="absolute inset-0.5 bg-white/5 rounded-[10px] sm:rounded-[14px]" />
                 <span className="text-white font-black text-lg sm:text-xl md:text-2xl relative z-10 tracking-tight">
                   i
                 </span>
@@ -287,7 +287,10 @@ export default function Navigation({
             <div className="flex items-center gap-0.5 sm:gap-1 bg-black/5 backdrop-blur-md rounded-full px-1 sm:px-2 py-1.5 sm:py-2 border border-black/5">
               {navItems.map((item) => {
                 let active = isActive(item.href);
-                if ((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) {
+                if (
+                  (item.href === "/tour" || item.href === "/virtual-tours") &&
+                  pathname?.startsWith("/tour")
+                ) {
                   active = true;
                 }
                 return (
@@ -303,7 +306,13 @@ export default function Navigation({
                           : "text-gray-700 hover:text-black! hover:bg-white/80"
                       }`}
                     >
-                      <span className="relative z-10">{((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) ? "Virtual Tours" : item.label}</span>
+                      <span className="relative z-10">
+                        {(item.href === "/tour" ||
+                          item.href === "/virtual-tours") &&
+                        pathname?.startsWith("/tour")
+                          ? "Virtual Tours"
+                          : item.label}
+                      </span>
                       {!active && (
                         <div className="absolute inset-0 text-gray-900 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 shadow-sm" />
                       )}
@@ -358,7 +367,7 @@ export default function Navigation({
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`md:hidden p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center relative z-10 shrink-0 cursor-pointer ${
+              className={`md:hidden p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-11 min-h-11 sm:min-w-12 sm:min-h-12 flex items-center justify-center relative z-10 shrink-0 cursor-pointer ${
                 isMobileMenuOpen
                   ? "bg-black shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
                   : "bg-white/80 hover:bg-white border border-gray-200 shadow-sm active:scale-95"
@@ -387,8 +396,11 @@ export default function Navigation({
           <div className="p-4 sm:p-6">
             <div className="space-y-2 sm:space-y-2.5 pb-4 sm:pb-6 border-b border-gray-200/50">
               {navItems.map((item, index) => {
-                 let active = isActive(item.href);
-                if ((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) {
+                let active = isActive(item.href);
+                if (
+                  (item.href === "/tour" || item.href === "/virtual-tours") &&
+                  pathname?.startsWith("/tour")
+                ) {
                   active = true;
                 }
                 return (
@@ -398,22 +410,32 @@ export default function Navigation({
                     onClick={(e) => handleMobileNavClick(e, item.href)}
                   >
                     <button
-                      className={`w-full text-left px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-[56px] flex items-center group relative overflow-hidden touch-manipulation cursor-pointer ${
+                      className={`w-full text-left px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-14 flex items-center group relative overflow-hidden touch-manipulation cursor-pointer ${
                         active
                           ? "text-black bg-gray-100"
                           : "text-gray-800 hover:text-black bg-gray-50/50 hover:bg-gray-100 active:bg-gray-200"
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-300 ${
-                        active 
-                          ? "h-8 bg-black" 
-                          : "h-0 group-hover:h-6 sm:group-hover:h-8 bg-black"
-                      }`} />
-                      <span className={`transition-all duration-300 ${
-                        active ? "ml-3" : "ml-1 group-hover:ml-2 sm:group-hover:ml-3"
-                      }`}>
-                        {((item.href === "/tour" || item.href === "/virtual-tours") && pathname?.startsWith("/tour")) ? "Virtual Tours" : item.label}
+                      <div
+                        className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-300 ${
+                          active
+                            ? "h-8 bg-black"
+                            : "h-0 group-hover:h-6 sm:group-hover:h-8 bg-black"
+                        }`}
+                      />
+                      <span
+                        className={`transition-all duration-300 ${
+                          active
+                            ? "ml-3"
+                            : "ml-1 group-hover:ml-2 sm:group-hover:ml-3"
+                        }`}
+                      >
+                        {(item.href === "/tour" ||
+                          item.href === "/virtual-tours") &&
+                        pathname?.startsWith("/tour")
+                          ? "Virtual Tours"
+                          : item.label}
                       </span>
                     </button>
                   </Link>
@@ -428,7 +450,7 @@ export default function Navigation({
                   href="/share-testimony"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <button className="w-full flex items-center justify-center gap-2.5 sm:gap-3 px-4 sm:px-6 py-3.5 sm:py-4 bg-black hover:bg-gray-800 active:bg-gray-900 text-white text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-[56px] shadow-[0_4px_16px_rgba(0,0,0,0.2)] active:shadow-[0_2px_8px_rgba(0,0,0,0.3)] active:scale-[0.98] relative overflow-hidden group touch-manipulation cursor-pointer">
+                  <button className="w-full flex items-center justify-center gap-2.5 sm:gap-3 px-4 sm:px-6 py-3.5 sm:py-4 bg-black hover:bg-gray-800 active:bg-gray-900 text-white text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-14 shadow-[0_4px_16px_rgba(0,0,0,0.2)] active:shadow-[0_2px_8px_rgba(0,0,0,0.3)] active:scale-[0.98] relative overflow-hidden group touch-manipulation cursor-pointer">
                     <div className="absolute inset-0 -translate-x-full group-active:translate-x-full transition-transform duration-500 bg-linear-to-r from-transparent via-white/10 to-transparent" />
                     <LuShare className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 shrink-0" />
                     <span className="relative z-10">Share Your Testimony</span>
@@ -472,7 +494,7 @@ export default function Navigation({
                     href="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <button className="w-full px-4 sm:px-6 py-3.5 sm:py-4 bg-white border border-gray-300 hover:border-gray-400 active:border-gray-500 text-gray-800 hover:text-black text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-[56px] active:bg-gray-50 active:scale-[0.98] shadow-sm mt-2 touch-manipulation cursor-pointer">
+                    <button className="w-full px-4 sm:px-6 py-3.5 sm:py-4 bg-white border border-gray-300 hover:border-gray-400 active:border-gray-500 text-gray-800 hover:text-black text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transition-all duration-200 min-h-[52px] sm:min-h-14 active:bg-gray-50 active:scale-[0.98] shadow-sm mt-2 touch-manipulation cursor-pointer">
                       Sign in
                     </button>
                   </Link>
