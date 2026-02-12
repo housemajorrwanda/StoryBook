@@ -296,7 +296,7 @@ export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
 
           // Regular stories
           return (
-            <article key={testimony.id} className="border-t border-gray-100/60">
+            <article key={testimony.id} className="border-t border-gray-300">
               <Link
                 href={`/testimonies/${slug}`}
                 className="group flex gap-5 md:gap-6 py-7 md:py-8"
