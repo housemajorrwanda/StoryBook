@@ -34,10 +34,10 @@ export default function PrivacyPolicyPage() {
             <p>
               HouseMajor (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;)
               operates the iHame platform (&quot;Platform&quot;), a digital
-              archive dedicated to preserving testimonies and historical
-              records related to the 1994 Genocide against the Tutsi in Rwanda.
-              This Privacy Policy explains how we collect, use, store, and
-              protect your personal information when you use our Platform.
+              archive dedicated to preserving testimonies and historical records
+              related to the 1994 Genocide against the Tutsi in Rwanda. This
+              Privacy Policy explains how we collect, use, store, and protect
+              your personal information when you use our Platform.
             </p>
           </section>
 
@@ -64,8 +64,8 @@ export default function PrivacyPolicyPage() {
                 submit.
               </li>
               <li>
-                <strong>Communication Data:</strong> Messages and
-                correspondence you send to us.
+                <strong>Communication Data:</strong> Messages and correspondence
+                you send to us.
               </li>
             </ul>
 
@@ -102,9 +102,7 @@ export default function PrivacyPolicyPage() {
               3. How We Use Your Information
             </h2>
             <ul className="list-disc pl-5 space-y-2">
-              <li>
-                To create and manage your account.
-              </li>
+              <li>To create and manage your account.</li>
               <li>
                 To publish and preserve testimonies in the digital archive.
               </li>
@@ -115,12 +113,8 @@ export default function PrivacyPolicyPage() {
               <li>
                 To improve the Platform, its features, and user experience.
               </li>
-              <li>
-                To ensure the security and integrity of the Platform.
-              </li>
-              <li>
-                To comply with legal obligations.
-              </li>
+              <li>To ensure the security and integrity of the Platform.</li>
+              <li>To comply with legal obligations.</li>
             </ul>
           </section>
 
@@ -146,8 +140,8 @@ export default function PrivacyPolicyPage() {
                 obligations.
               </li>
               <li>
-                <strong>Legal Requirements:</strong> We may disclose
-                information if required by law, regulation, or legal process.
+                <strong>Legal Requirements:</strong> We may disclose information
+                if required by law, regulation, or legal process.
               </li>
             </ul>
           </section>
@@ -158,8 +152,8 @@ export default function PrivacyPolicyPage() {
             </h2>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                Your data is stored on secure servers with encryption in
-                transit and at rest.
+                Your data is stored on secure servers with encryption in transit
+                and at rest.
               </li>
               <li>
                 Authentication tokens are stored securely using HTTP-only
@@ -167,8 +161,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 We implement industry-standard security measures to protect
-                against unauthorized access, alteration, or destruction of
-                data.
+                against unauthorized access, alteration, or destruction of data.
               </li>
               <li>
                 While we strive to protect your information, no method of
@@ -220,11 +213,11 @@ export default function PrivacyPolicyPage() {
             </h2>
             <p>
               Given the historical and archival nature of this Platform,
-              published testimonies may be retained even after account
-              deletion, unless you specifically request their removal. This
-              ensures the preservation of historical records for future
-              generations. We will always respect your wishes regarding the
-              handling of sensitive personal stories.
+              published testimonies may be retained even after account deletion,
+              unless you specifically request their removal. This ensures the
+              preservation of historical records for future generations. We will
+              always respect your wishes regarding the handling of sensitive
+              personal stories.
             </p>
           </section>
 
@@ -234,8 +227,8 @@ export default function PrivacyPolicyPage() {
             </h2>
             <p>
               We use cookies and local storage to maintain your authentication
-              session and remember your preferences. These are essential for
-              the Platform to function properly. We do not use third-party
+              session and remember your preferences. These are essential for the
+              Platform to function properly. We do not use third-party
               advertising cookies.
             </p>
           </section>
@@ -247,8 +240,8 @@ export default function PrivacyPolicyPage() {
             <p>
               The Platform is not intended for children under 16. We do not
               knowingly collect personal information from children under 16. If
-              we become aware that we have collected data from a child under
-              16, we will take steps to delete that information.
+              we become aware that we have collected data from a child under 16,
+              we will take steps to delete that information.
             </p>
           </section>
 
@@ -270,8 +263,8 @@ export default function PrivacyPolicyPage() {
               11. Contact Us
             </h2>
             <p>
-              If you have any questions or concerns about this Privacy Policy
-              or how we handle your data, please contact us at{" "}
+              If you have any questions or concerns about this Privacy Policy or
+              how we handle your data, please contact us at{" "}
               <a
                 href="mailto:support@housemajor.rw"
                 className="text-gray-900 font-semibold underline"
@@ -286,10 +279,7 @@ export default function PrivacyPolicyPage() {
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-xs text-gray-400">
             This Privacy Policy should be read together with our{" "}
-            <Link
-              href="/terms"
-              className="text-gray-600 underline"
-            >
+            <Link href="/terms" className="text-gray-600 underline">
               Terms of Service
             </Link>
             .
