@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  LuCalendar,
-  LuUser,
-  LuMapPin,
-  LuArrowLeft,
-  LuLoaderCircle,
-  LuPencilLine,
-} from "react-icons/lu";
+  ArrowLeft,
+  Calendar,
+  Loader2,
+  MapPin,
+  Pencil,
+  AlertCircle,
+  Search,
+} from "lucide-react";
 import { useTestimony } from "@/hooks/useTestimonies";
 import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
 import AudioPlayer from "./AudioPlayer";
@@ -57,12 +58,10 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 via-gray-100 to-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <LuLoaderCircle className="w-12 h-12 animate-spin text-gray-600" />
-          <span className="text-lg font-medium text-gray-700">
-            Loading testimony...
-          </span>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <span className="text-sm text-gray-500">Loading story...</span>
         </div>
       </div>
     );
@@ -70,23 +69,23 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 via-gray-100 to-gray-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">⚠️</span>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center max-w-sm">
+          <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-6 h-6 text-red-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Failed to Load Testimony
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            Failed to load story
           </h2>
-          <p className="text-gray-600 mb-8">
-            The testimony you&apos;re looking for might not exist or be unavailable.
+          <p className="text-sm text-gray-500 mb-6">
+            This testimony might not exist or is temporarily unavailable.
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
           >
-            <LuArrowLeft className="w-4 h-4" />
-            Back to Testimonies
+            <ArrowLeft className="w-4 h-4" />
+            Back to stories
           </Link>
         </div>
       </div>
@@ -95,23 +94,23 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
 
   if (!testimony) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 via-gray-100 to-gray-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🔍</span>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center max-w-sm">
+          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-6 h-6 text-gray-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Testimony Not Found
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            Story not found
           </h2>
-          <p className="text-gray-600 mb-8">
+          <p className="text-sm text-gray-500 mb-6">
             The testimony you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
           >
-            <LuArrowLeft className="w-4 h-4" />
-            Back to Testimonies
+            <ArrowLeft className="w-4 h-4" />
+            Back to stories
           </Link>
         </div>
       </div>
@@ -136,219 +135,292 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
       ownerId === authState.userId
   );
 
+  const authorName =
+    testimony.identityPreference === "anonymous"
+      ? "Anonymous"
+      : testimony.fullName;
+
+  const coverImage = testimony.images?.[0]?.imageUrl;
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 via-gray-100 to-gray-50">
-      {/* Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-5xl">
-        <article className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-          {/* Hero Section */}
-          <div className="p-6 sm:p-8 md:p-12 bg-linear-to-br from-gray-50 via-gray-100 to-gray-50 border-b border-gray-100">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3 text-sm">
-                <span className="px-4 py-1.5 bg-gray-900 text-white rounded-full capitalize font-medium shadow-sm">
-                  {testimony.submissionType} Testimony
-                </span>
-                <span className="text-gray-400">•</span>
-                <span className="text-gray-600">
-                  {formatDate(testimony.createdAt)}
-                </span>
-              </div>
-              {canEdit && (
-                <Link
-                  href={`/share-testimony?edit=${testimony.id}`}
-                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white/80 px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:border-gray-300 hover:bg-white transition-colors"
-                >
-                  <LuPencilLine className="w-4 h-4" />
-                  Edit my testimony
-                </Link>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
+        {/* Back navigation */}
+        <div className="pt-6 pb-8 md:pt-8 md:pb-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            All stories
+          </Link>
+        </div>
+
+        <article>
+          {/* Header */}
+          <header className="mb-8 md:mb-10">
+            {/* Meta line */}
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400 mb-5">
+              <span className="capitalize">{testimony.submissionType}</span>
+              <span className="w-1 h-1 rounded-full bg-gray-300" />
+              <span>{formatDate(testimony.createdAt)}</span>
+              {testimony.location && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-gray-300" />
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {testimony.location}
+                  </span>
+                </>
               )}
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+            {/* Title */}
+            <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-bold text-gray-900 leading-tight mb-5">
               {testimony.eventTitle}
             </h1>
 
+            {/* Description */}
             {testimony.eventDescription && (
-              <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-500 leading-relaxed mb-6">
                 {testimony.eventDescription}
               </p>
             )}
 
-            {/* Metadata Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <LuUser className="w-5 h-5 text-gray-700" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-                      Shared by
+            {/* Author + Edit */}
+            <div className="flex items-center justify-between pb-8 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-bold">
+                  {authorName[0]?.toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {authorName}
+                  </p>
+                  {testimony.relationToEvent && (
+                    <p className="text-xs text-gray-400 capitalize">
+                      {testimony.relationToEvent}
                     </p>
-                    <p className="font-semibold text-gray-900 truncate">
-                      {testimony.identityPreference === "anonymous"
-                        ? "Anonymous"
-                        : testimony.fullName}
-                    </p>
-                  </div>
+                  )}
                 </div>
               </div>
-
-              <div className="p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <LuMapPin className="w-5 h-5 text-gray-700" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-                      Location
-                    </p>
-                    <p className="font-semibold text-gray-900 truncate">
-                      {testimony.location}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {(testimony.dateOfEventFrom || testimony.dateOfEventTo) && (
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors sm:col-span-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <LuCalendar className="w-5 h-5 text-gray-700" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-                        Date of Event
-                      </p>
-                      <p className="font-semibold text-gray-900 text-xs">
-                        {testimony.dateOfEventFrom && testimony.dateOfEventTo
-                          ? `${formatDate(testimony.dateOfEventFrom)} - ${formatDate(
-                              testimony.dateOfEventTo
-                            )}`
-                          : testimony.dateOfEventFrom
-                          ? formatDate(testimony.dateOfEventFrom)
-                          : formatDate(testimony.dateOfEventTo!)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              {canEdit && (
+                <Link
+                  href={`/share-testimony?edit=${testimony.id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-500 border border-gray-200 rounded-md hover:text-gray-700 hover:border-gray-300 transition-colors"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Edit
+                </Link>
               )}
             </div>
-          </div>
+          </header>
 
-          {/* Media Section */}
-          {(testimony.audioUrl ||
-            testimony.videoUrl ||
-            (testimony.images && testimony.images.length > 0)) && (
-            <div className="p-6 sm:p-8 md:p-12 bg-gray-50">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="h-1 w-12 bg-gray-900 rounded-full"></div>
-                <h2 className="text-2xl font-bold text-gray-900">Media</h2>
+          {/* === VIDEO TESTIMONY === */}
+          {testimony.submissionType === "video" && testimony.videoUrl && (
+            <>
+              <div className="mb-10 md:mb-12">
+                <VideoPlayer
+                  src={testimony.videoUrl}
+                  duration={testimony.videoDuration}
+                  testimonyId={testimony.id}
+                />
               </div>
 
-              {/* Audio Player */}
-              {testimony.audioUrl && (
-                <div className="mb-8">
-                  <AudioPlayer
-                    src={testimony.audioUrl}
-                    duration={testimony.audioDuration}
-                    testimonyId={testimony.id}
+              {/* Event date */}
+              {(testimony.dateOfEventFrom || testimony.dateOfEventTo) && (
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {testimony.dateOfEventFrom && testimony.dateOfEventTo
+                      ? `${formatDate(testimony.dateOfEventFrom)} — ${formatDate(testimony.dateOfEventTo)}`
+                      : testimony.dateOfEventFrom
+                        ? formatDate(testimony.dateOfEventFrom)
+                        : formatDate(testimony.dateOfEventTo!)}
+                  </span>
+                </div>
+              )}
+
+              {/* Transcript / written content if available */}
+              {testimony.fullTestimony && (
+                <div className="mt-8 pt-8 border-t border-gray-100">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">
+                    Transcript
+                  </p>
+                  <div
+                    className="prose prose-base max-w-none text-gray-600 leading-[1.8] prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900"
+                    dangerouslySetInnerHTML={{ __html: testimony.fullTestimony }}
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          {/* === AUDIO TESTIMONY === */}
+          {testimony.submissionType === "audio" && testimony.audioUrl && (
+            <>
+              {/* Cover image if available */}
+              {coverImage && (
+                <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-8">
+                  <Image
+                    src={coverImage}
+                    alt={testimony.eventTitle}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 768px) 720px, 100vw"
+                    priority
                   />
                 </div>
               )}
 
-              {/* Video Player */}
-              {testimony.videoUrl && (
-                <div className="mb-8">
-                  <VideoPlayer
-                    src={testimony.videoUrl}
-                    duration={testimony.videoDuration}
-                    testimonyId={testimony.id}
+              <div className="mb-10 md:mb-12">
+                <AudioPlayer
+                  src={testimony.audioUrl}
+                  duration={testimony.audioDuration}
+                  testimonyId={testimony.id}
+                />
+              </div>
+
+              {/* Event date */}
+              {(testimony.dateOfEventFrom || testimony.dateOfEventTo) && (
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {testimony.dateOfEventFrom && testimony.dateOfEventTo
+                      ? `${formatDate(testimony.dateOfEventFrom)} — ${formatDate(testimony.dateOfEventTo)}`
+                      : testimony.dateOfEventFrom
+                        ? formatDate(testimony.dateOfEventFrom)
+                        : formatDate(testimony.dateOfEventTo!)}
+                  </span>
+                </div>
+              )}
+
+              {/* Transcript / written content if available */}
+              {testimony.fullTestimony && (
+                <div className="mt-8 pt-8 border-t border-gray-100">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">
+                    Transcript
+                  </p>
+                  <div
+                    className="prose prose-base max-w-none text-gray-600 leading-[1.8] prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900"
+                    dangerouslySetInnerHTML={{ __html: testimony.fullTestimony }}
                   />
                 </div>
               )}
 
-              {/* Images Gallery */}
-              {testimony.images && testimony.images.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                    <span>Photo Gallery</span>
-                    <span className="text-sm font-normal text-gray-500">
-                      ({testimony.images.length} {testimony.images.length === 1 ? "photo" : "photos"})
-                    </span>
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {testimony.images.map((image, index) => (
-                      <div
-                        key={image.id || index}
-                        className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200"
-                      >
-                        <div className="relative aspect-4/3 overflow-hidden">
+              {/* Additional images */}
+              {testimony.images && testimony.images.length > 1 && (
+                <div className="mt-10 pt-8 border-t border-gray-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {testimony.images.slice(1).map((image, index) => (
+                      <div key={image.id || index} className="group rounded-xl overflow-hidden">
+                        <div className="relative aspect-4/3 overflow-hidden rounded-xl">
                           <Image
                             src={image.imageUrl}
-                            alt={image.description || `Image ${index + 1}`}
+                            alt={image.description || `Image ${index + 2}`}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
                             sizes="(max-width: 640px) 100vw, 50vw"
                           />
-                          <div className="absolute inset-0 bg-linear-to-br from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                         {image.description && (
-                          <div className="p-4 bg-white">
-                            <p className="text-sm text-gray-700 leading-relaxed">
-                              {image.description}
-                            </p>
-                          </div>
+                          <p className="text-xs text-gray-400 mt-2 px-1">{image.description}</p>
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
 
-          {/* Testimony Content - Only show for written testimonies or when no audio/video */}
-          {(testimony.submissionType === "written" || (!testimony.audioUrl && !testimony.videoUrl)) && (
-            <div className="p-6 sm:p-8 md:p-12">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="h-1 w-12 bg-gray-900 rounded-full"></div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {testimony.submissionType === "written" 
-                    ? "Full Testimony" 
-                    : "Full Transcript"}
-                </h2>
-              </div>
+          {/* === WRITTEN TESTIMONY === */}
+          {(testimony.submissionType === "written" ||
+            (!testimony.audioUrl && !testimony.videoUrl)) && (
+            <>
+              {/* Cover image */}
+              {coverImage && (
+                <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-10 md:mb-12">
+                  <Image
+                    src={coverImage}
+                    alt={testimony.eventTitle}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 768px) 720px, 100vw"
+                    priority
+                  />
+                </div>
+              )}
+
+              {/* Event date */}
+              {(testimony.dateOfEventFrom || testimony.dateOfEventTo) && (
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-8">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {testimony.dateOfEventFrom && testimony.dateOfEventTo
+                      ? `${formatDate(testimony.dateOfEventFrom)} — ${formatDate(testimony.dateOfEventTo)}`
+                      : testimony.dateOfEventFrom
+                        ? formatDate(testimony.dateOfEventFrom)
+                        : formatDate(testimony.dateOfEventTo!)}
+                  </span>
+                </div>
+              )}
+
+              {/* Full testimony text */}
               <div
-                className="prose prose-lg max-w-none text-gray-700 leading-relaxed prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900"
+                className="prose prose-lg max-w-none text-gray-700 leading-[1.8] prose-headings:text-gray-900 prose-headings:font-bold prose-p:text-gray-700 prose-strong:text-gray-900 prose-blockquote:border-gray-900 prose-blockquote:text-gray-600 prose-a:text-gray-900"
                 dangerouslySetInnerHTML={{ __html: testimony.fullTestimony }}
               />
 
-              {/* Author Info */}
-              {testimony.identityPreference === "public" && (
-                <div className="mt-12 pt-8 border-t border-gray-200">
-                  <div className="flex items-center gap-4 p-6 bg-gray-50 rounded-2xl">
-                    <div className="w-14 h-14 bg-linear-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center shadow-inner">
-                      <LuUser className="w-7 h-7 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900 text-lg">
-                        {testimony.fullName}
-                      </p>
-                      <p className="text-sm text-gray-600 capitalize">
-                        {testimony.relationToEvent || "Witness"}
-                      </p>
-                    </div>
+              {/* Additional images */}
+              {testimony.images && testimony.images.length > 1 && (
+                <div className="mt-12 pt-10 border-t border-gray-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {testimony.images.slice(1).map((image, index) => (
+                      <div key={image.id || index} className="group rounded-xl overflow-hidden">
+                        <div className="relative aspect-4/3 overflow-hidden rounded-xl">
+                          <Image
+                            src={image.imageUrl}
+                            alt={image.description || `Image ${index + 2}`}
+                            fill
+                            className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                            sizes="(max-width: 640px) 100vw, 50vw"
+                          />
+                        </div>
+                        {image.description && (
+                          <p className="text-xs text-gray-400 mt-2 px-1">{image.description}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
+            </>
+          )}
+
+          {/* Author footer */}
+          {testimony.identityPreference === "public" && (
+            <div className="mt-12 pt-8 border-t border-gray-100">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-gray-900 text-white flex items-center justify-center text-base font-bold">
+                  {testimony.fullName[0]?.toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {testimony.fullName}
+                  </p>
+                  <p className="text-sm text-gray-400 capitalize">
+                    {testimony.relationToEvent || "Witness"}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </article>
 
-        {/* AI Connections Section */}
+        {/* Connections */}
         {testimony.connections && testimony.connections.length > 0 && (
-          <div className="mt-12">
+          <div className="mt-14 pt-10 border-t border-gray-100">
             <TestimonyConnections
               connections={testimony.connections}
               currentTestimonyId={testimony.id}
@@ -356,14 +428,14 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
           </div>
         )}
 
-        {/* Navigation */}
-        <div className="mt-12 text-center">
+        {/* Back to stories */}
+        <div className="py-14 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border border-gray-200"
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-gray-700 transition-colors"
           >
-            <LuArrowLeft className="w-5 h-5" />
-            View More Testimonies
+            <ArrowLeft className="w-4 h-4" />
+            Back to all stories
           </Link>
         </div>
       </div>

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGoogleAuth } from "@/hooks/auth/use-auth-queries";
 import { setAuthToken } from "@/lib/cookies";
 import { decodeAuthToken } from "@/lib/decodeToken";
 import axiosInstance from "@/config/axiosInstance";
+import { authService } from "@/services/auth.service";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { Loader2, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
@@ -17,78 +17,86 @@ function AuthSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { handleCallback } = useGoogleAuth();
   const token = searchParams.get("token");
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [statusText, setStatusText] = useState("Verifying your credentials...");
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     const processAuth = async () => {
       try {
-        if (token) {
+        let accessToken: string | null = token;
+
+        if (accessToken) {
+          // Token was passed directly in the URL
           setStatusText("Securing your session...");
-          setAuthToken(token);
+          setAuthToken(accessToken);
+        } else {
+          // No token in URL — try fetching via Google success endpoint
+          setStatusText("Completing Google sign-in...");
+          const data = await authService.handleGoogleCallback();
+          accessToken = data.access_token || null;
 
-          try {
-            const response = await axiosInstance.get("/auth/me");
-            if (response.data) {
-              queryClient.setQueryData(["user"], response.data);
-            }
-          } catch {
-            console.warn(
-              "[AuthSuccess] Could not fetch user data, using token payload",
-            );
-
-            const decoded = decodeAuthToken();
-            if (decoded) {
-              queryClient.setQueryData(["user"], {
-                id: decoded.sub,
-                email: decoded.email,
-                fullName: decoded.fullName,
-                role: decoded.role,
-              });
-            }
+          if (accessToken) {
+            setAuthToken(accessToken);
           }
 
-          if (typeof window !== "undefined") {
-            sessionStorage.setItem("lastLoginTime", Date.now().toString());
+          if (data.user) {
+            queryClient.setQueryData(["user"], data.user);
           }
-
-          setStatusText("Authentication successful!");
-          setAuthState("success");
-          toast.success("Authentication successful!");
-
-          // Brief delay so user sees the success state
-          await new Promise((resolve) => setTimeout(resolve, 800));
-
-          // Decode token to get user info for redirect
-          const decoded = decodeAuthToken();
-          if (decoded) {
-            const userRole = decoded.role;
-            if (userRole === "admin") {
-              router.push("/dashboard");
-            } else {
-              router.push("/");
-            }
-          } else {
-            router.push("/");
-          }
-          return;
         }
 
-        // Otherwise, try to handle Google callback (for /auth/google/success route)
-        setStatusText("Completing Google sign-in...");
-        await handleCallback();
+        // Fetch user data
+        setStatusText("Loading your profile...");
+        try {
+          const response = await axiosInstance.get("/auth/me");
+          if (response.data) {
+            queryClient.setQueryData(["user"], response.data);
+          }
+        } catch {
+          const decoded = decodeAuthToken();
+          if (decoded) {
+            queryClient.setQueryData(["user"], {
+              id: decoded.sub,
+              email: decoded.email,
+              fullName: decoded.fullName,
+              role: decoded.role,
+            });
+          }
+        }
+
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("lastLoginTime", Date.now().toString());
+        }
+
+        setStatusText("Authentication successful!");
+        setAuthState("success");
+        toast.success("Authentication successful!");
+
+        // Brief delay so user sees the success state
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        // Redirect based on user role
+        const decoded = decodeAuthToken();
+        const userRole = decoded?.role;
+        if (userRole === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
       } catch (error) {
         console.error("[AuthSuccess] Error processing auth:", error);
         setAuthState("error");
-        setStatusText("Authentication failed");
+        setStatusText("Authentication failed. Please try again.");
         toast.error("Authentication failed. Please try again.");
       }
     };
 
     processAuth();
-  }, [token, handleCallback, router, queryClient]);
+  }, [token, router, queryClient, searchParams]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
