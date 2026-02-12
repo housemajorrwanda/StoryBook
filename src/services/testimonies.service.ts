@@ -8,7 +8,6 @@ import {
 import axiosInstance from "@/config/axiosInstance";
 import { getAuthToken, isTokenExpired } from "@/lib/cookies";
 
-// Helper function to test server connectivity
 async function testServerConnectivity(): Promise<boolean> {
   try {
     await axiosInstance.get("/health", { timeout: 5000 });

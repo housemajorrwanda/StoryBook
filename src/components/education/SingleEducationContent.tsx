@@ -22,6 +22,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import EducationCard from "./education-card";
 
@@ -198,10 +199,11 @@ export default function SingleEducationContent({
 
   const getImageElement = () => (
     <>
-      <img
+      <Image
         src={content?.imageUrl || ''}
         alt={content?.title || 'Education content'}
-        className={`w-full h-full object-cover rounded-2xl transition-opacity duration-300 ${
+        fill
+        className={`object-cover rounded-2xl transition-opacity duration-300 ${
           imageLoaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setImageLoaded(true)}
