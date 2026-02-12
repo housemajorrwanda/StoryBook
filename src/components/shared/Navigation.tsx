@@ -174,33 +174,33 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
           isScrolled
-            ? "bg-white/90 backdrop-blur-xl border-b border-gray-200/60 shadow-sm"
+            ? "bg-white/80 backdrop-blur-md border-b border-gray-100"
             : variant === "default"
-              ? "bg-white/80 backdrop-blur-lg border-b border-transparent"
+              ? "bg-white/60 backdrop-blur-sm border-b border-transparent"
               : "bg-transparent"
         }`}
       >
-        <div className="container mx-auto px-5 sm:px-6 lg:px-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 shrink-0 group">
-              <div className="w-9 h-9 md:w-10 md:h-10 bg-gray-900 rounded-xl flex items-center justify-center group-hover:bg-black transition-colors">
-                <span className="text-white font-black text-lg md:text-xl">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+              <div className="w-8 h-8 md:w-9 md:h-9 bg-gray-900 rounded-lg flex items-center justify-center group-hover:bg-black transition-colors">
+                <span className="text-white font-bold text-base md:text-lg">
                   i
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg md:text-xl font-black text-gray-900 tracking-tight leading-none">
+                <span className="text-base md:text-lg font-bold text-gray-900 tracking-tight leading-none">
                   iHame
                 </span>
-                <span className="text-[10px] font-semibold text-gray-400 tracking-wider uppercase leading-none mt-0.5">
+                <span className="text-[9px] font-medium text-gray-300 tracking-wider uppercase leading-none mt-0.5">
                   StoryBook
                 </span>
               </div>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-0.5">
               {navItems.map((item) => {
                 const active = resolveActive(item);
                 return (
@@ -208,10 +208,10 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
                     key={item.href}
                     href={item.href}
                     onClick={(e) => handleDesktopNavClick(e, item.href)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-3.5 py-1.5 text-sm rounded-md transition-colors ${
                       active
-                        ? "text-gray-900 bg-gray-100"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        ? "text-gray-900 font-medium"
+                        : "text-gray-400 font-normal hover:text-gray-700"
                     }`}
                   >
                     {resolveLabel(item)}
@@ -221,11 +221,11 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
             </nav>
 
             {/* Right side */}
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               {mounted && user && (
                 <Link href="/share-testimony" className="hidden sm:block">
-                  <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-black transition-colors cursor-pointer active:scale-[0.98]">
-                    <Share2 className="w-4 h-4" />
+                  <button className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors cursor-pointer active:scale-[0.98]">
+                    <Share2 className="w-3.5 h-3.5" />
                     <span className="hidden lg:inline">Share Testimony</span>
                     <span className="lg:hidden">Share</span>
                   </button>
@@ -236,7 +236,7 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
                 <div className="hidden md:block">
                   <UserAvatar
                     user={user}
-                    size="lg"
+                    size="md"
                     showDropdown={true}
                     onLogout={handleLogout}
                   />
@@ -245,7 +245,7 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
 
               {mounted && !user && (
                 <Link href="/login" className="hidden md:block">
-                  <button className="px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer">
+                  <button className="px-3.5 py-1.5 text-sm font-medium text-gray-500 border border-gray-200 rounded-md hover:text-gray-700 hover:border-gray-300 transition-colors cursor-pointer">
                     Sign in
                   </button>
                 </Link>
@@ -258,7 +258,7 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
                 className={`md:hidden p-2 rounded-lg transition-colors cursor-pointer ${
                   isMobileMenuOpen
                     ? "bg-gray-900 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-500 hover:bg-gray-50"
                 }`}
                 aria-label="Toggle menu"
                 aria-expanded={isMobileMenuOpen}
@@ -274,108 +274,94 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          onClick={() => setIsMobileMenuOpen(false)}
-          aria-label="Close menu"
-        />
-      )}
+      {/* Mobile Menu - Full Screen Overlay */}
+      <div
+        className={`md:hidden fixed inset-0 top-16 z-50 flex flex-col bg-white transition-all duration-300 ease-out ${
+          isMobileMenuOpen
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 -translate-y-4 pointer-events-none"
+        }`}
+        role="dialog"
+        aria-label="Navigation menu"
+      >
+        {/* Nav links */}
+        <nav className="flex-1 flex flex-col px-6 pt-8 gap-1">
+          {navItems.map((item) => {
+            const active = resolveActive(item);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={(e) => handleMobileNavClick(e, item.href)}
+              >
+                <div
+                  className={`px-4 py-4 text-lg font-medium rounded-xl transition-colors ${
+                    active
+                      ? "text-gray-900 bg-gray-50"
+                      : "text-gray-500 hover:text-gray-900 active:bg-gray-50"
+                  }`}
+                >
+                  {resolveLabel(item)}
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-16 left-0 right-0 z-50 px-4 pt-2">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
-            <div className="p-3">
-              {/* Nav links */}
-              <div className="space-y-0.5">
-                {navItems.map((item) => {
-                  const active = resolveActive(item);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={(e) => handleMobileNavClick(e, item.href)}
-                    >
-                      <div
-                        className={`px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                          active
-                            ? "text-gray-900 bg-gray-100"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100"
-                        }`}
-                      >
-                        {resolveLabel(item)}
-                      </div>
-                    </Link>
-                  );
-                })}
+        {/* Bottom Section */}
+        <div className="px-6 pb-8 space-y-3 border-t border-gray-100 pt-6">
+          {mounted && user && (
+            <Link
+              href="/share-testimony"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <div className="flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-900 text-white text-base font-medium rounded-xl hover:bg-gray-800 transition-colors">
+                <Share2 className="w-4 h-4" />
+                Share Your Testimony
               </div>
+            </Link>
+          )}
 
-              {/* Divider */}
-              <div className="h-px bg-gray-100 my-3" />
-
-              {/* Actions */}
-              <div className="space-y-2">
-                {mounted && user && (
+          {mounted && user ? (
+            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl mt-1">
+              <UserAvatar user={user} size="md" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {user.fullName || user.email}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                {user.role === "admin" && (
                   <Link
-                    href="/share-testimony"
+                    href="/dashboard"
                     onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-xs text-gray-500 hover:text-gray-800 mt-0.5 block"
                   >
-                    <div className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-black transition-colors">
-                      <Share2 className="w-4 h-4" />
-                      Share Your Testimony
-                    </div>
+                    Go to Dashboard
                   </Link>
                 )}
-
-                {mounted && user ? (
-                  <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl mt-2">
-                    <UserAvatar user={user} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {user.fullName || user.email}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {user.email}
-                      </p>
-                      {user.role === "admin" && (
-                        <Link
-                          href="/dashboard"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-xs text-gray-500 hover:text-gray-800 mt-0.5 block"
-                        >
-                          Go to Dashboard
-                        </Link>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer"
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                ) : (
-                  mounted && (
-                    <Link
-                      href="/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <div className="px-4 py-3 text-sm font-semibold text-gray-700 border border-gray-200 rounded-xl text-center hover:bg-gray-50 transition-colors mt-2">
-                        Sign in
-                      </div>
-                    </Link>
-                  )
-                )}
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer"
+              >
+                Sign out
+              </button>
             </div>
-          </div>
+          ) : (
+            mounted && (
+              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="px-4 py-3.5 text-base font-medium text-gray-700 border border-gray-200 rounded-xl text-center hover:bg-gray-50 transition-colors">
+                  Sign in
+                </div>
+              </Link>
+            )
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 }

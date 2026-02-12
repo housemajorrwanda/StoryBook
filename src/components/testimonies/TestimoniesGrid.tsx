@@ -134,7 +134,7 @@ export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search stories..."
-          className="w-full pl-11 pr-10 py-3 bg-white rounded-xl border border-gray-200 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/5 text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200"
+          className="w-full pl-11 pr-10 py-3 bg-white rounded-lg border-gray-200 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/5 text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200"
         />
         {searchTerm && (
           <button
@@ -284,7 +284,7 @@ export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
                       </span>
                       {authorName}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 group-hover:text-gray-900 transition-colors">
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 group-hover:text-gray-600 transition-colors">
                       Read story
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </span>
@@ -296,7 +296,7 @@ export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
 
           // Regular stories
           return (
-            <article key={testimony.id} className="border-t border-gray-100">
+            <article key={testimony.id} className="border-t border-gray-100/60">
               <Link
                 href={`/testimonies/${slug}`}
                 className="group flex gap-5 md:gap-6 py-7 md:py-8"
