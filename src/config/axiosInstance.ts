@@ -2,8 +2,7 @@ import axios, { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { getAuthToken, isTokenExpired } from "@/lib/cookies";
 
 const axiosInstance = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "https://storybook.andasy.dev",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   timeout: 1200000,
   headers: {
     "Content-Type": "application/json",

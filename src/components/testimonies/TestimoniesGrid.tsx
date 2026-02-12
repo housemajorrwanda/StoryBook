@@ -13,6 +13,8 @@ import {
   Play,
   ArrowRight,
   BookOpen,
+  X,
+  Loader2,
 } from "lucide-react";
 import { useTestimonies } from "@/hooks/useTestimonies";
 import { Testimony } from "@/types/testimonies";
@@ -98,6 +100,7 @@ export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
   );
   const isLoading = status === "pending";
   const isError = status === "error";
+  const isSearching = searchTerm !== debouncedSearch;
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -119,44 +122,87 @@ export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
     };
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  if (isLoading) return <SkeletonTestimonies />;
+  const searchBar = (
+    <div className="mb-8">
+      <div className="relative">
+        {isSearching ? (
+          <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+        ) : (
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        )}
+        <input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search stories..."
+          className="w-full pl-11 pr-10 py-3 bg-white rounded-xl border border-gray-200 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/5 text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200"
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => setSearchTerm("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+            aria-label="Clear search"
+          >
+            <X className="w-4 h-4 text-gray-400" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  if (isLoading && !debouncedSearch) return <SkeletonTestimonies />;
 
   if (isError) {
     return (
-      <EmptyState
-        title="Unable to load testimonies"
-        subtitle="Please refresh the page or try again later."
-        icon={<FileText className="w-16 h-16 text-gray-300" />}
-        size="lg"
-      />
+      <div className="w-full">
+        {searchBar}
+        <EmptyState
+          title="Unable to load testimonies"
+          subtitle="Please refresh the page or try again later."
+          icon={<FileText className="w-16 h-16 text-gray-300" />}
+          size="lg"
+        />
+      </div>
     );
   }
 
-  if (testimonies.length === 0) {
+  if (testimonies.length === 0 && !debouncedSearch) {
     return (
-      <EmptyState
-        title="No published testimonies yet"
-        subtitle="Check back later or share a story to inspire the community."
-        icon={<FileText className="w-16 h-16 text-gray-300" />}
-        size="lg"
-      />
+      <div className="w-full">
+        {searchBar}
+        <EmptyState
+          title="No published testimonies yet"
+          subtitle="Check back later or share a story to inspire the community."
+          icon={<FileText className="w-16 h-16 text-gray-300" />}
+          size="lg"
+        />
+      </div>
     );
   }
 
   return (
     <div className="w-full">
-      {/* Search */}
-      <div className="mb-8">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search stories..."
-            className="w-full pl-11 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/5 text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200"
-          />
+      {searchBar}
+
+      {/* Loading state for search */}
+      {isLoading && debouncedSearch && (
+        <div className="py-16 text-center">
+          <div className="flex items-center justify-center gap-3 text-gray-400">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span className="text-sm">Searching stories...</span>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* No search results */}
+      {!isLoading && testimonies.length === 0 && debouncedSearch && (
+        <EmptyState
+          title="No stories found"
+          subtitle={`No results for "${debouncedSearch}". Try a different search term.`}
+          icon={<Search className="w-16 h-16 text-gray-300" />}
+          size="lg"
+        />
+      )}
 
       {/* Stories */}
       <div>
@@ -277,22 +323,28 @@ export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
                       "A testimony capturing moments of courage and remembrance."}
                   </p>
 
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
-                    <span className="inline-flex items-center gap-1.5 font-medium text-gray-700">
-                      <User className="w-3 h-3 text-gray-400" />
-                      {authorName}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-gray-700">
+                        <User className="w-3 h-3 text-gray-400" />
+                        {authorName}
+                      </span>
+                      {testimony.location && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-gray-200" />
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-gray-400" />
+                            {testimony.location}
+                          </span>
+                        </>
+                      )}
+                      <span className="w-1 h-1 rounded-full bg-gray-200" />
+                      <span>{formatReads(testimony.impressions)}</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 opacity-0 group-hover:opacity-100 group-hover:text-gray-900 transition-all duration-200">
+                      Read story
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
                     </span>
-                    {testimony.location && (
-                      <>
-                        <span className="w-1 h-1 rounded-full bg-gray-200" />
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-gray-400" />
-                          {testimony.location}
-                        </span>
-                      </>
-                    )}
-                    <span className="w-1 h-1 rounded-full bg-gray-200" />
-                    <span>{formatReads(testimony.impressions)}</span>
                   </div>
                 </div>
 

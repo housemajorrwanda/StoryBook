@@ -400,8 +400,7 @@ export const testimoniesService = {
     onError?: (error: Event) => void,
     onComplete?: () => void,
   ): EventSource {
-    const baseURL =
-      process.env.NEXT_PUBLIC_API_BASE_URL || "https://storybook.andasy.dev";
+    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
     const token = getAuthToken();
 
     const url = token
