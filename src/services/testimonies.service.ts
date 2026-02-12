@@ -107,7 +107,6 @@ export const testimoniesService = {
     return response.data;
   },
 
-  // Get all testimonies with optional filters
   async getTestimonies(filters?: {
     search?: string;
     submissionType?: string;

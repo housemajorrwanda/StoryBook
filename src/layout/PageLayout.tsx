@@ -13,14 +13,14 @@ export default function PageLayout({
   variant = "default" 
 }: PageLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#fafafa] relative overflow-hidden">
+    <div className="min-h-screen bg-[#fafafa] relative">
       <Navigation 
         showBackgroundEffects={showBackgroundEffects} 
         variant={variant}
       />
       
       {/* Spacer for fixed header */}
-      <div className="h-28 sm:h-32 md:h-36" />
+      <div className="h-16 md:h-20" />
       
       {children}
     </div>
