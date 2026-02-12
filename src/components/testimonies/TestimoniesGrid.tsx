@@ -7,14 +7,12 @@ import type { InfiniteData } from "@tanstack/react-query";
 import {
   User,
   MapPin,
-  Mic,
-  Video,
   FileText,
-  Calendar,
   Search,
   Headphones,
   Play,
-  BarChart3,
+  ArrowRight,
+  BookOpen,
 } from "lucide-react";
 import { useTestimonies } from "@/hooks/useTestimonies";
 import { Testimony } from "@/types/testimonies";
@@ -36,21 +34,21 @@ type TestimonyPage = {
 const TYPE_META = {
   written: {
     label: "Written",
-    chip: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    iconBg: "bg-emerald-600",
-    icon: <FileText className="w-4 h-4 text-white" />,
+    icon: <FileText className="w-3.5 h-3.5" />,
+    accent: "text-emerald-600",
+    bg: "bg-emerald-50",
   },
   audio: {
     label: "Audio",
-    chip: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    iconBg: "bg-indigo-600",
-    icon: <Headphones className="w-4 h-4 text-white" />,
+    icon: <Headphones className="w-3.5 h-3.5" />,
+    accent: "text-indigo-600",
+    bg: "bg-indigo-50",
   },
   video: {
     label: "Video",
-    chip: "bg-rose-50 text-rose-700 border-rose-200",
-    iconBg: "bg-rose-600",
-    icon: <Play className="w-4 h-4 text-white" />,
+    icon: <Play className="w-3.5 h-3.5" />,
+    accent: "text-rose-600",
+    bg: "bg-rose-50",
   },
 };
 
@@ -61,20 +59,17 @@ export const formatReads = (value?: number) => {
   return `${abbreviated}k reads`;
 };
 
-const stripHtml = (value?: string, max = 200) => {
+const stripHtml = (value?: string, max = 280) => {
   if (!value) return "";
   const plain = value.replace(/<[^>]+>/g, "");
   if (plain.length <= max) return plain;
   return `${plain.substring(0, max)}…`;
 };
 
-export default function TestimoniesGrid({
-  limit
-}: TestimoniesGridProps) {
+export default function TestimoniesGrid({ limit }: TestimoniesGridProps) {
   const pageSize = limit ?? 5;
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
- 
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -83,27 +78,23 @@ export default function TestimoniesGrid({
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const {
-    data,
-    status,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useTestimonies({
-    search: debouncedSearch || undefined,
-    status: "approved",
-    isPublished: true,
-    limit: pageSize,
-  });
+  const { data, status, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useTestimonies({
+      search: debouncedSearch || undefined,
+      status: "approved",
+      isPublished: true,
+      limit: pageSize,
+    });
 
   const pages = useMemo<TestimonyPage[]>(
     () =>
-      ((data as InfiniteData<TestimonyPage> | undefined)?.pages ?? []) as TestimonyPage[],
-    [data]
+      ((data as InfiniteData<TestimonyPage> | undefined)?.pages ??
+        []) as TestimonyPage[],
+    [data],
   );
   const testimonies = useMemo(
     () => pages.flatMap((page) => page.data),
-    [pages]
+    [pages],
   );
   const isLoading = status === "pending";
   const isError = status === "error";
@@ -111,10 +102,7 @@ export default function TestimoniesGrid({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!hasNextPage) {
-      return;
-    }
-
+    if (!hasNextPage) return;
     const node = sentinelRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
@@ -122,24 +110,16 @@ export default function TestimoniesGrid({
           fetchNextPage();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
-
-    if (node) {
-      observer.observe(node);
-    }
-
+    if (node) observer.observe(node);
     return () => {
-      if (node) {
-        observer.unobserve(node);
-      }
+      if (node) observer.unobserve(node);
       observer.disconnect();
     };
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  if (isLoading) {
-    return <SkeletonTestimonies />;
-  }
+  if (isLoading) return <SkeletonTestimonies />;
 
   if (isError) {
     return (
@@ -165,29 +145,33 @@ export default function TestimoniesGrid({
 
   return (
     <div className="w-full">
-      {/* Enhanced Search */}
-      <div className="max-w-9xl mx-auto px-4 mb-10 rounded-2xl">
-        <div className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      {/* Search */}
+      <div className="mb-8">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search stories by title, author, or theme…"
-            className="w-full pl-14 pr-6 py-4 rounded-xl focus:outline-none focus:ring focus:ring-gray-500 border-0 text-gray-700 placeholder:text-gray-400 text-sm bg-transparent"
+            placeholder="Search stories..."
+            className="w-full pl-11 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/5 text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200"
           />
         </div>
       </div>
 
-      {/* Testimonies Grid */}
-      <div className="space-y-6 mx-auto px-4">
-        {testimonies.map((testimony: Testimony) => {
+      {/* Stories */}
+      <div>
+        {testimonies.map((testimony: Testimony, index: number) => {
           const type = testimony.submissionType || "written";
-          const meta = TYPE_META[type as keyof typeof TYPE_META] || TYPE_META.written;
-          const slug = generateTestimonySlug(testimony.id, testimony.eventTitle);
-          const excerpt = stripHtml(testimony.fullTestimony, 220);
+          const meta =
+            TYPE_META[type as keyof typeof TYPE_META] || TYPE_META.written;
+          const slug = generateTestimonySlug(
+            testimony.id,
+            testimony.eventTitle,
+          );
+          const excerpt = stripHtml(testimony.fullTestimony, 280);
           const createdAt = testimony.createdAt
             ? new Date(testimony.createdAt).toLocaleDateString("en-US", {
-                month: "short",
+                month: "long",
                 day: "numeric",
                 year: "numeric",
               })
@@ -196,168 +180,170 @@ export default function TestimoniesGrid({
             testimony.identityPreference === "anonymous"
               ? "Anonymous"
               : testimony.user?.name || testimony.fullName || "Unknown";
-          const impressions = formatReads(testimony.impressions);
-          const tags = [
-            testimony.relationToEvent &&
-              testimony.relationToEvent.replace(/_/g, " "),
-            testimony.location,
-            meta.label,
-          ]
-            .filter(Boolean)
-            .slice(0, 3) as string[];
           const coverImage = testimony.images?.[0]?.imageUrl;
 
-          return (
-            <div key={testimony.id} className="group relative">
-              <Link href={`/testimonies/${slug}`} className="block">
-                <article className="rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all duration-300 overflow-hidden hover:scale-[1.002]">
-                  <div className="grid md:grid-cols-[1.65fr,1fr] gap-0">
-                    {/* Content Section */}
-                    <div className="p-8 md:p-10 flex flex-col gap-5">
-                      {/* Meta Info Row */}
-                      <div className="flex flex-wrap items-center gap-3">
+          // Featured first story
+          if (index === 0) {
+            return (
+              <article key={testimony.id} className="mb-10">
+                <Link href={`/testimonies/${slug}`} className="group block">
+                  {/* Featured image */}
+                  {coverImage && (
+                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6">
+                      <Image
+                        src={coverImage}
+                        alt={testimony.eventTitle}
+                        fill
+                        className="object-cover group-hover:scale-[1.03] transition-transform duration-700"
+                        sizes="(min-width: 768px) 60vw, 100vw"
+                      />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
+                      <div className="absolute bottom-5 left-5">
                         <span
-                          className={`inline-flex items-center gap-2 text-xs font-bold px-4 py-1.5 rounded-xl border ${meta.chip} shadow-sm`}
+                          className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm ${meta.accent}`}
                         >
-                          <span
-                            className={`inline-flex items-center justify-center w-6 h-6 rounded-xl ${meta.iconBg} shadow-md text-white`}
-                          >
-                            {meta.icon}
-                          </span>
-                          {meta.label}
+                          {meta.icon}
+                          {meta.label} Story
                         </span>
-                        <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                          {createdAt}
-                        </span>
-                        <span className="text-xs font-medium text-gray-500 flex items-center gap-1.5 ml-auto">
-                          <BarChart3 className="w-4 h-4" />
-                          {impressions}
-                        </span>
-                      </div>
-
-                      {/* Title */}
-                      <h2 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors duration-200 line-clamp-2">
-                        {testimony.eventTitle}
-                      </h2>
-
-                      {/* Excerpt */}
-                      <p className="text-gray-600 text-base leading-relaxed line-clamp-3">
-                        {excerpt ||
-                          "An audio testimony capturing moments of courage and defiance, remembered in detail."}
-                      </p>
-
-                      {/* Author & Location Info */}
-                      <div className="flex flex-wrap items-center gap-5 text-sm text-gray-600 pt-3 border-t border-gray-50 rounded-b-xl">
-                        <span className="inline-flex items-center gap-2 font-medium text-gray-800">
-                          <User className="w-4 h-4 text-gray-400" />
-                          {authorName}
-                        </span>
-                        {testimony.location && (
-                          <span className="inline-flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            {testimony.location}
-                          </span>
-                        )}
-                        {testimony.dateOfEventFrom && (
-                          <span className="inline-flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            {new Date(testimony.dateOfEventFrom).toLocaleDateString("en-US", {
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-2 mt-auto pt-2">
-                        {tags.map((tag: string) => (
-                          <span
-                            key={tag}
-                            className="text-xs font-medium px-3.5 py-1.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors"
-                          >
-                            {tag}
-                          </span>
-                        ))}
                       </div>
                     </div>
+                  )}
 
-                    {/* Image/Media Section */}
-                    <div className="relative bg-gray-50 min-h-[280px] md:min-h-full border-l border-gray-100 rounded-r-xl">
-                      {coverImage ? (
-                        <div className="relative h-full w-full overflow-hidden">
-                          <Image
-                            src={coverImage}
-                            alt={testimony.eventTitle}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            sizes="(min-width: 768px) 40vw, 100vw"
-                          />
-                          <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        </div>
-                      ) : type === "audio" ? (
-                        <div className="h-full w-full bg-indigo-50 flex flex-col items-center justify-center text-indigo-600 gap-5 group-hover:bg-indigo-100 transition-all duration-300 border-l border-indigo-100">
-                          <div className="p-6 bg-white rounded-full shadow-lg border border-indigo-100">
-                            <Mic className="w-12 h-12 text-indigo-500" />
-                          </div>
-                          <p className="text-sm font-bold uppercase tracking-[0.3em] text-indigo-700">
-                            Audio Story
-                          </p>
-                        </div>
-                      ) : type === "video" ? (
-                        <div className="h-full w-full bg-rose-50 flex flex-col items-center justify-center text-rose-600 gap-5 group-hover:bg-rose-100 transition-all duration-300 border-l border-rose-100">
-                          <div className="p-6 bg-white rounded-full shadow-lg border border-rose-100">
-                            <Video className="w-12 h-12 text-rose-500" />
-                          </div>
-                          <p className="text-sm font-bold uppercase tracking-[0.3em] text-rose-700">
-                            Video Story
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="h-full w-full bg-emerald-50 flex flex-col items-center justify-center text-emerald-600 gap-5 group-hover:bg-emerald-100 transition-all duration-300 border-l border-emerald-100">
-                          <div className="p-6 bg-white rounded-full shadow-lg border border-emerald-100">
-                            <FileText className="w-12 h-12 text-emerald-500" />
-                          </div>
-                          <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-700">
-                            Written Story
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
+                    <span>{createdAt}</span>
+                    {testimony.location && (
+                      <>
+                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {testimony.location}
+                        </span>
+                      </>
+                    )}
                   </div>
-                </article>
+
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug mb-3 group-hover:text-gray-600 transition-colors">
+                    {testimony.eventTitle}
+                  </h2>
+
+                  <p className="text-gray-500 text-base md:text-lg leading-relaxed mb-5 line-clamp-3">
+                    {excerpt ||
+                      "A testimony capturing moments of courage, resilience, and remembrance."}
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <span className="w-7 h-7 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-bold">
+                        {authorName[0]?.toUpperCase()}
+                      </span>
+                      {authorName}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 group-hover:text-gray-900 transition-colors">
+                      Read story
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                    </span>
+                  </div>
+                </Link>
+              </article>
+            );
+          }
+
+          // Regular stories
+          return (
+            <article key={testimony.id} className="border-t border-gray-100">
+              <Link
+                href={`/testimonies/${slug}`}
+                className="group flex gap-5 md:gap-6 py-7 md:py-8"
+              >
+                {/* Text content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 text-xs text-gray-400 mb-2.5">
+                    <span
+                      className={`inline-flex items-center gap-1 font-semibold ${meta.accent}`}
+                    >
+                      {meta.icon}
+                      {meta.label}
+                    </span>
+                    <span className="w-1 h-1 rounded-full bg-gray-300" />
+                    <span>{createdAt}</span>
+                  </div>
+
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900 leading-snug mb-2 group-hover:text-gray-600 transition-colors line-clamp-2">
+                    {testimony.eventTitle}
+                  </h2>
+
+                  <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 mb-3">
+                    {excerpt ||
+                      "A testimony capturing moments of courage and remembrance."}
+                  </p>
+
+                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <span className="inline-flex items-center gap-1.5 font-medium text-gray-700">
+                      <User className="w-3 h-3 text-gray-400" />
+                      {authorName}
+                    </span>
+                    {testimony.location && (
+                      <>
+                        <span className="w-1 h-1 rounded-full bg-gray-200" />
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-gray-400" />
+                          {testimony.location}
+                        </span>
+                      </>
+                    )}
+                    <span className="w-1 h-1 rounded-full bg-gray-200" />
+                    <span>{formatReads(testimony.impressions)}</span>
+                  </div>
+                </div>
+
+                {/* Thumbnail */}
+                {coverImage ? (
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden shrink-0 self-center">
+                    <Image
+                      src={coverImage}
+                      alt={testimony.eventTitle}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="128px"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`w-24 h-24 md:w-32 md:h-32 rounded-xl shrink-0 self-center flex items-center justify-center ${meta.bg}`}
+                  >
+                    <BookOpen className={`w-6 h-6 ${meta.accent} opacity-40`} />
+                  </div>
+                )}
               </Link>
-            </div>
+            </article>
           );
         })}
-
-        {/* Loading and End States */}
-        {hasNextPage && (
-          <div ref={sentinelRef} className="py-12 text-center">
-            {isFetchingNextPage ? (
-              <div className="flex items-center justify-center gap-3 text-gray-500">
-                <div className="animate-spin rounded-full h-6 w-6 border-b border-gray-400"></div>
-                <span className="text-sm">Loading more inspiring stories…</span>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-50 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                </div>
-                <p className="text-sm text-gray-500">Scroll to discover more stories</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!hasNextPage && testimonies.length > 0 && (
-          <div className="text-center py-6 rounded-b-xl">
-            <p className="text-gray-500 text-sm">
-              You&apos;ve reached the end of published testimonies
-            </p>
-          </div>
-        )}
       </div>
+
+      {/* Loading / End States */}
+      {hasNextPage && (
+        <div
+          ref={sentinelRef}
+          className="py-12 text-center border-t border-gray-100"
+        >
+          {isFetchingNextPage ? (
+            <div className="flex items-center justify-center gap-3 text-gray-400">
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              <span className="text-sm">Loading more stories...</span>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">
+              Scroll to discover more stories
+            </p>
+          )}
+        </div>
+      )}
+
+      {!hasNextPage && testimonies.length > 0 && (
+        <div className="text-center py-10 border-t border-gray-100">
+          <p className="text-gray-400 text-sm">You&apos;ve reached the end</p>
+        </div>
+      )}
     </div>
   );
 }

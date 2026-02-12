@@ -33,9 +33,7 @@ export const authService = {
   },
 
   initiateGoogleAuth: (): void => {
-    const baseURL =
-      process.env.NEXT_PUBLIC_API_BASE_URL || "https://storybook.andasy.dev";
-    // Redirect to backend Google OAuth endpoint
+    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
     window.location.href = `${baseURL}/auth/google`;
   },
 

@@ -1,26 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ArrowLeftIcon, HomeIcon, SearchIcon } from "lucide-react";
 
 export default function NotFoundPage() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [particles, setParticles] = useState<
-    { id: number; x: number; y: number; size: number; delay: number; duration: number }[]
-  >([]);
-
-  useEffect(() => {
-    const generated = Array.from({ length: 30 }, (_, i) => ({
+  const [particles] = useState(() =>
+    Array.from({ length: 30 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: Math.random() * 3 + 1,
       delay: Math.random() * 5,
       duration: Math.random() * 10 + 10,
-    }));
-    setParticles(generated);
-  }, []);
+    }))
+  );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
