@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, type MouseEvent as ReactMouseEvent } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Share2 } from "lucide-react";
+import { Menu, X, Share2, ArrowRight } from "lucide-react";
 import UserAvatar from "@/components/shared/UserAvatar";
 import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
 import { useLogout } from "@/hooks/auth/use-auth-queries";
@@ -210,8 +210,8 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
                     onClick={(e) => handleDesktopNavClick(e, item.href)}
                     className={`px-3.5 py-1.5 text-sm rounded-md transition-colors ${
                       active
-                        ? "text-gray-900 font-medium"
-                        : "text-gray-400 font-normal hover:text-gray-700"
+                        ? "text-gray-900 font-bold"
+                        : "text-gray-400 font-normal hover:text-gray-700 hover:font-semibold"
                     }`}
                   >
                     {resolveLabel(item)}
@@ -245,8 +245,9 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
 
               {mounted && !user && (
                 <Link href="/login" className="hidden md:block">
-                  <button className="px-3.5 py-1.5 text-sm font-medium text-gray-500 border border-gray-200 rounded-md hover:text-gray-700 hover:border-gray-300 transition-colors cursor-pointer">
+                  <button className="group/btn inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-linear-to-r from-gray-900 to-gray-700 rounded-full shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
                     Sign in
+                    <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
                   </button>
                 </Link>
               )}
@@ -295,10 +296,10 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
                 onClick={(e) => handleMobileNavClick(e, item.href)}
               >
                 <div
-                  className={`px-4 py-4 text-lg font-medium rounded-xl transition-colors ${
+                  className={`px-4 py-4 text-lg rounded-xl transition-colors ${
                     active
-                      ? "text-gray-900 bg-gray-50"
-                      : "text-gray-500 hover:text-gray-900 active:bg-gray-50"
+                      ? "text-gray-900 bg-gray-50 font-bold"
+                      : "text-gray-500 font-medium hover:text-gray-900 hover:font-semibold active:bg-gray-50"
                   }`}
                 >
                   {resolveLabel(item)}
@@ -354,8 +355,9 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
           ) : (
             mounted && (
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="px-4 py-3.5 text-base font-medium text-gray-700 border border-gray-200 rounded-xl text-center hover:bg-gray-50 transition-colors">
+                <div className="group/btn flex items-center justify-center gap-2 px-4 py-3.5 text-base font-semibold text-white bg-linear-to-r from-gray-900 to-gray-700 rounded-full shadow-md hover:shadow-xl active:scale-95 transition-all duration-200">
                   Sign in
+                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
                 </div>
               </Link>
             )
