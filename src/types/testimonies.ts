@@ -32,6 +32,47 @@ export interface TestimonyConnection {
   };
 }
 
+// Types for GET /testimonies/connections/mine
+export interface MyConnectionTestimony {
+  id: number;
+  eventTitle: string;
+}
+
+export interface ConnectedTestimony {
+  id: number;
+  eventTitle: string;
+  eventDescription: string | null;
+  summary: string | null;
+  location: string;
+  dateOfEventFrom: string;
+  dateOfEventTo: string;
+  submissionType: StoryType;
+  createdAt: string;
+  images: { imageUrl: string; description: string }[];
+}
+
+export interface ConnectionDetails {
+  accuracyScore: number;
+  rawScore: number;
+  connectionType: string;
+  connectionReason: string;
+  source: string;
+  userRating: number | null;
+}
+
+export interface ConnectionContactInfo {
+  email: string;
+  fullName: string;
+  residentPlace: string | null;
+}
+
+export interface MyTestimonyConnection {
+  myTestimony: MyConnectionTestimony;
+  connectedTestimony: ConnectedTestimony;
+  connectionDetails: ConnectionDetails;
+  contactInfo: ConnectionContactInfo | null;
+}
+
 export interface Testimony {
   id: number;
   submissionType: StoryType;

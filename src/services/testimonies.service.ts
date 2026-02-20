@@ -5,6 +5,7 @@ import {
   AudioUploadResponse,
   CreateOrUpdateTestimonyRequest,
   TranscriptResponse,
+  MyTestimonyConnection,
 } from "@/types/testimonies";
 import axiosInstance from "@/config/axiosInstance";
 import { getAuthToken, isTokenExpired } from "@/lib/cookies";
@@ -151,6 +152,14 @@ export const testimoniesService = {
   async getTrendingTestimonies(): Promise<TrendingTestimony[]> {
     const response = await axiosInstance.get<TrendingTestimony[]>(
       "/testimonies/trending",
+    );
+    return response.data;
+  },
+
+  // Get user's testimony connections (REQUIRES AUTH)
+  async getMyConnections(): Promise<MyTestimonyConnection[]> {
+    const response = await axiosInstance.get<MyTestimonyConnection[]>(
+      "/testimonies/connections/mine",
     );
     return response.data;
   },

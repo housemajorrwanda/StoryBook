@@ -7,7 +7,13 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { Testimony, TrendingTestimony, CreateOrUpdateTestimonyRequest, TranscriptResponse } from "@/types/testimonies";
+import {
+  Testimony,
+  TrendingTestimony,
+  CreateOrUpdateTestimonyRequest,
+  TranscriptResponse,
+  MyTestimonyConnection,
+} from "@/types/testimonies";
 import {
   testimoniesService,
   buildTestimonyFormData,
@@ -39,6 +45,7 @@ export const TESTIMONY_KEYS = {
   detail: (id: number) => [...TESTIMONY_KEYS.details(), id] as const,
   drafts: () => [...TESTIMONY_KEYS.all, "drafts"] as const,
   trending: () => [...TESTIMONY_KEYS.all, "trending"] as const,
+  myConnections: () => [...TESTIMONY_KEYS.all, "my-connections"] as const,
   transcripts: () => [...TESTIMONY_KEYS.all, "transcript"] as const,
   transcript: (id: number) => [...TESTIMONY_KEYS.transcripts(), id] as const,
 };
@@ -90,12 +97,29 @@ export function useTestimonies(filters?: {
 }
 
 // Get trending testimonies
-export function useTrendingTestimonies(): UseQueryResult<TrendingTestimony[], Error> {
+export function useTrendingTestimonies(): UseQueryResult<
+  TrendingTestimony[],
+  Error
+> {
   return useQuery({
     queryKey: TESTIMONY_KEYS.trending(),
     queryFn: () => testimoniesService.getTrendingTestimonies(),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+  });
+}
+
+// Get user's testimony connections (REQUIRES AUTH)
+export function useMyConnections(
+  enabled = true,
+): UseQueryResult<MyTestimonyConnection[], Error> {
+  return useQuery({
+    queryKey: TESTIMONY_KEYS.myConnections(),
+    queryFn: () => testimoniesService.getMyConnections(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
   });
 }
 
@@ -152,7 +176,7 @@ export function useCreateTestimony(): UseMutationResult<
           {
             duration: 6000,
             id: "testimony-submitted-success",
-          }
+          },
         );
       }
     },
@@ -161,7 +185,7 @@ export function useCreateTestimony(): UseMutationResult<
         error,
         variables.isDraft
           ? "Failed to save draft. Please try again."
-          : "Failed to submit testimony. Please try again."
+          : "Failed to submit testimony. Please try again.",
       );
       toast.error(message);
     },
@@ -206,7 +230,7 @@ export function useUpdateTestimony(): UseMutationResult<
         error,
         variables.request.isDraft
           ? "Failed to update draft. Please try again."
-          : "Failed to update testimony. Please try again."
+          : "Failed to update testimony. Please try again.",
       );
       toast.error(message);
     },
@@ -261,13 +285,13 @@ export function useCreateTestimonyMultipart(): UseMutationResult<
       });
       queryClient.setQueryData(TESTIMONY_KEYS.detail(data.id), data);
       toast.success(
-        "Testimony submitted successfully! It will be reviewed before being published."
+        "Testimony submitted successfully! It will be reviewed before being published.",
       );
     },
     onError: (error: unknown) => {
       const message = getErrorMessage(
         error,
-        "Failed to submit testimony. Please try again."
+        "Failed to submit testimony. Please try again.",
       );
       toast.error(message);
     },
@@ -275,7 +299,9 @@ export function useCreateTestimonyMultipart(): UseMutationResult<
 }
 
 // Get transcript for a testimony
-export function useTranscript(id: number): UseQueryResult<TranscriptResponse, Error> {
+export function useTranscript(
+  id: number,
+): UseQueryResult<TranscriptResponse, Error> {
   return useQuery({
     queryKey: TESTIMONY_KEYS.transcript(id),
     queryFn: () => testimoniesService.getTranscript(id),
