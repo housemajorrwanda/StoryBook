@@ -84,7 +84,7 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
 
   const navItems = [
     { href: "/#testimonies", label: "Testimonies" },
-    { href: "/connections", label: "Connections" },
+    ...(user ? [{ href: "/connections", label: "Connections" }] : []),
     { href: "/virtual-tours", label: "Virtual Tours" },
     { href: "/education", label: "Education" },
   ];
@@ -193,7 +193,7 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
                 <span className="text-base md:text-lg font-bold text-gray-900 tracking-tight leading-none">
                   iHame
                 </span>
-                <span className="text-[9px] font-medium text-gray-300 tracking-wider uppercase leading-none mt-0.5">
+                <span className="text-[9px] font-medium text-gray-500 tracking-wider uppercase leading-none mt-0.5">
                   StoryBook
                 </span>
               </div>
@@ -245,7 +245,7 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
 
               {mounted && !user && (
                 <Link href="/login" className="hidden md:block">
-                  <button className="group/btn inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-linear-to-r from-gray-900 to-gray-700 rounded-full shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
+                  <button className="group/btn inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-linear-to-r from-gray-900 to-gray-900 rounded-full shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
                     Sign in
                     <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
                   </button>

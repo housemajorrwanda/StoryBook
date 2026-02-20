@@ -9,32 +9,17 @@ import {
   Clock,
   MapPin,
   ArrowUpRight,
-  BookOpen,
+  FileText,
+  Headphones,
+  Play,
 } from "lucide-react";
-
-const trendingStories = [
-  {
-    id: 1,
-    title: "The Night We Crossed the River",
-    author: "Marie C.",
-    reads: "2.4k",
-    image: "/images/Kwibuka.jpeg",
-  },
-  {
-    id: 2,
-    title: "Finding My Brother After 28 Years",
-    author: "Jean Pierre M.",
-    reads: "1.8k",
-    image: "/images/Rwanda%20Komera%20%23kwibuka31.jpeg",
-  },
-  {
-    id: 3,
-    title: "A Teacher Who Saved Seven Lives",
-    author: "Anonymous",
-    reads: "1.2k",
-    image: null,
-  },
-];
+import { useTrendingTestimonies, useTestimonies } from "@/hooks/useTestimonies";
+import {
+  generateTestimonySlug,
+  formatImpressions,
+} from "@/utils/testimony.utils";
+import type { TrendingTestimony } from "@/types/testimonies";
+import type { Testimony } from "@/types/testimonies";
 
 const locationStories = [
   {
@@ -63,7 +48,85 @@ const locationStories = [
   },
 ];
 
+const TYPE_ICON = {
+  written: <FileText className="w-3.5 h-3.5 text-emerald-500" />,
+  audio: <Headphones className="w-3.5 h-3.5 text-indigo-500" />,
+  video: <Play className="w-3.5 h-3.5 text-rose-500" />,
+};
+
+function formatTimeAgo(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function TrendingSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex gap-3 items-start animate-pulse">
+          <div className="w-7 h-7 bg-gray-100 rounded" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-gray-100 rounded w-4/5" />
+            <div className="h-3 bg-gray-100 rounded w-3/5" />
+          </div>
+          <div className="w-14 h-14 bg-gray-100 rounded-lg shrink-0" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecentSkeleton() {
+  return (
+    <div className="space-y-1">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 py-2.5 px-3 -mx-3 animate-pulse"
+        >
+          <div className="w-8 h-8 bg-gray-100 rounded-lg shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-gray-100 rounded w-3/4" />
+            <div className="h-3 bg-gray-100 rounded w-1/3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function TestimoniesSidebar() {
+  const {
+    data: trendingData,
+    isLoading: trendingLoading,
+    isError: trendingError,
+  } = useTrendingTestimonies();
+
+  const {
+    data: recentData,
+    isLoading: recentLoading,
+    isError: recentError,
+  } = useTestimonies({
+    status: "approved",
+    isPublished: true,
+    limit: 3,
+  });
+
+  const trendingStories = (trendingData ?? []).slice(0, 3);
+  const recentStories =
+    recentData?.pages?.flatMap((page) => page.data).slice(0, 3) ?? [];
+
   return (
     <div className="space-y-10">
       {/* Trending Stories */}
@@ -73,41 +136,55 @@ export default function TestimoniesSidebar() {
           <h3 className="text-sm font-bold text-gray-900">Trending</h3>
         </div>
 
-        <div className="space-y-4">
-          {trendingStories.map((story, idx) => (
-            <Link
-              key={story.id}
-              href="#"
-              className="group flex gap-3 items-start"
-            >
-              <span className="text-2xl font-black text-gray-200 leading-none w-7 shrink-0 group-hover:text-gray-400 transition-colors">
-                {idx + 1}
-              </span>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-gray-600 transition-colors">
-                  {story.title}
-                </h4>
-                <p className="text-xs text-gray-400 mt-1">
-                  {story.author} &middot; {story.reads} reads
-                </p>
-              </div>
-              {story.image && (
-                <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0">
-                  <Image
-                    src={story.image}
-                    alt={story.title}
-                    fill
-                    className="object-cover"
-                    sizes="56px"
-                  />
-                </div>
-              )}
-            </Link>
-          ))}
-        </div>
+        {trendingLoading ? (
+          <TrendingSkeleton />
+        ) : trendingError || trendingStories.length === 0 ? (
+          <p className="text-xs text-gray-400">
+            No trending stories right now.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {trendingStories.map((story: TrendingTestimony, idx: number) => {
+              const slug = generateTestimonySlug(story.id, story.eventTitle);
+              const coverImage = story.images?.[0]?.imageUrl;
+
+              return (
+                <Link
+                  key={story.id}
+                  href={`/testimonies/${slug}`}
+                  className="group flex gap-3 items-start"
+                >
+                  <span className="text-2xl font-black text-gray-200 leading-none w-7 shrink-0 group-hover:text-gray-400 transition-colors">
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-gray-600 transition-colors">
+                      {story.eventTitle}
+                    </h4>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {story.user?.fullName ?? "Anonymous"} &middot;{" "}
+                      {formatImpressions(story.impressions)} reads
+                    </p>
+                  </div>
+                  {coverImage && (
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0">
+                      <Image
+                        src={coverImage}
+                        alt={story.eventTitle}
+                        fill
+                        className="object-cover"
+                        sizes="56px"
+                      />
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Stories from — visual location cards */}
+      {/* Stories from — visual location cards (hardcoded) */}
       <div>
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="w-4 h-4 text-gray-900" />
@@ -163,41 +240,40 @@ export default function TestimoniesSidebar() {
           <h3 className="text-sm font-bold text-gray-900">Just added</h3>
         </div>
 
-        <div className="space-y-1">
-          {[
-            {
-              title: "Voices from Murambi",
-              time: "2 hours ago",
-              type: "written",
-            },
-            {
-              title: "The Last Letter Home",
-              time: "5 hours ago",
-              type: "audio",
-            },
-            {
-              title: "When the Drums Stopped",
-              time: "Yesterday",
-              type: "video",
-            },
-          ].map((item) => (
-            <Link
-              key={item.title}
-              href="#"
-              className="group flex items-center gap-3 py-2.5 px-3 -mx-3 rounded-xl hover:bg-gray-100 transition-colors"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-white flex items-center justify-center shrink-0 transition-colors">
-                <BookOpen className="w-3.5 h-3.5 text-gray-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 leading-snug truncate">
-                  {item.title}
-                </p>
-                <p className="text-xs text-gray-400">{item.time}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {recentLoading ? (
+          <RecentSkeleton />
+        ) : recentError || recentStories.length === 0 ? (
+          <p className="text-xs text-gray-400">No recent stories yet.</p>
+        ) : (
+          <div className="space-y-1">
+            {recentStories.map((item: Testimony) => {
+              const slug = generateTestimonySlug(item.id, item.eventTitle);
+              const type = item.submissionType || "written";
+              const icon =
+                TYPE_ICON[type as keyof typeof TYPE_ICON] ?? TYPE_ICON.written;
+
+              return (
+                <Link
+                  key={item.id}
+                  href={`/testimonies/${slug}`}
+                  className="group flex items-center gap-3 py-2.5 px-3 -mx-3 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-white flex items-center justify-center shrink-0 transition-colors">
+                    {icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 leading-snug truncate">
+                      {item.eventTitle}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {formatTimeAgo(item.createdAt)}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Share CTA */}

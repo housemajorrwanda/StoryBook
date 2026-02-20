@@ -77,6 +77,21 @@ export interface Testimony {
   resumePosition?: number;
 }
 
+// Trending testimony (lightweight response from /testimonies/trending)
+export interface TrendingTestimony {
+  id: number;
+  eventTitle: string;
+  eventDescription: string | null;
+  summary: string | null;
+  location: string;
+  submissionType: StoryType;
+  impressions: number;
+  connectionsCount: number;
+  createdAt: string;
+  images: { imageUrl: string; description: string }[];
+  user: { fullName: string } | null;
+}
+
 // Request Types
 export interface CreateTestimonyRequest {
   submissionType: StoryType;
