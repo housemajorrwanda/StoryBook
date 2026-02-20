@@ -418,15 +418,18 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
           )}
         </article>
 
-        {/* Connections */}
-        {testimony.connections && testimony.connections.length > 0 && (
-          <div className="mt-14 pt-10 border-t border-gray-100">
-            <TestimonyConnections
-              connections={testimony.connections}
-              currentTestimonyId={testimony.id}
-            />
-          </div>
-        )}
+        {/* Connections - only show for written testimonies */}
+        {testimony.connections &&
+          testimony.connections.length > 0 &&
+          (testimony.submissionType === "written" ||
+            (!testimony.audioUrl && !testimony.videoUrl)) && (
+            <div className="mt-14 pt-10 border-t border-gray-100">
+              <TestimonyConnections
+                connections={testimony.connections}
+                currentTestimonyId={testimony.id}
+              />
+            </div>
+          )}
 
         {/* Back to stories */}
         <div className="py-14 text-center">

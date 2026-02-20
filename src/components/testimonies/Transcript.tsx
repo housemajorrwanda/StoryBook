@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { LuFileText, LuLoaderCircle} from "react-icons/lu";
+import { LuFileText, LuLoaderCircle } from "react-icons/lu";
 import { TranscriptResponse } from "@/types/testimonies";
 import { testimoniesService } from "@/services/testimonies.service";
 
@@ -11,7 +11,7 @@ interface TranscriptProps {
   isPlaying?: boolean;
   onSeek?: (time: number) => void;
   className?: string;
-  duration?: number; 
+  duration?: number;
 }
 
 export default function Transcript({
@@ -27,8 +27,18 @@ export default function Transcript({
   const [error, setError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamedText, setStreamedText] = useState<string>("");
-  const [segments, setSegments] = useState<Array<{ text: string; start: number; end: number; id: string }>>([]);
-  const [words, setWords] = useState<Array<{ text: string; start: number; end: number; id: string; isSpace?: boolean }>>([]);
+  const [segments, setSegments] = useState<
+    Array<{ text: string; start: number; end: number; id: string }>
+  >([]);
+  const [words, setWords] = useState<
+    Array<{
+      text: string;
+      start: number;
+      end: number;
+      id: string;
+      isSpace?: boolean;
+    }>
+  >([]);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const highlightedWordRef = useRef<HTMLSpanElement | null>(null);
@@ -36,35 +46,50 @@ export default function Transcript({
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Parse segments into words with approximate timing
-  const parseSegmentsIntoWords = useCallback((segmentsToParse: Array<{ text: string; start: number; end: number; id: string }>) => {
-    const allWords: Array<{ text: string; start: number; end: number; id: string; isSpace?: boolean }> = [];
-    
-    segmentsToParse.forEach((segment) => {
-      // Split by spaces but keep track of spaces
-      const parts = segment.text.split(/(\s+)/);
-      const segmentDuration = segment.end - segment.start;
-      
-      
-      const validParts = parts.filter(part => part.length > 0);
-      const partDuration = segmentDuration / validParts.length;
-      
-      validParts.forEach((part, partIndex) => {
-        const partStart = segment.start + (partIndex * partDuration);
-        const partEnd = partStart + partDuration;
-        const isSpace = /^\s+$/.test(part);
-        
-        allWords.push({
-          text: isSpace ? " " : part,
-          start: partStart,
-          end: partEnd,
-          id: `word-${segment.id}-${partIndex}`,
-          isSpace: isSpace,
+  const parseSegmentsIntoWords = useCallback(
+    (
+      segmentsToParse: Array<{
+        text: string;
+        start: number;
+        end: number;
+        id: string;
+      }>,
+    ) => {
+      const allWords: Array<{
+        text: string;
+        start: number;
+        end: number;
+        id: string;
+        isSpace?: boolean;
+      }> = [];
+
+      segmentsToParse.forEach((segment) => {
+        // Split by spaces but keep track of spaces
+        const parts = segment.text.split(/(\s+)/);
+        const segmentDuration = segment.end - segment.start;
+
+        const validParts = parts.filter((part) => part.length > 0);
+        const partDuration = segmentDuration / validParts.length;
+
+        validParts.forEach((part, partIndex) => {
+          const partStart = segment.start + partIndex * partDuration;
+          const partEnd = partStart + partDuration;
+          const isSpace = /^\s+$/.test(part);
+
+          allWords.push({
+            text: isSpace ? " " : part,
+            start: partStart,
+            end: partEnd,
+            id: `word-${segment.id}-${partIndex}`,
+            isSpace: isSpace,
+          });
         });
       });
-    });
-    
-    setWords(allWords);
-  }, []);
+
+      setWords(allWords);
+    },
+    [],
+  );
 
   // Start streaming transcript
   const startStreaming = useCallback(() => {
@@ -88,43 +113,56 @@ export default function Transcript({
           const text = data.text;
           const start = data.start;
           const end = data.end;
-          
-          if (typeof text === "string" && typeof start === "number" && typeof end === "number") {
+
+          if (
+            typeof text === "string" &&
+            typeof start === "number" &&
+            typeof end === "number"
+          ) {
             const segmentId = `segment-${start}-${end}`;
             setSegments((prev) => {
               // Check if segment already exists
               const exists = prev.some((s) => s.id === segmentId);
               if (exists) return prev;
-              
+
               // Add new segment
-              const newSegment: { text: string; start: number; end: number; id: string } = {
+              const newSegment: {
+                text: string;
+                start: number;
+                end: number;
+                id: string;
+              } = {
                 text: text,
                 start: start,
                 end: end,
                 id: segmentId,
               };
-              
+
               // Update full text
-              const newText = prev.length > 0 
-                ? prev.map(s => s.text).join(" ") + " " + text
-                : text;
+              const newText =
+                prev.length > 0
+                  ? prev.map((s) => s.text).join(" ") + " " + text
+                  : text;
               setStreamedText(newText);
-              
+
               // Sort segments by start time and return
-              const updated = [...prev, newSegment].sort((a, b) => a.start - b.start);
-              
+              const updated = [...prev, newSegment].sort(
+                (a, b) => a.start - b.start,
+              );
+
               // Parse segments into words for word-by-word highlighting
               parseSegmentsIntoWords(updated);
-              
+
               // Auto-scroll to latest segment only if user isn't scrolling
               if (!isUserScrollingRef.current) {
                 setTimeout(() => {
                   if (transcriptRef.current && !isUserScrollingRef.current) {
-                    transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
+                    transcriptRef.current.scrollTop =
+                      transcriptRef.current.scrollHeight;
                   }
                 }, 100);
               }
-              
+
               return updated;
             });
           }
@@ -149,7 +187,7 @@ export default function Transcript({
             }
           })
           .catch(console.error);
-      }
+      },
     );
 
     eventSourceRef.current = eventSource;
@@ -164,10 +202,10 @@ export default function Transcript({
         setIsLoading(true);
         setError(null);
         const data = await testimoniesService.getTranscript(testimonyId);
-        
+
         if (isMounted) {
           setTranscript(data);
-          
+
           // If transcript is available, set it
           if (data.hasTranscript && data.transcript) {
             setStreamedText(data.transcript);
@@ -225,11 +263,11 @@ export default function Transcript({
   // Handle user scrolling - detect when user manually scrolls
   const handleScroll = useCallback(() => {
     isUserScrollingRef.current = true;
-    
+
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
-    
+
     // Reset scroll detection after user stops scrolling
     scrollTimeoutRef.current = setTimeout(() => {
       isUserScrollingRef.current = false;
@@ -238,7 +276,11 @@ export default function Transcript({
 
   // Scroll to current word when playing (only if user isn't scrolling)
   useEffect(() => {
-    if (isPlaying && highlightedWordRef.current && !isUserScrollingRef.current) {
+    if (
+      isPlaying &&
+      highlightedWordRef.current &&
+      !isUserScrollingRef.current
+    ) {
       // Use requestAnimationFrame for smoother scrolling
       requestAnimationFrame(() => {
         if (highlightedWordRef.current && !isUserScrollingRef.current) {
@@ -256,10 +298,12 @@ export default function Transcript({
   const getHighlightedWord = () => {
     if (!isPlaying || currentTime <= 0) return null;
     const timeInSeconds = currentTime / 1000; // Convert ms to seconds
-    
-    return words.find(
-      (word) => timeInSeconds >= word.start && timeInSeconds <= word.end
-    ) || null;
+
+    return (
+      words.find(
+        (word) => timeInSeconds >= word.start && timeInSeconds <= word.end,
+      ) || null
+    );
   };
 
   const highlightedWord = getHighlightedWord();
@@ -281,7 +325,9 @@ export default function Transcript({
   const canGenerate = transcript?.canHaveTranscript && transcript?.hasMedia;
 
   return (
-    <div className={`bg-white rounded-2xl shadow-lg border border-gray-200 ${className}`}>
+    <div
+      className={`bg-white rounded-2xl shadow-lg border border-gray-200 ${className}`}
+    >
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -295,10 +341,10 @@ export default function Transcript({
                 {isAvailable
                   ? "Full transcript available"
                   : isProcessing
-                  ? "Transcription in progress..."
-                  : canGenerate
-                  ? "Transcript will be available soon"
-                  : "No transcript available"}
+                    ? "Transcription in progress..."
+                    : canGenerate
+                      ? "Transcript will be available soon"
+                      : "No transcript available"}
               </p>
             </div>
           </div>
@@ -372,8 +418,10 @@ export default function Transcript({
               <p className="text-base leading-7 whitespace-normal">
                 {words.map((word, index) => {
                   const isHighlighted = highlightedWord?.id === word.id;
-                  const isNewWord = index === words.length - 1 && (isStreaming || isProcessing);
-                  const isRecentWord = index >= words.length - 10 && (isStreaming || isProcessing);
+                  const isNewWord =
+                    index === words.length - 1 && (isStreaming || isProcessing);
+                  const isRecentWord =
+                    index >= words.length - 10 && (isStreaming || isProcessing);
                   const isSpace = word.isSpace || word.text === " ";
 
                   // Don't style spaces, just render them
@@ -389,10 +437,10 @@ export default function Transcript({
                         isHighlighted
                           ? "bg-yellow-300 text-gray-900 font-bold px-1.5 py-0.5 rounded shadow-sm"
                           : isNewWord
-                          ? "text-gray-900 font-semibold"
-                          : isRecentWord
-                          ? "text-gray-800 font-medium"
-                          : "text-gray-700"
+                            ? "text-gray-900 font-semibold"
+                            : isRecentWord
+                              ? "text-gray-800 font-medium"
+                              : "text-gray-700"
                       }`}
                       onClick={() => {
                         if (onSeek && !isSpace) {
@@ -401,9 +449,15 @@ export default function Transcript({
                       }}
                       style={{
                         cursor: onSeek && !isSpace ? "pointer" : "default",
-                        animation: isNewWord ? "fadeIn 0.3s ease-in" : undefined,
+                        animation: isNewWord
+                          ? "fadeIn 0.3s ease-in"
+                          : undefined,
                       }}
-                      title={onSeek && !isSpace ? `Jump to ${Math.floor(word.start)}s` : undefined}
+                      title={
+                        onSeek && !isSpace
+                          ? `Jump to ${Math.floor(word.start)}s`
+                          : undefined
+                      }
                     >
                       {word.text}{" "}
                     </span>
@@ -417,8 +471,12 @@ export default function Transcript({
             ) : segments.length > 0 ? (
               <div className="space-y-2">
                 {segments.map((segment, index) => {
-                  const isNewSegment = index === segments.length - 1 && (isStreaming || isProcessing);
-                  const isRecentSegment = index >= segments.length - 3 && (isStreaming || isProcessing);
+                  const isNewSegment =
+                    index === segments.length - 1 &&
+                    (isStreaming || isProcessing);
+                  const isRecentSegment =
+                    index >= segments.length - 3 &&
+                    (isStreaming || isProcessing);
 
                   return (
                     <span
@@ -427,8 +485,8 @@ export default function Transcript({
                         isNewSegment
                           ? "text-gray-900 font-medium bg-blue-50 px-2 py-1 rounded-lg"
                           : isRecentSegment
-                          ? "text-gray-800 bg-gray-50 px-2 py-1 rounded"
-                          : "text-gray-700"
+                            ? "text-gray-800 bg-gray-50 px-2 py-1 rounded"
+                            : "text-gray-700"
                       }`}
                       onClick={() => {
                         if (onSeek) {
@@ -437,7 +495,9 @@ export default function Transcript({
                       }}
                       style={{
                         cursor: onSeek ? "pointer" : "default",
-                        animation: isNewSegment ? "fadeIn 0.5s ease-in" : undefined,
+                        animation: isNewSegment
+                          ? "fadeIn 0.5s ease-in"
+                          : undefined,
                       }}
                     >
                       {segment.text}{" "}
@@ -449,9 +509,13 @@ export default function Transcript({
                 )}
               </div>
             ) : streamedText ? (
-              <p className="text-base leading-7 text-gray-700">{streamedText}</p>
+              <p className="text-base leading-7 text-gray-700">
+                {streamedText}
+              </p>
             ) : (
-              <p className="text-gray-500 italic">No transcript text available</p>
+              <p className="text-gray-500 italic">
+                No transcript text available
+              </p>
             )}
           </div>
         ) : isProcessing ? (
@@ -479,4 +543,3 @@ export default function Transcript({
     </div>
   );
 }
-
