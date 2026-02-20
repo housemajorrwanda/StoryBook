@@ -1,5 +1,6 @@
 import {
   Testimony,
+  TrendingTestimony,
   ImageUploadResponse,
   AudioUploadResponse,
   CreateOrUpdateTestimonyRequest,
@@ -143,6 +144,14 @@ export const testimoniesService = {
       meta?: { skip: number; limit: number; total: number };
     }>("/testimonies", { params });
 
+    return response.data;
+  },
+
+  // Get trending testimonies
+  async getTrendingTestimonies(): Promise<TrendingTestimony[]> {
+    const response = await axiosInstance.get<TrendingTestimony[]>(
+      "/testimonies/trending",
+    );
     return response.data;
   },
 

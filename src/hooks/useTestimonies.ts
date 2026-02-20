@@ -7,7 +7,7 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { Testimony, CreateOrUpdateTestimonyRequest, TranscriptResponse } from "@/types/testimonies";
+import { Testimony, TrendingTestimony, CreateOrUpdateTestimonyRequest, TranscriptResponse } from "@/types/testimonies";
 import {
   testimoniesService,
   buildTestimonyFormData,
@@ -38,6 +38,7 @@ export const TESTIMONY_KEYS = {
   details: () => [...TESTIMONY_KEYS.all, "detail"] as const,
   detail: (id: number) => [...TESTIMONY_KEYS.details(), id] as const,
   drafts: () => [...TESTIMONY_KEYS.all, "drafts"] as const,
+  trending: () => [...TESTIMONY_KEYS.all, "trending"] as const,
   transcripts: () => [...TESTIMONY_KEYS.all, "transcript"] as const,
   transcript: (id: number) => [...TESTIMONY_KEYS.transcripts(), id] as const,
 };
@@ -83,6 +84,16 @@ export function useTestimonies(filters?: {
 
       return nextSkip;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+// Get trending testimonies
+export function useTrendingTestimonies(): UseQueryResult<TrendingTestimony[], Error> {
+  return useQuery({
+    queryKey: TESTIMONY_KEYS.trending(),
+    queryFn: () => testimoniesService.getTrendingTestimonies(),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });

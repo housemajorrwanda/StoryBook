@@ -12,7 +12,7 @@ const Home = () => {
         id="testimonies"
         className="relative scroll-mt-16 md:scroll-mt-20"
       >
-        <div className="container mx-auto px-6 sm:px-8 lg:px-16 py-16 md:py-20 bg-[#fafafa]">
+        <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 bg-[#fafafa]">
           <div className="mb-10 md:mb-14">
             <p className="text-sm font-semibold tracking-[0.15em] uppercase text-gray-400 mb-3">
               Stories
@@ -28,7 +28,7 @@ const Home = () => {
 
           <div className="flex gap-12 lg:gap-16 items-start">
             {/* Stories feed */}
-            <div className="flex-1 min-w-0 max-w-3xl">
+            <div className="flex-1 min-w-0">
               <TestimoniesGrid
                 limit={9}
                 showHeader={false}
