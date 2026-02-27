@@ -16,7 +16,6 @@ import { useTestimony } from "@/hooks/useTestimonies";
 import { getCurrentUser, isAuthenticated } from "@/lib/decodeToken";
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
-import TestimonyConnections from "./TestimonyConnections";
 
 interface TestimonyDetailProps {
   id: number;
@@ -417,19 +416,6 @@ export default function TestimonyDetail({ id }: TestimonyDetailProps) {
             </div>
           )}
         </article>
-
-        {/* Connections - only show for written testimonies */}
-        {testimony.connections &&
-          testimony.connections.length > 0 &&
-          (testimony.submissionType === "written" ||
-            (!testimony.audioUrl && !testimony.videoUrl)) && (
-            <div className="mt-14 pt-10 border-t border-gray-100">
-              <TestimonyConnections
-                connections={testimony.connections}
-                currentTestimonyId={testimony.id}
-              />
-            </div>
-          )}
 
         {/* Back to stories */}
         <div className="py-14 text-center">

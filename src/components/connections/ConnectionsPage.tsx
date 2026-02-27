@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Link2, AlertCircle, Share2 } from "lucide-react";
+import { ArrowLeft, Link2, AlertCircle } from "lucide-react";
 import { useMyConnections } from "@/hooks/useTestimonies";
 import { isAuthenticated } from "@/lib/decodeToken";
 import type { MyTestimonyConnection } from "@/types/testimonies";
@@ -126,13 +126,6 @@ export default function ConnectionsPageContent() {
             Once you share a testimony, our AI will discover connections with
             other stories. Start by sharing your testimony.
           </p>
-          <Link
-            href="/share-testimony"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <Share2 className="w-4 h-4" />
-            Share Testimony
-          </Link>
         </div>
       </div>
     );
