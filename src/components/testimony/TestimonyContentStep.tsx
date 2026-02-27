@@ -56,8 +56,8 @@ const ToolbarButton = ({
       isActive
         ? "bg-gray-900 text-white shadow-md cursor-pointer"
         : disabled
-        ? "text-gray-300 cursor-not-allowed"
-        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+          ? "text-gray-300 cursor-not-allowed"
+          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
     }`}
   >
     {children}
@@ -147,7 +147,7 @@ You can use the formatting tools above to:
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
   const [localAudioPreview, setLocalAudioPreview] = useState<string | null>(
-    null
+    null,
   );
   const [audioPreviewDuration, setAudioPreviewDuration] = useState<
     number | null
@@ -249,7 +249,7 @@ You can use the formatting tools above to:
       `audio-recording-${Date.now()}.webm`,
       {
         type: audioBlob.type,
-      }
+      },
     );
 
     setFormData((prev) => ({
@@ -268,7 +268,7 @@ You can use the formatting tools above to:
       `video-recording-${Date.now()}.webm`,
       {
         type: videoBlob.type,
-      }
+      },
     );
 
     setFormData((prev) => ({
@@ -288,7 +288,7 @@ You can use the formatting tools above to:
     setFormData((prev) => ({
       ...prev,
       images: prev.images.map((img, i) =>
-        i === index ? { ...img, description } : img
+        i === index ? { ...img, description } : img,
       ),
     }));
   };
@@ -302,12 +302,12 @@ You can use the formatting tools above to:
 
   const updateExistingImageDescription = (
     index: number,
-    description: string
+    description: string,
   ) => {
     setFormData((prev) => ({
       ...prev,
       existingImages: prev.existingImages.map((img, i) =>
-        i === index ? { ...img, description } : img
+        i === index ? { ...img, description } : img,
       ),
     }));
   };
@@ -846,12 +846,17 @@ You can use the formatting tools above to:
                 Existing images
               </p>
               {formData.existingImages.map((image, index) => (
-                <div key={image.id ?? index} className="bg-white border border-gray-200 rounded-lg p-4">
+                <div
+                  key={image.id ?? index}
+                  className="bg-white border border-gray-200 rounded-lg p-4"
+                >
                   <div className="flex items-start gap-4">
                     <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-200 shrink-0">
                       <Image
                         src={image.imageUrl}
-                        alt={image.imageFileName || `Existing image ${index + 1}`}
+                        alt={
+                          image.imageFileName || `Existing image ${index + 1}`
+                        }
                         width={80}
                         height={80}
                         className="w-full h-full object-cover"
@@ -878,7 +883,10 @@ You can use the formatting tools above to:
                           type="text"
                           value={image.description || ""}
                           onChange={(e) =>
-                            updateExistingImageDescription(index, e.target.value)
+                            updateExistingImageDescription(
+                              index,
+                              e.target.value,
+                            )
                           }
                           placeholder="Add a description for this image..."
                           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-black focus:outline-none transition-colors duration-200 text-gray-900 placeholder:text-gray-400"
