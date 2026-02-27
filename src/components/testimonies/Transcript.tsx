@@ -64,7 +64,6 @@ export default function Transcript({
       }> = [];
 
       segmentsToParse.forEach((segment) => {
-        // Split by spaces but keep track of spaces
         const parts = segment.text.split(/(\s+)/);
         const segmentDuration = segment.end - segment.start;
 
@@ -150,7 +149,6 @@ export default function Transcript({
                 (a, b) => a.start - b.start,
               );
 
-              // Parse segments into words for word-by-word highlighting
               parseSegmentsIntoWords(updated);
 
               // Auto-scroll to latest segment only if user isn't scrolling
@@ -209,8 +207,6 @@ export default function Transcript({
           // If transcript is available, set it
           if (data.hasTranscript && data.transcript) {
             setStreamedText(data.transcript);
-            // Create a single segment for the full transcript
-            // Use actual duration if available, otherwise estimate
             const actualDuration = duration || 100;
             const fullSegment = {
               text: data.transcript,
@@ -219,10 +215,8 @@ export default function Transcript({
               id: "full-transcript",
             };
             setSegments([fullSegment]);
-            // Parse into words for word-by-word highlighting
             parseSegmentsIntoWords([fullSegment]);
           } else {
-            // If transcript is pending/processing, start streaming
             if (
               data.canHaveTranscript &&
               data.hasMedia &&
@@ -260,7 +254,6 @@ export default function Transcript({
     };
   }, [startStreaming, testimonyId, duration, parseSegmentsIntoWords]);
 
-  // Handle user scrolling - detect when user manually scrolls
   const handleScroll = useCallback(() => {
     isUserScrollingRef.current = true;
 
@@ -268,13 +261,11 @@ export default function Transcript({
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Reset scroll detection after user stops scrolling
     scrollTimeoutRef.current = setTimeout(() => {
       isUserScrollingRef.current = false;
-    }, 1500); // Increased timeout to give more time for manual scrolling
+    }, 1500);
   }, []);
 
-  // Scroll to current word when playing (only if user isn't scrolling)
   useEffect(() => {
     if (
       isPlaying &&
@@ -297,7 +288,7 @@ export default function Transcript({
   // Find which word should be highlighted based on current time
   const getHighlightedWord = () => {
     if (!isPlaying || currentTime <= 0) return null;
-    const timeInSeconds = currentTime / 1000; // Convert ms to seconds
+    const timeInSeconds = currentTime / 1000;
 
     return (
       words.find(
@@ -326,18 +317,20 @@ export default function Transcript({
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-lg border border-gray-200 ${className}`}
+      className={`bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 ring-1 ring-white/5 ${className}`}
     >
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="px-6 py-5 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <LuFileText className="w-5 h-5 text-gray-700" />
+            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+              <LuFileText className="w-5 h-5 text-gray-300" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 text-lg">Transcript</h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="font-semibold text-white text-lg tracking-tight">
+                Transcript
+              </h3>
+              <p className="text-sm text-gray-400">
                 {isAvailable
                   ? "Full transcript available"
                   : isProcessing
@@ -351,21 +344,26 @@ export default function Transcript({
 
           {/* Status Badge */}
           {isLoading ? (
-            <div className="flex items-center gap-2 text-gray-500">
+            <div className="flex items-center gap-2 text-gray-400">
               <LuLoaderCircle className="w-4 h-4 animate-spin" />
               <span className="text-sm">Loading...</span>
             </div>
           ) : isStreaming || isProcessing ? (
-            <div className="flex items-center gap-2 text-blue-600">
-              <LuLoaderCircle className="w-4 h-4 animate-spin" />
-              <span className="text-sm font-medium">Processing</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 rounded-full">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500" />
+              </span>
+              <span className="text-sm font-medium text-indigo-300">
+                Processing
+              </span>
             </div>
           ) : isAvailable ? (
-            <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+            <div className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-full text-sm font-medium">
               Available
             </div>
           ) : (
-            <div className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+            <div className="px-3 py-1.5 bg-white/5 border border-white/10 text-gray-400 rounded-full text-sm font-medium">
               Not Available
             </div>
           )}
@@ -373,22 +371,25 @@ export default function Transcript({
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-6 pt-5">
         {error ? (
-          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <LuLoaderCircle className="w-5 h-5 text-red-600" />
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <LuLoaderCircle className="w-5 h-5 text-red-400" />
+            <p className="text-red-300 text-sm">{error}</p>
           </div>
         ) : isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <LuLoaderCircle className="w-8 h-8 animate-spin text-gray-400" />
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full border-2 border-white/10" />
+              <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-transparent border-t-indigo-400 animate-spin" />
+            </div>
+            <p className="text-sm text-gray-500">Loading transcript...</p>
           </div>
         ) : isAvailable || streamedText || segments.length > 0 ? (
           <div
             ref={transcriptRef}
             onScroll={handleScroll}
             onWheel={() => {
-              // Detect manual scrolling
               isUserScrollingRef.current = true;
               if (scrollTimeoutRef.current) {
                 clearTimeout(scrollTimeoutRef.current);
@@ -407,65 +408,81 @@ export default function Transcript({
                 isUserScrollingRef.current = false;
               }, 1500);
             }}
-            className="prose prose-sm max-w-none text-gray-700 leading-relaxed max-h-96 overflow-y-auto overscroll-contain"
+            className="max-w-none leading-relaxed max-h-80 lg:max-h-112 xl:max-h-128 overflow-y-auto overscroll-contain scrollbar-thin"
             style={{
               scrollBehavior: "smooth",
               pointerEvents: "auto",
               userSelect: "text",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255,255,255,0.15) transparent",
             }}
           >
             {words.length > 0 ? (
-              <p className="text-base leading-7 whitespace-normal">
-                {words.map((word, index) => {
-                  const isHighlighted = highlightedWord?.id === word.id;
-                  const isNewWord =
-                    index === words.length - 1 && (isStreaming || isProcessing);
-                  const isRecentWord =
-                    index >= words.length - 10 && (isStreaming || isProcessing);
-                  const isSpace = word.isSpace || word.text === " ";
+              <p className="text-base leading-8 whitespace-normal tracking-wide">
+                {(() => {
+                  const timeInSeconds = currentTime / 1000;
+                  return words.map((word, index) => {
+                    const isHighlighted = highlightedWord?.id === word.id;
+                    const isPast = isPlaying && word.end < timeInSeconds;
+                    const isNewWord =
+                      index === words.length - 1 &&
+                      (isStreaming || isProcessing);
+                    const isRecentWord =
+                      index >= words.length - 10 &&
+                      (isStreaming || isProcessing);
+                    const isSpace = word.isSpace || word.text === " ";
+                    if (isSpace) {
+                      return <span key={word.id}> </span>;
+                    }
 
-                  // Don't style spaces, just render them
-                  if (isSpace) {
-                    return <span key={word.id}> </span>;
-                  }
-
-                  return (
-                    <span
-                      key={word.id}
-                      ref={isHighlighted ? highlightedWordRef : null}
-                      className={`inline transition-all duration-200 ${
-                        isHighlighted
-                          ? "bg-yellow-300 text-gray-900 font-bold px-1.5 py-0.5 rounded shadow-sm"
-                          : isNewWord
-                            ? "text-gray-900 font-semibold"
-                            : isRecentWord
-                              ? "text-gray-800 font-medium"
-                              : "text-gray-700"
-                      }`}
-                      onClick={() => {
-                        if (onSeek && !isSpace) {
-                          onSeek(word.start * 1000); // Convert to milliseconds
+                    return (
+                      <span
+                        key={word.id}
+                        ref={isHighlighted ? highlightedWordRef : null}
+                        className={`inline-block transition-all duration-300 ease-out rounded-sm ${
+                          isHighlighted
+                            ? "text-white font-bold px-1.5 py-0.5 bg-indigo-500/30 scale-105"
+                            : isPast
+                              ? "text-gray-200"
+                              : isNewWord
+                                ? "text-white font-semibold"
+                                : isRecentWord
+                                  ? "text-gray-300 font-medium"
+                                  : "text-gray-500"
+                        } ${onSeek && !isSpace ? "hover:text-white hover:bg-white/10 hover:rounded cursor-pointer" : ""}`}
+                        onClick={() => {
+                          if (onSeek && !isSpace) {
+                            onSeek(word.start * 1000);
+                          }
+                        }}
+                        style={{
+                          cursor: onSeek && !isSpace ? "pointer" : "default",
+                          animation: isHighlighted
+                            ? "karaoke-glow 1.5s ease-in-out infinite"
+                            : isNewWord
+                              ? "float-in 0.4s ease-out"
+                              : undefined,
+                          transformOrigin: "center bottom",
+                        }}
+                        title={
+                          onSeek && !isSpace
+                            ? `Jump to ${Math.floor(word.start / 60)}:${String(Math.floor(word.start % 60)).padStart(2, "0")}`
+                            : undefined
                         }
-                      }}
-                      style={{
-                        cursor: onSeek && !isSpace ? "pointer" : "default",
-                        animation: isNewWord
-                          ? "fadeIn 0.3s ease-in"
-                          : undefined,
-                      }}
-                      title={
-                        onSeek && !isSpace
-                          ? `Jump to ${Math.floor(word.start)}s`
-                          : undefined
-                      }
-                    >
-                      {word.text}{" "}
-                    </span>
-                  );
-                })}
+                      >
+                        {word.text}{" "}
+                      </span>
+                    );
+                  });
+                })()}
                 {/* Live typing cursor when streaming */}
                 {(isStreaming || isProcessing) && (
-                  <span className="inline-block w-0.5 h-5 bg-blue-500 ml-1 animate-pulse" />
+                  <span
+                    className="inline-block w-0.5 h-5 bg-indigo-400 ml-1 rounded-full shadow-[0_0_8px_rgba(129,140,248,0.6)]"
+                    style={{
+                      animation: "cursor-blink 1s step-end infinite",
+                    }}
+                  />
                 )}
               </p>
             ) : segments.length > 0 ? (
@@ -483,10 +500,10 @@ export default function Transcript({
                       key={segment.id}
                       className={`inline-block transition-all duration-300 mb-2 ${
                         isNewSegment
-                          ? "text-gray-900 font-medium bg-blue-50 px-2 py-1 rounded-lg"
+                          ? "text-white font-medium bg-indigo-500/20 px-2 py-1 rounded-lg border border-indigo-500/10"
                           : isRecentSegment
-                            ? "text-gray-800 bg-gray-50 px-2 py-1 rounded"
-                            : "text-gray-700"
+                            ? "text-gray-300 bg-white/5 px-2 py-1 rounded"
+                            : "text-gray-400"
                       }`}
                       onClick={() => {
                         if (onSeek) {
@@ -496,7 +513,7 @@ export default function Transcript({
                       style={{
                         cursor: onSeek ? "pointer" : "default",
                         animation: isNewSegment
-                          ? "fadeIn 0.5s ease-in"
+                          ? "float-in 0.4s ease-out"
                           : undefined,
                       }}
                     >
@@ -505,23 +522,50 @@ export default function Transcript({
                   );
                 })}
                 {(isStreaming || isProcessing) && (
-                  <span className="inline-block w-0.5 h-5 bg-blue-500 ml-2 animate-pulse" />
+                  <span
+                    className="inline-block w-0.5 h-5 bg-indigo-400 ml-2 rounded-full shadow-[0_0_8px_rgba(129,140,248,0.6)]"
+                    style={{
+                      animation: "cursor-blink 1s step-end infinite",
+                    }}
+                  />
                 )}
               </div>
             ) : streamedText ? (
-              <p className="text-base leading-7 text-gray-700">
+              <p className="text-base leading-8 text-gray-300 tracking-wide">
                 {streamedText}
               </p>
             ) : (
-              <p className="text-gray-500 italic">
+              <p className="text-gray-500 italic text-sm">
                 No transcript text available
               </p>
             )}
           </div>
         ) : isProcessing ? (
-          <div className="text-center py-12">
-            <LuLoaderCircle className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">
+          <div className="text-center py-16">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <span
+                className="w-2 h-2 rounded-full bg-indigo-400"
+                style={{
+                  animation: "dot-bounce 1.4s infinite ease-in-out both",
+                  animationDelay: "0s",
+                }}
+              />
+              <span
+                className="w-2 h-2 rounded-full bg-indigo-400"
+                style={{
+                  animation: "dot-bounce 1.4s infinite ease-in-out both",
+                  animationDelay: "0.16s",
+                }}
+              />
+              <span
+                className="w-2 h-2 rounded-full bg-indigo-400"
+                style={{
+                  animation: "dot-bounce 1.4s infinite ease-in-out both",
+                  animationDelay: "0.32s",
+                }}
+              />
+            </div>
+            <p className="text-gray-300 font-medium">
               {transcript?.transcriptStatus || "Transcription is processing..."}
             </p>
             <p className="text-sm text-gray-500 mt-2">
@@ -529,10 +573,12 @@ export default function Transcript({
             </p>
           </div>
         ) : (
-          <div className="text-center py-12">
-            <LuFileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">No transcript available</p>
-            <p className="text-sm text-gray-500 mt-2">
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <LuFileText className="w-8 h-8 text-gray-500" />
+            </div>
+            <p className="text-gray-300 font-medium">No transcript available</p>
+            <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
               {canGenerate
                 ? "Transcript generation may take some time. Please check back later."
                 : "This testimony does not support transcript generation."}
