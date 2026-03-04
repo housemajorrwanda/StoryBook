@@ -1,460 +1,533 @@
 "use client";
 
-import { useState } from "react";
-import { use } from "react";
-import { X, Volume2, VolumeX, Eye, Compass, Info, Link as Links, Music, Video, Image as Ifoto, Zap } from "lucide-react";
+import { useState, useCallback, useRef, use, useEffect } from "react";
 import Link from "next/link";
-import ImageComponent from "next/image";
-import PageLayout from "@/layout/PageLayout";
-import { VirtualTourAudioRegion, VirtualTourEffect, VirtualTourHotspot } from "@/types/tour";
+import dynamic from "next/dynamic";
+import {
+  X,
+  Volume2,
+  VolumeX,
+  Info,
+  Maximize,
+  Minimize,
+  MapPin,
+  Eye,
+  Music,
+  Zap,
+  ChevronRight,
+  Compass,
+  Sparkles,
+} from "lucide-react";
+import { VirtualTourHotspot } from "@/types/tour";
 import { useVirtualTour } from "@/hooks/virtual-tour/use-virtual-tours";
+import { useSpatialAudio } from "@/hooks/virtual-tour/use-spatial-audio";
+import HotspotPopup from "@/components/virtual-tour/HotspotPopup";
+import EffectsLayer from "@/components/virtual-tour/EffectsLayer";
 
-// Helper function to convert 3D coordinates to 2D screen coordinates
-const convert3DTo2D = (x: number | null, y: number | null, z: number | null) => {
-  const safeX = x || 0;
-  const safeZ = z || 0;
-  
-  return {
-    x: 50 + (safeX * 5), 
-    y: 50 + (safeZ * 5) 
-  };
+// Dynamic imports — no SSR for viewers that use browser APIs
+const Panorama360Viewer = dynamic(
+  () => import("@/components/virtual-tour/Panorama360Viewer"),
+  { ssr: false }
+);
+const Video360Viewer = dynamic(
+  () => import("@/components/virtual-tour/Video360Viewer"),
+  { ssr: false }
+);
+const ModelViewerComponent = dynamic(
+  () => import("@/components/virtual-tour/ModelViewer"),
+  { ssr: false }
+);
+const EmbedViewer = dynamic(
+  () => import("@/components/virtual-tour/EmbedViewer"),
+  { ssr: false }
+);
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const TOUR_TYPE_LABELS: Record<string, string> = {
+  "360_image": "360° Image",
+  "360_video": "360° Video",
+  "3d_model": "3D Model",
+  embed: "Embedded",
 };
 
-// Hotspot type icons mapping
-const getHotspotIcon = (type: VirtualTourHotspot['type']) => {
-  switch (type) {
-    case 'info':
-      return <Info className="w-3 h-3" />;
-    case 'link':
-      return <Links className="w-3 h-3" />;
-    case 'audio':
-      return <Music className="w-3 h-3" />;
-    case 'video':
-      return <Video className="w-3 h-3" />;
-    case 'image':
-      return <Ifoto className="w-3 h-3" />;
-    case 'effect':
-      return <Zap className="w-3 h-3" />;
-    default:
-      return <Compass className="w-3 h-3" />;
-  }
+const HOTSPOT_COLORS: Record<VirtualTourHotspot["type"], string> = {
+  info: "bg-blue-500",
+  audio: "bg-green-500",
+  video: "bg-red-500",
+  image: "bg-amber-500",
+  link: "bg-purple-500",
+  effect: "bg-pink-500",
 };
 
-// Effect type display names
-const getEffectDisplayName = (effect: VirtualTourEffect) => {
-  if (effect.title) return effect.title;
-  return `${effect.effectType} - ${effect.effectName}`;
-};
+// ── Main Component ────────────────────────────────────────────────────────────
 
-// Audio region display names
-const getAudioDisplayName = (audio: VirtualTourAudioRegion) => {
-  if (audio.title) return audio.title;
-  return `Audio Region ${audio.id}`;
-};
-
-export default function TourViewer({
+export default function TourViewerPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = use(params);
   const tourId = parseInt(resolvedParams.id);
-  
-  const { data: virtualTour, isLoading, error } = useVirtualTour(tourId);
+
+  const { data: tour, isLoading, error } = useVirtualTour(tourId);
+
   const [selectedHotspot, setSelectedHotspot] = useState<VirtualTourHotspot | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
-  const [showInfo, setShowInfo] = useState(true);
+  const [showInfoPanel, setShowInfoPanel] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentYaw, setCurrentYaw] = useState(0);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Spatial audio
+  useSpatialAudio(tour?.audioRegions ?? [], audioEnabled);
+
+  // Auto-hide controls after inactivity
+  const showControls = useCallback(() => {
+    setControlsVisible(true);
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    controlsTimerRef.current = setTimeout(() => {
+      setControlsVisible(false);
+    }, 3500);
+  }, []);
+
+  useEffect(() => {
+    showControls();
+    return () => {
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep controls visible when info panel is open
+  useEffect(() => {
+    if (showInfoPanel) {
+      setControlsVisible(true);
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    } else {
+      showControls();
+    }
+  }, [showInfoPanel, showControls]);
+
+  // Fullscreen API
+  const toggleFullscreen = useCallback(async () => {
+    if (!document.fullscreenElement) {
+      await containerRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      await document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
+  // ── Loading ──────────────────────────────────────────────────────────────
 
   if (isLoading) {
     return (
-      <PageLayout showBackgroundEffects={true} variant="default">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading virtual tour...</p>
+      <div className="fixed inset-0 bg-gray-950 flex flex-col items-center justify-center z-50">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Compass className="w-6 h-6 text-white/60 animate-pulse" />
           </div>
         </div>
-      </PageLayout>
+        <p className="mt-6 text-white/60 text-sm tracking-wide">Loading virtual tour…</p>
+      </div>
     );
   }
 
-  if (error || !virtualTour) {
+  if (error || !tour) {
     return (
-      <PageLayout showBackgroundEffects={true} variant="default">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Tour Not Found</h2>
-            <p className="text-gray-600 mb-4">The virtual tour you&apos;re looking for doesn&apos;t exist.</p>
-            <Link
-              href="/virtual-tours"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              <X className="w-4 h-4" />
-              Back to Tours
-            </Link>
-          </div>
-        </div>
-      </PageLayout>
+      <div className="fixed inset-0 bg-gray-950 flex flex-col items-center justify-center z-50 text-white">
+        <Sparkles className="w-16 h-16 text-white/30 mb-6" />
+        <h2 className="text-2xl font-bold mb-2">Tour Not Found</h2>
+        <p className="text-white/50 mb-8 text-center max-w-sm">
+          The virtual tour you&apos;re looking for doesn&apos;t exist or isn&apos;t available.
+        </p>
+        <Link
+          href="/virtual-tours"
+          className="px-6 py-3 bg-white text-gray-900 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+        >
+          Browse Tours
+        </Link>
+      </div>
     );
   }
 
-  // Transform hotspots with proper 2D coordinates
-  const uiHotspots = virtualTour.hotspots.map(hotspot => {
-    const coords = convert3DTo2D(hotspot.positionX, hotspot.positionY, hotspot.positionZ);
-    return {
-      ...hotspot,
-      x: coords.x,
-      y: coords.y
-    };
-  });
+  const mediaSource =
+    tour.tourType === "360_video"
+      ? tour.video360Url
+      : tour.tourType === "360_image"
+      ? tour.image360Url
+      : tour.tourType === "3d_model"
+      ? tour.model3dUrl
+      : tour.embedUrl;
 
-  // Get appropriate media source based on tour type
-  const getMediaSource = () => {
-    switch (virtualTour.tourType) {
-      case '360_video':
-        return virtualTour.video360Url;
-      case '360_image':
-        return virtualTour.image360Url;
-      case '3d_model':
-        return virtualTour.model3dUrl;
-      case 'embed':
-        return virtualTour.embedUrl;
-      default:
-        return null;
-    }
-  };
-
-  const mediaSource = getMediaSource();
+  const is360 = tour.tourType === "360_image" || tour.tourType === "360_video";
 
   return (
-    <PageLayout showBackgroundEffects={true} variant="default">
-      <div className="min-h-screen mt-10 bg-gray-50 flex flex-col">
-        {/* Header */}
-        <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-40">
-          <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-            <Link
-              href="/virtual-tours"
-              className="flex items-center gap-2 hover:text-gray-700 transition-colors text-gray-600"
+    <div
+      ref={containerRef}
+      className="fixed inset-0 bg-gray-950 overflow-hidden"
+      onMouseMove={showControls}
+      onTouchStart={showControls}
+    >
+      {/* ── Viewer ─────────────────────────────────────────────────────── */}
+      <div className="absolute inset-0">
+        {tour.tourType === "360_image" && tour.image360Url && (
+          <Panorama360Viewer
+            imageUrl={tour.image360Url}
+            hotspots={tour.hotspots}
+            onHotspotClick={setSelectedHotspot}
+            onYawChange={setCurrentYaw}
+          />
+        )}
+
+        {tour.tourType === "360_video" && tour.video360Url && (
+          <Video360Viewer
+            videoUrl={tour.video360Url}
+            hotspots={tour.hotspots}
+            audioEnabled={audioEnabled}
+            onHotspotClick={setSelectedHotspot}
+            onYawChange={setCurrentYaw}
+          />
+        )}
+
+        {tour.tourType === "3d_model" && tour.model3dUrl && (
+          <ModelViewerComponent modelUrl={tour.model3dUrl} title={tour.title} />
+        )}
+
+        {tour.tourType === "embed" && tour.embedUrl && (
+          <EmbedViewer embedUrl={tour.embedUrl} title={tour.title} />
+        )}
+
+        {!mediaSource && (
+          <div className="w-full h-full flex flex-col items-center justify-center text-white/30">
+            <Sparkles className="w-20 h-20 mb-4" />
+            <p className="text-lg">No media available for this tour</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Effects overlay ────────────────────────────────────────────── */}
+      {tour.effects.length > 0 && (
+        <EffectsLayer effects={tour.effects} audioEnabled={audioEnabled} />
+      )}
+
+      {/* ── Top Controls Bar ───────────────────────────────────────────── */}
+      <div
+        className={`absolute top-0 left-0 right-0 z-30 transition-all duration-500 ${
+          controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+        }`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 bg-black/50 backdrop-blur-md border-b border-white/5">
+          {/* Back button */}
+          <Link
+            href="/virtual-tours"
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium transition-all border border-white/10"
+          >
+            <X className="w-4 h-4" />
+            <span>Back</span>
+          </Link>
+
+          {/* Tour title (desktop) */}
+          <div className="hidden md:block text-center">
+            <div className="text-white font-semibold text-sm truncate max-w-xs">
+              {tour.title}
+            </div>
+            <div className="text-white/50 text-xs flex items-center justify-center gap-1 mt-0.5">
+              <MapPin className="w-3 h-3" />
+              {tour.location}
+            </div>
+          </div>
+
+          {/* Right controls */}
+          <div className="flex items-center gap-2">
+            {/* Tour type badge */}
+            <span className="hidden sm:inline-flex px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-white/70 text-xs border border-white/10">
+              {TOUR_TYPE_LABELS[tour.tourType] ?? tour.tourType}
+            </span>
+
+            {/* Audio toggle */}
+            <button
+              type="button"
+              onClick={() => setAudioEnabled((p) => !p)}
+              className="w-9 h-9 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all border border-white/10"
+              title={audioEnabled ? "Mute audio" : "Unmute audio"}
             >
-              <X className="w-5 h-5" />
-              <span className="text-sm font-medium">Back to Tours</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-500 capitalize">
-                {virtualTour.tourType.replace('_', ' ')} • {virtualTour.status}
-              </div>
-              <button
-                onClick={() => setAudioEnabled(!audioEnabled)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
-                title="Toggle Audio"
-              >
-                {audioEnabled ? (
-                  <Volume2 className="w-5 h-5" />
-                ) : (
-                  <VolumeX className="w-5 h-5" />
-                )}
-              </button>
-              <button
-                onClick={() => setShowInfo(!showInfo)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
-                title="Toggle Info"
-              >
-                <Eye className="w-5 h-5" />
-              </button>
-            </div>
+              {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+
+            {/* Info panel toggle */}
+            <button
+              type="button"
+              onClick={() => setShowInfoPanel((p) => !p)}
+              className={`w-9 h-9 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all border ${
+                showInfoPanel
+                  ? "bg-white/30 border-white/30"
+                  : "bg-white/10 hover:bg-white/20 border-white/10"
+              }`}
+              title="Tour information"
+            >
+              <Info className="w-4 h-4" />
+            </button>
+
+            {/* Fullscreen toggle */}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="w-9 h-9 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all border border-white/10"
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </button>
           </div>
-        </div>
-
-        {/* Main Viewer */}
-        <div className="flex-1 flex overflow-hidden container mx-auto px-6 py-8 gap-6">
-          {/* Tour Display */}
-          <div className="flex-1 relative bg-black overflow-hidden flex items-center justify-center rounded-lg">
-            {/* Media Display based on tour type */}
-            {virtualTour.tourType === '360_video' && mediaSource && (
-              <video
-                className="w-full h-full object-cover"
-                controls
-                autoPlay
-                muted={!audioEnabled}
-                loop
-              >
-                <source src={mediaSource} type="video/mp4" />
-                Your browser does not support 360 videos.
-              </video>
-            )}
-
-            {virtualTour.tourType === '360_image' && mediaSource && (
-              <ImageComponent
-                src={mediaSource}
-                alt={virtualTour.title}
-                className="w-full h-full object-cover"
-                fill
-                priority
-              />
-            )}
-
-            {virtualTour.tourType === 'embed' && mediaSource && (
-              <iframe
-                src={mediaSource}
-                className="w-full h-full border-0"
-                allowFullScreen
-                title={virtualTour.title}
-              />
-            )}
-
-            {virtualTour.tourType === '3d_model' && !mediaSource && (
-              <div className="text-white text-center p-8">
-                <p>3D Model viewer would be embedded here</p>
-                <p className="text-sm text-gray-400 mt-2">{virtualTour.model3dUrl}</p>
-              </div>
-            )}
-
-            {!mediaSource && virtualTour.tourType !== '3d_model' && (
-              <ImageComponent
-                src="/immersive-360-tour-environment.jpg"
-                alt={virtualTour.title}
-                className="w-full h-full object-cover"
-                fill
-                priority
-              />
-            )}
-
-            {/* Hotspot Indicators */}
-            {showInfo &&
-              uiHotspots.map((spot) => (
-                <button
-                  key={spot.id}
-                  onClick={() => setSelectedHotspot(spot)}
-                  className="absolute w-8 h-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-900/80 hover:bg-gray-900 transition-all animate-pulse hover:animate-none group"
-                  style={{ 
-                    left: `${spot.x}%`, 
-                    top: `${spot.y}%`,
-                    width: spot.size ? `${spot.size * 32}px` : '32px',
-                    height: spot.size ? `${spot.size * 32}px` : '32px'
-                  }}
-                  title={spot.title || `Hotspot ${spot.id}`}
-                >
-                  <div className="w-full h-full flex items-center justify-center text-white">
-                    {getHotspotIcon(spot.type)}
-                  </div>
-                </button>
-              ))}
-
-            {/* Hotspot Detail Card */}
-            {selectedHotspot && showInfo && (
-              <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg p-4 max-w-xs shadow-lg shadow-black/50">
-                <div className="flex items-center gap-2 mb-2">
-                  {getHotspotIcon(selectedHotspot.type)}
-                  <h3 className="font-semibold text-gray-900">
-                    {selectedHotspot.title || `Hotspot ${selectedHotspot.id}`}
-                  </h3>
-                </div>
-                {selectedHotspot.description && (
-                  <p className="text-sm text-gray-600 mb-3">
-                    {selectedHotspot.description}
-                  </p>
-                )}
-                <div className="text-xs text-gray-500 space-y-1 mb-3">
-                  <div>Type: {selectedHotspot.type}</div>
-                  {selectedHotspot.triggerDistance && (
-                    <div>Trigger Distance: {selectedHotspot.triggerDistance}m</div>
-                  )}
-                  <div>Auto-trigger: {selectedHotspot.autoTrigger ? 'Yes' : 'No'}</div>
-                </div>
-                <button
-                  onClick={() => setSelectedHotspot(null)}
-                  className="text-xs text-gray-700 hover:text-gray-900 transition-colors font-medium"
-                >
-                  Close
-                </button>
-              </div>
-            )}
-
-            {/* Controls Overlay */}
-            <div className="absolute bottom-6 right-6 flex gap-2">
-              <button
-                onClick={() => setShowInfo(!showInfo)}
-                className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors text-sm font-medium"
-              >
-                {showInfo ? "Hide Info Panel" : "Show Info Panel"}
-              </button>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          {showInfo && (
-            <div className="w-96 border-l border-gray-200 bg-white/80 backdrop-blur-sm overflow-y-auto">
-              <div className="p-6 space-y-6">
-                {/* Tour Header */}
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {virtualTour.title}
-                  </h2>
-                  <p className="text-gray-600 text-sm">{virtualTour.location}</p>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                    <span className="capitalize">{virtualTour.tourType.replace('_', ' ')}</span>
-                    <span>•</span>
-                    <span className="capitalize">{virtualTour.status}</span>
-                    <span>•</span>
-                    <span>{virtualTour.impressions} views</span>
-                  </div>
-                </div>
-
-                {/* Tour Description */}
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    Description
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {virtualTour.description}
-                  </p>
-                </div>
-
-                {/* Points of Interest */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900">
-                      Points of Interest
-                    </h3>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                      {virtualTour.hotspots.length} hotspots
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {uiHotspots.map((spot) => (
-                      <button
-                        key={spot.id}
-                        onClick={() => setSelectedHotspot(spot)}
-                        className={`w-full text-left p-3 rounded-lg border transition-all ${
-                          selectedHotspot?.id === spot.id
-                            ? "bg-gray-100 border-gray-400 text-gray-900"
-                            : "border-gray-200 hover:border-gray-400 text-gray-900"
-                        }`}
-                      >
-                        <div className="font-medium flex items-center gap-2">
-                          {getHotspotIcon(spot.type)}
-                          {spot.title || `Hotspot ${spot.id}`}
-                          {spot.autoTrigger && (
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                              Auto
-                            </span>
-                          )}
-                        </div>
-                        {spot.description && (
-                          <div className="text-xs text-gray-600 mt-1">
-                            {spot.description}
-                          </div>
-                        )}
-                        <div className="text-xs text-gray-500 mt-2 flex gap-2">
-                          <span>Type: {spot.type}</span>
-                          {spot.triggerDistance && (
-                            <span>• Distance: {spot.triggerDistance}m</span>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Audio Regions */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900">
-                      Audio Regions
-                    </h3>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                      {virtualTour.audioRegions.length} regions
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    {virtualTour.audioRegions.map((audio) => (
-                      <div
-                        key={audio.id}
-                        className="p-3 rounded bg-gray-50 border border-gray-200"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="font-medium text-gray-700">
-                            {getAudioDisplayName(audio)}
-                          </div>
-                          <span className={`text-xs font-medium px-2 py-1 rounded ${
-                            audioEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {audioEnabled ? "Active" : "Muted"}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-600 mt-2 space-y-1">
-                          <div>Type: {audio.regionType} • Volume: {Math.round(audio.volume * 100)}%</div>
-                          <div>
-                            {audio.spatialAudio ? 'Spatial Audio' : 'Background'} • 
-                            {audio.loop ? ' Looping' : ' Play once'} •
-                            {audio.autoPlay ? ' Auto-play' : ' Manual'}
-                          </div>
-                          {audio.fadeInDuration && audio.fadeOutDuration && (
-                            <div>Fade: {audio.fadeInDuration}s in, {audio.fadeOutDuration}s out</div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Visual Effects */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900">
-                      Effects
-                    </h3>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                      {virtualTour.effects.length} effects
-                    </span>
-                  </div>
-                  <div className="grid gap-2 text-sm">
-                    {virtualTour.effects.map((effect) => (
-                      <div
-                        key={effect.id}
-                        className="p-3 rounded border border-gray-200"
-                      >
-                        <div className="font-medium text-gray-700">
-                          {getEffectDisplayName(effect)}
-                        </div>
-                        <div className="text-xs text-gray-600 mt-1 space-y-1">
-                          <div>Type: {effect.effectType} • Trigger: {effect.triggerType}</div>
-                          <div>Intensity: {effect.intensity} • Duration: {effect.duration || 'Continuous'}</div>
-                          {effect.triggerDelay > 0 && (
-                            <div>Delay: {effect.triggerDelay}s</div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tour Creator */}
-                <div className="pt-4 border-t border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    Created By
-                  </h3>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-medium text-gray-600">
-                        {virtualTour.user.fullName?.charAt(0) || virtualTour.user.email.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {virtualTour.user.fullName || "Anonymous User"}
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        {virtualTour.user.email}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
-    </PageLayout>
+
+      {/* ── Compass HUD (360 tours only) ───────────────────────────────── */}
+      {is360 && (
+        <div
+          className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-30 transition-all duration-500 ${
+            controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+          }`}
+        >
+          <div className="flex flex-col items-center gap-1">
+            <div
+              className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center"
+              style={{ transform: `rotate(${-currentYaw}deg)`, transition: "transform 0.1s linear" }}
+            >
+              <Compass className="w-6 h-6 text-white/80" />
+            </div>
+            <span className="text-white/40 text-xs tabular-nums">
+              {Math.round(((currentYaw % 360) + 360) % 360)}°
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Hotspot popup ──────────────────────────────────────────────── */}
+      {selectedHotspot && (
+        <HotspotPopup
+          hotspot={selectedHotspot}
+          onClose={() => setSelectedHotspot(null)}
+        />
+      )}
+
+      {/* ── Info Panel (slides in from right) ─────────────────────────── */}
+      <div
+        className={`absolute top-0 right-0 h-full w-96 max-w-full z-40 transition-transform duration-400 ease-in-out ${
+          showInfoPanel ? "translate-x-0" : "translate-x-full"
+        }`}
+        style={{ transitionDuration: "350ms" }}
+      >
+        <div className="h-full bg-gray-900/95 backdrop-blur-xl border-l border-white/10 flex flex-col overflow-hidden">
+          {/* Panel Header */}
+          <div className="p-6 border-b border-white/10 shrink-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-white font-bold text-xl leading-tight truncate">
+                  {tour.title}
+                </h2>
+                <div className="flex items-center gap-1.5 mt-1 text-white/50 text-sm">
+                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{tour.location}</span>
+                </div>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="inline-flex items-center gap-1 text-xs text-white/40">
+                    <Eye className="w-3 h-3" />
+                    {(tour.impressions || 0).toLocaleString()} views
+                  </span>
+                  <span className="text-xs text-white/40">
+                    {TOUR_TYPE_LABELS[tour.tourType] ?? tour.tourType}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInfoPanel(false)}
+                className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-white transition-all shrink-0"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Panel Body */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Description */}
+            {tour.description && (
+              <section>
+                <h3 className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-2">
+                  About
+                </h3>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  {tour.description}
+                </p>
+              </section>
+            )}
+
+            {/* Hotspots */}
+            {tour.hotspots.length > 0 && (
+              <section>
+                <h3 className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-3 flex items-center justify-between">
+                  <span>Points of Interest</span>
+                  <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
+                    {tour.hotspots.length}
+                  </span>
+                </h3>
+                <div className="space-y-2">
+                  {tour.hotspots.map((h) => (
+                    <button
+                      type="button"
+                      key={h.id}
+                      onClick={() => {
+                        setSelectedHotspot(h);
+                        setShowInfoPanel(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl border transition-all ${
+                        selectedHotspot?.id === h.id
+                          ? "bg-white/15 border-white/20"
+                          : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/15"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${HOTSPOT_COLORS[h.type] ?? "bg-white"}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white text-sm font-medium truncate">
+                            {h.title || `Point ${h.id}`}
+                          </div>
+                          {h.description && (
+                            <div className="text-white/40 text-xs truncate mt-0.5">
+                              {h.description}
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-white/30 text-xs capitalize shrink-0">
+                          {h.type}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Audio Regions */}
+            {tour.audioRegions.length > 0 && (
+              <section>
+                <h3 className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-3 flex items-center justify-between">
+                  <span>Audio Zones</span>
+                  <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
+                    {tour.audioRegions.length}
+                  </span>
+                </h3>
+                <div className="space-y-2">
+                  {tour.audioRegions.map((a) => (
+                    <div
+                      key={a.id}
+                      className="p-3 rounded-xl bg-white/5 border border-white/10"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                          audioEnabled ? "bg-green-500/20" : "bg-white/10"
+                        }`}>
+                          <Music className={`w-4 h-4 ${audioEnabled ? "text-green-400" : "text-white/30"}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white/80 text-sm font-medium truncate">
+                            {a.title || `Audio Zone ${a.id}`}
+                          </div>
+                          <div className="text-white/40 text-xs mt-0.5">
+                            {a.spatialAudio ? "Spatial" : "Background"} •{" "}
+                            {Math.round(a.volume * 100)}% vol •{" "}
+                            {a.loop ? "Loop" : "Once"}
+                          </div>
+                        </div>
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          audioEnabled
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-white/10 text-white/30"
+                        }`}>
+                          {audioEnabled ? "Active" : "Muted"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Effects */}
+            {tour.effects.length > 0 && (
+              <section>
+                <h3 className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-3 flex items-center justify-between">
+                  <span>Effects</span>
+                  <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
+                    {tour.effects.length}
+                  </span>
+                </h3>
+                <div className="space-y-2">
+                  {tour.effects.map((fx) => (
+                    <div
+                      key={fx.id}
+                      className="p-3 rounded-xl bg-white/5 border border-white/10"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center shrink-0">
+                          <Zap className="w-4 h-4 text-pink-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white/80 text-sm font-medium truncate">
+                            {fx.title || fx.effectName}
+                          </div>
+                          <div className="text-white/40 text-xs mt-0.5 capitalize">
+                            {fx.effectType} • {fx.triggerType.replace("_", " ")}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Creator */}
+            <section className="pt-2 border-t border-white/10">
+              <h3 className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-3">
+                Created By
+              </h3>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center shrink-0 text-white font-bold text-sm border border-white/10">
+                  {(tour.user.fullName ?? tour.user.email).charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-white/80 text-sm font-medium truncate">
+                    {tour.user.fullName || "Anonymous"}
+                  </div>
+                  <div className="text-white/40 text-xs truncate">{tour.user.email}</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      {/* Click-outside overlay to close info panel */}
+      {showInfoPanel && (
+        <div
+          className="absolute inset-0 z-35"
+          onClick={() => setShowInfoPanel(false)}
+        />
+      )}
+    </div>
   );
 }
