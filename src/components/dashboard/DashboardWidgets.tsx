@@ -1,179 +1,211 @@
-import { LuUsers, LuShare2, LuMap, LuActivity } from "react-icons/lu";
+import { LuUsers, LuShare2, LuMap, LuActivity, LuArrowUpRight, LuArrowDownRight, LuTrendingUp } from "react-icons/lu";
+
+// ─── Metric Card ─────────────────────────────────────────────────────────────
 
 interface MetricCardProps {
   title: string;
   value: string;
-  icon: React.ReactNode;
   change: string;
-  colorClass: string;
+  icon: React.ReactNode;
+  accent: string;
 }
 
-function MetricCard({ title, value, icon, change, colorClass }: MetricCardProps) {
-  const isNegative = change.startsWith("-");
+function MetricCard({ title, value, change, icon, accent }: MetricCardProps) {
+  const isPositive = !change.startsWith("-");
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-lg ${colorClass} flex items-center justify-center text-gray-500`}>
-        {icon}
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col gap-4 hover:shadow-sm transition-shadow duration-200">
+      <div className="flex items-start justify-between">
+        <div className={`w-10 h-10 rounded-xl ${accent} flex items-center justify-center shrink-0`}>
+          {icon}
+        </div>
+        <span
+          className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${
+            isPositive
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-600"
+          }`}
+        >
+          {isPositive ? (
+            <LuArrowUpRight className="w-3 h-3" />
+          ) : (
+            <LuArrowDownRight className="w-3 h-3" />
+          )}
+          {change}
+        </span>
       </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+
+      <div>
+        <p className="text-2xl font-bold text-gray-900 leading-none">{value}</p>
+        <p className="text-xs text-gray-400 mt-1.5 font-medium">{title}</p>
       </div>
-      <span
-        className={`text-sm font-semibold ${isNegative ? "text-red-600" : "text-green-600"}`}
-      >
-        {change}
-      </span>
     </div>
   );
 }
 
-interface ChartCardProps {
-  title: string;
-  children: React.ReactNode;
-  dropdownValue?: string;
-}
+// ─── Card wrapper ─────────────────────────────────────────────────────────────
 
-function ChartCard({
+function Card({
   title,
+  action,
   children,
-  dropdownValue = "Daily",
-}: ChartCardProps) {
+}: {
+  title: string;
+  action?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <select
-          className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-gray-800 focus:border-transparent text-gray-600 cursor-pointer outline-none"
-          defaultValue="current"
-        >
-          <option value="current" className="text-gray-600">{dropdownValue}</option>
-          <option value="weekly" className="text-gray-600">Weekly</option>
-          <option value="monthly" className="text-gray-600">Monthly</option>
-        </select>
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        {action && (
+          <span className="text-xs text-gray-400 font-medium">{action}</span>
+        )}
       </div>
       {children}
     </div>
   );
 }
 
+// ─── Bar Chart ───────────────────────────────────────────────────────────────
+
 function BarChart() {
   const data = [
-    { day: "Mon", submissions: 22 },
-    { day: "Tue", submissions: 35 },
-    { day: "Wed", submissions: 41 },
-    { day: "Thu", submissions: 28 },
-    { day: "Fri", submissions: 52 },
-    { day: "Sat", submissions: 30 },
-    { day: "Sun", submissions: 18 },
+    { day: "Mon", value: 22 },
+    { day: "Tue", value: 35 },
+    { day: "Wed", value: 41 },
+    { day: "Thu", value: 28 },
+    { day: "Fri", value: 52 },
+    { day: "Sat", value: 30 },
+    { day: "Sun", value: 18 },
   ];
-
-  const maxValue = Math.max(...data.map((d) => d.submissions));
+  const max = Math.max(...data.map((d) => d.value));
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-gray-500 px-2">
-        <span>0</span>
-        <span>25</span>
-        <span>50</span>
-      </div>
-
-      <div className="flex items-end justify-between h-32 gap-2 px-2">
-        {data.map((item) => (
-          <div key={item.day} className="flex flex-col items-center flex-1 gap-1">
-            <div
-              className="w-full rounded-t-lg bg-gray-900/90 transition-all duration-200 hover:bg-gray-800 min-h-2"
-              style={{ height: `${(item.submissions / maxValue) * 100}%` }}
-            />
-            <span className="text-xs text-gray-600 font-medium">{item.day}</span>
-            <span className="text-xs text-gray-500">{item.submissions}</span>
+    <div className="flex items-end justify-between h-28 gap-1.5">
+      {data.map((item) => {
+        const pct = (item.value / max) * 100;
+        return (
+          <div key={item.day} className="flex-1 flex flex-col items-center gap-1.5 group">
+            <div className="w-full flex items-end" style={{ height: "80px" }}>
+              <div
+                className="w-full rounded-t-lg bg-gray-900 group-hover:bg-gray-700 transition-colors duration-150 min-h-1"
+                style={{ height: `${pct}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-gray-400 font-medium">{item.day}</span>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }
 
+// ─── Status Summary ───────────────────────────────────────────────────────────
+
 function StatusSummary() {
   const statuses = [
-    { label: "Published", value: 68, color: "bg-green-500" },
-    { label: "Pending Review", value: 21, color: "bg-yellow-500" },
-    { label: "Flagged", value: 11, color: "bg-red-500" },
+    { label: "Published",      value: 68, color: "bg-gray-900" },
+    { label: "Pending Review", value: 21, color: "bg-amber-400" },
+    { label: "Flagged",        value: 11, color: "bg-red-400"  },
   ];
 
   return (
-    <div className="space-y-4">
-      {statuses.map((status) => (
-        <div key={status.label} className="space-y-2">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>{status.label}</span>
-            <span className="font-semibold text-gray-900">{status.value}%</span>
+    <div className="flex flex-col gap-4">
+      {statuses.map((s) => (
+        <div key={s.label} className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-gray-500 font-medium">{s.label}</span>
+            <span className="text-gray-900 font-semibold">{s.value}%</span>
           </div>
-          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
             <div
-              className={`h-2 rounded-full ${status.color} transition-all duration-300`}
-              style={{ width: `${status.value}%` }}
+              className={`h-1.5 rounded-full ${s.color} transition-all duration-500`}
+              style={{ width: `${s.value}%` }}
             />
           </div>
         </div>
       ))}
-      <p className="text-xs text-gray-500 pt-2">
-        The breakdown is based on the last 30 days of submissions.
-      </p>
+      <p className="text-[11px] text-gray-400 pt-1">Based on the last 30 days of submissions.</p>
     </div>
   );
 }
+
+// ─── Top Stories ──────────────────────────────────────────────────────────────
 
 function TopStoriesTable() {
   const stories = [
-    { title: "Letters from Kigali", author: "Marie Umutoni", reads: "4,210" },
-    { title: "Guardians of Memory", author: "Didier Nkurikiyimana", reads: "3,884" },
-    { title: "Through My Father's Eyes", author: "Chantal Mukamana", reads: "2,671" },
+    { title: "Letters from Kigali",        author: "Marie Umutoni",        reads: "4,210" },
+    { title: "Guardians of Memory",         author: "Didier Nkurikiyimana", reads: "3,884" },
+    { title: "Through My Father's Eyes",    author: "Chantal Mukamana",     reads: "2,671" },
   ];
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200">
-      <table className="w-full text-left text-sm">
-        <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
-          <tr>
-            <th className="px-4 py-3 font-medium">Story</th>
-            <th className="px-4 py-3 font-medium">Author</th>
-            <th className="px-4 py-3 font-medium">Reads</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 bg-white">
-          {stories.map((story, index) => (
-            <tr key={story.title} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-              <td className="px-4 py-3 font-medium text-gray-900">{story.title}</td>
-              <td className="px-4 py-3 text-gray-600">{story.author}</td>
-              <td className="px-4 py-3 text-gray-600 font-semibold">{story.reads}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="flex flex-col divide-y divide-gray-50">
+      {stories.map((s, i) => (
+        <div key={s.title} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+          <span className="w-5 text-[11px] font-bold text-gray-300 shrink-0 text-right">
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{s.title}</p>
+            <p className="text-xs text-gray-400 mt-0.5 truncate">{s.author}</p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <LuTrendingUp className="w-3 h-3 text-green-500" />
+            <span className="text-sm font-semibold text-gray-900">{s.reads}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
+// ─── Recent Activity ──────────────────────────────────────────────────────────
+
 function RecentActivity() {
   const items = [
-    { name: "Alice Niyonsaba", action: "Shared a testimony", time: "2 hours ago", status: "Published", statusColor: "bg-green-100 text-green-800 border-green-200" },
-    { name: "Jean Claude", action: "Requested edit", time: "5 hours ago", status: "Pending", statusColor: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-    { name: "Solange M.", action: "Flagged content", time: "Yesterday", status: "Escalated", statusColor: "bg-red-100 text-red-800 border-red-200" },
+    {
+      name: "Alice Niyonsaba",
+      action: "Shared a testimony",
+      time: "2h ago",
+      status: "Published",
+      dot: "bg-green-500",
+    },
+    {
+      name: "Jean Claude",
+      action: "Requested edit",
+      time: "5h ago",
+      status: "Pending",
+      dot: "bg-amber-400",
+    },
+    {
+      name: "Solange M.",
+      action: "Flagged content",
+      time: "Yesterday",
+      status: "Escalated",
+      dot: "bg-red-400",
+    },
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col divide-y divide-gray-50">
       {items.map((item) => (
-        <div key={item.name} className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 bg-white hover:bg-gray-50 transition-colors duration-150">
-          <div>
-            <p className="text-sm font-semibold text-gray-900">{item.name}</p>
-            <p className="text-xs text-gray-500 mt-1">{item.action}</p>
+        <div key={item.name} className="flex items-center gap-4 py-3.5 first:pt-0 last:pb-0">
+          {/* Avatar */}
+          <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">
+            {item.name.charAt(0)}
           </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-400 mb-1">{item.time}</p>
-            <span className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${item.statusColor}`}>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+            <p className="text-xs text-gray-400 mt-0.5 truncate">{item.action}</p>
+          </div>
+
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <span className="text-[10px] text-gray-400">{item.time}</span>
+            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold text-gray-600`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${item.dot}`} />
               {item.status}
             </span>
           </div>
@@ -183,65 +215,87 @@ function RecentActivity() {
   );
 }
 
+// ─── Metrics data ─────────────────────────────────────────────────────────────
+
 const metrics = [
   {
     title: "Total Testimonies",
     value: "1,247",
     change: "+18%",
-    colorClass: "bg-blue-100 text-blue-600",
-    icon: <LuShare2 className="w-5 h-5" />,
+    accent: "bg-gray-50",
+    icon: <LuShare2 className="w-5 h-5 text-gray-700" />,
   },
   {
     title: "AI Connections",
     value: "3,421",
     change: "+5%",
-    colorClass: "bg-green-100 text-green-600",
-    icon: <LuActivity className="w-5 h-5" />,
+    accent: "bg-green-50",
+    icon: <LuActivity className="w-5 h-5 text-green-600" />,
   },
   {
     title: "Locations",
     value: "89",
     change: "+2%",
-    colorClass: "bg-purple-100 text-purple-600",
-    icon: <LuMap className="w-5 h-5" />,
+    accent: "bg-purple-50",
+    icon: <LuMap className="w-5 h-5 text-purple-600" />,
   },
   {
     title: "Active Storytellers",
     value: "342",
     change: "-3%",
-    colorClass: "bg-orange-100 text-orange-600",
-    icon: <LuUsers className="w-5 h-5" />,
+    accent: "bg-orange-50",
+    icon: <LuUsers className="w-5 h-5 text-orange-500" />,
   },
 ];
 
+// ─── Main export ──────────────────────────────────────────────────────────────
+
 export default function DashboardWidgets() {
   return (
-    <div className="space-y-6 p-4 bg-gray-50 min-h-screen">
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {metrics.map((metric) => (
-          <MetricCard key={metric.title} {...metric} />
+    <div className="space-y-6">
+      {/* Welcome banner */}
+      <div className="bg-gray-900 rounded-2xl px-7 py-6 flex items-center justify-between overflow-hidden relative">
+        <div className="relative z-10">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">
+            Welcome back
+          </p>
+          <h2 className="text-xl font-bold text-white leading-tight">
+            Kwibuka Archive Platform
+          </h2>
+          <p className="text-sm text-gray-400 mt-1 max-w-xs">
+            Here's what's happening with your archive today.
+          </p>
+        </div>
+        {/* Decorative circles */}
+        <div className="absolute right-8 -top-8 w-40 h-40 rounded-full bg-white/3 pointer-events-none" />
+        <div className="absolute right-16 -bottom-10 w-28 h-28 rounded-full bg-white/3 pointer-events-none" />
+      </div>
+
+      {/* Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {metrics.map((m) => (
+          <MetricCard key={m.title} {...m} />
         ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Weekly Submissions" dropdownValue="Weekly">
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card title="Weekly Submissions" action="This week">
           <BarChart />
-        </ChartCard>
-        <ChartCard title="Publishing Status">
+        </Card>
+        <Card title="Publishing Status" action="Last 30 days">
           <StatusSummary />
-        </ChartCard>
+        </Card>
       </div>
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Top Performing Stories" dropdownValue="Last 30 days">
+      {/* Bottom row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card title="Top Performing Stories" action="By reads">
           <TopStoriesTable />
-        </ChartCard>
-        <ChartCard title="Latest Activity" dropdownValue="Realtime">
+        </Card>
+        <Card title="Latest Activity" action="Real-time">
           <RecentActivity />
-        </ChartCard>
+        </Card>
       </div>
     </div>
   );

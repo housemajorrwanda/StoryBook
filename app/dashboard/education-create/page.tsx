@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Upload, Plus, X } from "lucide-react";
 import Link from "next/link";
+import { Select, Checkbox } from "@/components/shared";
 
 interface EducationFormData {
   title: string;
@@ -255,18 +256,17 @@ export default function CreateEducation() {
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Type *
                 </label>
-                <select
-                  name="type"
+                <Select
                   value={formData.type}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                >
-                  <option value="article">Article</option>
-                  <option value="interactive">Interactive</option>
-                  <option value="timeline">Timeline</option>
-                  <option value="video">Video</option>
-                  <option value="audio">Audio</option>
-                </select>
+                  onChange={(v) => setFormData((p) => ({ ...p, type: v }))}
+                  options={[
+                    { value: "article",     label: "Article" },
+                    { value: "interactive", label: "Interactive" },
+                    { value: "timeline",    label: "Timeline" },
+                    { value: "video",       label: "Video" },
+                    { value: "audio",       label: "Audio" },
+                  ]}
+                />
               </div>
 
               {/* Category */}
@@ -274,18 +274,17 @@ export default function CreateEducation() {
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Category
                 </label>
-                <select
-                  name="category"
+                <Select
                   value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                >
-                  <option value="history">History</option>
-                  <option value="prevention">Prevention</option>
-                  <option value="reconciliation">Reconciliation</option>
-                  <option value="education">Education</option>
-                  <option value="audio">Audio</option>
-                </select>
+                  onChange={(v) => setFormData((p) => ({ ...p, category: v }))}
+                  options={[
+                    { value: "history",        label: "History" },
+                    { value: "prevention",     label: "Prevention" },
+                    { value: "reconciliation", label: "Reconciliation" },
+                    { value: "education",      label: "Education" },
+                    { value: "audio",          label: "Audio" },
+                  ]}
+                />
               </div>
             </div>
 
@@ -348,37 +347,25 @@ export default function CreateEducation() {
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Status
                 </label>
-                <select
-                  name="status"
+                <Select
                   value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="archived">Archived</option>
-                </select>
+                  onChange={(v) => setFormData((p) => ({ ...p, status: v }))}
+                  options={[
+                    { value: "draft",     label: "Draft" },
+                    { value: "published", label: "Published" },
+                    { value: "archived",  label: "Archived" },
+                  ]}
+                />
               </div>
 
               {/* Published Checkbox */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <label className="flex items-center gap-3 cursor-pointer h-full">
-                  <input
-                    type="checkbox"
-                    name="isPublished"
-                    checked={formData.isPublished}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 rounded border-gray-300 cursor-pointer focus:ring-gray-500"
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">
-                      Publish immediately
-                    </span>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Content will be publicly available
-                    </p>
-                  </div>
-                </label>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center">
+                <Checkbox
+                  checked={formData.isPublished}
+                  onChange={(v) => setFormData((p) => ({ ...p, isPublished: v }))}
+                  label="Publish immediately"
+                  description="Content will be publicly available"
+                />
               </div>
             </div>
 

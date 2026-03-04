@@ -2,25 +2,70 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
-import { LuFileText } from "react-icons/lu";
+import { LuFileText, LuSearch, LuInbox, LuPlus } from "react-icons/lu";
+
+type EmptyStateVariant = "default" | "search" | "table";
+
+interface EmptyStateAction {
+  label: string;
+  href?: string;
+  onClick?: () => void;
+  icon?: ReactNode;
+}
 
 interface EmptyStateProps {
-  /** Main title/heading */
   title: string;
-  /** Optional subtitle/description */
   subtitle?: string;
-  /** Optional icon (defaults to LuFileText) */
   icon?: ReactNode;
-  /** Optional action button */
-  action?: {
-    label: string;
-    href?: string;
-    onClick?: () => void;
-  };
-  /** Optional custom className */
+  action?: EmptyStateAction;
+  secondaryAction?: EmptyStateAction;
   className?: string;
-  /** Size variant */
+  /** "default" = white card (public pages), "search" = filtered results, "table" = inside a dashboard table */
+  variant?: EmptyStateVariant;
   size?: "sm" | "md" | "lg";
+}
+
+const DEFAULT_ICONS: Record<EmptyStateVariant, ReactNode> = {
+  default: <LuInbox className="w-10 h-10 text-gray-400" />,
+  search: <LuSearch className="w-10 h-10 text-gray-400" />,
+  table: <LuFileText className="w-9 h-9 text-gray-300" />,
+};
+
+const SIZE_MAP = {
+  sm: { wrap: "py-8 px-6",   title: "text-base",  sub: "text-sm",   btn: "px-4 py-2 text-sm"   },
+  md: { wrap: "py-14 px-8",  title: "text-lg",    sub: "text-sm",   btn: "px-5 py-2.5 text-sm"  },
+  lg: { wrap: "py-20 px-8",  title: "text-xl",    sub: "text-base", btn: "px-6 py-3 text-base"  },
+};
+
+function ActionButton({
+  action,
+  primary,
+  size,
+}: {
+  action: EmptyStateAction;
+  primary: boolean;
+  size: keyof typeof SIZE_MAP;
+}) {
+  const cls = `inline-flex items-center gap-2 ${SIZE_MAP[size].btn} rounded-lg font-medium transition-colors ${
+    primary
+      ? "bg-gray-900 text-white hover:bg-gray-700"
+      : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+  }`;
+
+  if (action.href) {
+    return (
+      <Link href={action.href} className={cls}>
+        {action.icon}
+        {action.label}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={action.onClick} className={cls}>
+      {action.icon}
+      {action.label}
+    </button>
+  );
 }
 
 export default function EmptyState({
@@ -28,76 +73,77 @@ export default function EmptyState({
   subtitle,
   icon,
   action,
+  secondaryAction,
   className = "",
+  variant = "default",
   size = "md",
 }: EmptyStateProps) {
-  const sizeClasses = {
-    sm: {
-      container: "p-6",
-      icon: "w-12 h-12",
-      title: "text-lg",
-      subtitle: "text-sm",
-      button: "px-4 py-2 text-sm",
-    },
-    md: {
-      container: "p-8 sm:p-12",
-      icon: "w-16 h-16",
-      title: "text-xl",
-      subtitle: "text-base",
-      button: "px-6 py-3 text-base",
-    },
-    lg: {
-      container: "p-12 sm:p-16",
-      icon: "w-20 h-20",
-      title: "text-2xl",
-      subtitle: "text-lg",
-      button: "px-8 py-4 text-lg",
-    },
-  };
-
-  const currentSize = sizeClasses[size];
-  const defaultIcon = (
-    <LuFileText className={`${currentSize.icon} text-gray-300`} />
-  );
-
-  const renderAction = () => {
-    if (!action) return null;
-
-    const buttonClasses = `inline-flex items-center ${currentSize.button} bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-all duration-200`;
-
-    if (action.href) {
-      return (
-        <Link href={action.href} className={buttonClasses}>
-          {action.label}
-        </Link>
-      );
-    }
-
-    if (action.onClick) {
-      return (
-        <button onClick={action.onClick} className={buttonClasses}>
-          {action.label}
-        </button>
-      );
-    }
-
-    return null;
-  };
+  const s = SIZE_MAP[size];
+  const resolvedIcon = icon ?? DEFAULT_ICONS[variant];
+  const isTable = variant === "table";
 
   return (
     <div
-      className={`bg-white rounded-xl border border-gray-200 ${currentSize.container} text-center ${className}`}
+      className={`flex flex-col items-center justify-center text-center ${s.wrap} ${
+        isTable ? "" : "rounded-xl border border-gray-100 bg-white"
+      } ${className}`}
     >
-      <div className="flex justify-center mb-4">{icon || defaultIcon}</div>
-      <h2 className={`${currentSize.title} font-semibold text-gray-900 mb-2`}>
-        {title}
-      </h2>
+      {/* Icon */}
+      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gray-50 border border-gray-100 mb-4">
+        {resolvedIcon}
+      </div>
+
+      {/* Text */}
+      <h3 className={`${s.title} font-semibold text-gray-900`}>{title}</h3>
       {subtitle && (
-        <p className={`${currentSize.subtitle} text-gray-600 mb-6`}>
-          {subtitle}
-        </p>
+        <p className={`${s.sub} text-gray-500 mt-1.5 max-w-sm`}>{subtitle}</p>
       )}
-      {renderAction()}
+
+      {/* Actions */}
+      {(action || secondaryAction) && (
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+          {action && <ActionButton action={action} primary size={size} />}
+          {secondaryAction && (
+            <ActionButton action={secondaryAction} primary={false} size={size} />
+          )}
+        </div>
+      )}
     </div>
+  );
+}
+
+/**
+ * Convenience wrapper for search/filter empty results.
+ */
+export function SearchEmptyState({
+  query,
+  onClear,
+  className,
+}: {
+  query?: string;
+  onClear?: () => void;
+  className?: string;
+}) {
+  return (
+    <EmptyState
+      variant="search"
+      size="md"
+      title="No results found"
+      subtitle={
+        query
+          ? `Nothing matched "${query}". Try adjusting your search or filters.`
+          : "Try adjusting your search or filters."
+      }
+      action={
+        onClear
+          ? {
+              label: "Clear filters",
+              onClick: onClear,
+              icon: <LuPlus className="w-4 h-4 rotate-45" />,
+            }
+          : undefined
+      }
+      className={className}
+    />
   );
 }

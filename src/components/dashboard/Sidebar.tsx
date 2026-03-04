@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import {
   LuLayoutDashboard,
   LuUsers,
@@ -22,194 +21,173 @@ interface SidebarProps {
   onToggleCollapse: () => void;
 }
 
-export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
+const menuItems = [
+  { name: "Dashboard",          href: "/dashboard",                     icon: LuLayoutDashboard },
+  { name: "User Management",    href: "/dashboard/users-management",    icon: LuUsers },
+  { name: "Tour Management",    href: "/dashboard/virtual-tour",        icon: LuMapPinned },
+  { name: "Content Moderation", href: "/dashboard/content-moderations", icon: LuShieldCheck },
+  { name: "Testimonies",        href: "/dashboard/all-testimonies",     icon: LuMessageSquareQuote },
+  { name: "Education",          href: "/dashboard/education",           icon: LuGraduationCap },
+];
+
+const generalItems = [
+  { name: "Settings", href: "/dashboard/settings", icon: LuSettings },
+];
+
+function NavItem({
+  item,
+  collapsed,
+}: {
+  item: (typeof menuItems)[0];
+  collapsed: boolean;
+}) {
   const pathname = usePathname();
-  const [, setHoveredItem] = useState<string | null>(null);
+  const active = pathname === item.href;
+  const Icon = item.icon;
 
-  const menuItems = [
-    {
-      name: "Dashboard",
-      href: "/dashboard",
-      icon: <LuLayoutDashboard className="w-5 h-5" />,
-    },
-    {
-      name: "User Management",
-      href: "/dashboard/users-management",
-      icon: <LuUsers className="w-5 h-5" />,
-    },
-    {
-      name: "Tour Management",
-      href: "/dashboard/virtual-tour",
-      icon: <LuMapPinned className="w-5 h-5" />,
-    },
-    {
-      name: "Content Moderations",
-      href: "/dashboard/content-moderations",
-      icon: <LuShieldCheck className="w-5 h-5" />,
-    },
-    {
-      name: "All Testimonies",
-      href: "/dashboard/all-testimonies",
-      icon: <LuMessageSquareQuote className="w-5 h-5" />,
-    },
-    {
-      name: "Education",
-      href: "/dashboard/education",
-      icon: <LuGraduationCap className="w-5 h-5" />,
-    },
-  ];
+  return (
+    <Link
+      href={item.href}
+      title={collapsed ? item.name : undefined}
+      className={`relative flex items-center gap-3 rounded-xl transition-all duration-150 group ${
+        collapsed ? "justify-center p-3" : "px-3 py-2.5"
+      } ${
+        active
+          ? "bg-gray-900 text-white shadow-sm"
+          : "text-gray-400 hover:bg-gray-50 hover:text-gray-900"
+      }`}
+    >
+      <Icon
+        className={`w-[18px] h-[18px] shrink-0 transition-colors ${
+          active ? "text-white" : "text-gray-400 group-hover:text-gray-700"
+        }`}
+      />
 
-  const generalItems = [
-    {
-      name: "Settings Analytics",
-      href: "/dashboard/settings",
-      icon: <LuSettings className="w-5 h-5" />,
-    },
-  ];
+      {!collapsed && (
+        <span className="text-sm font-medium leading-none">{item.name}</span>
+      )}
 
+      {/* Active indicator */}
+      {active && !collapsed && (
+        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
+      )}
 
-  const isActive = (href: string) => pathname === href;
+      {/* Tooltip when collapsed */}
+      {collapsed && (
+        <div className="pointer-events-none absolute left-full ml-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-lg">
+            {item.name}
+            <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
+          </div>
+        </div>
+      )}
+    </Link>
+  );
+}
 
+export default function Sidebar({
+  isOpen,
+  onClose,
+  collapsed,
+  onToggleCollapse,
+}: SidebarProps) {
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 bg-white transform transition-all duration-300 ease-in-out lg:static lg:inset-0 lg:z-auto lg:translate-x-0
-          ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-          ${collapsed ? "w-20" : "w-64"}`}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-100 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } ${collapsed ? "w-[68px]" : "w-[220px]"}`}
       >
-        <div className="flex flex-col h-full bg-white">
-          {/* Logo and Toggle */}
-          <div className={`flex items-center ${collapsed ? 'justify-center px-4' : 'justify-between px-6'} h-20 border-b border-gray-100`}>
-            {!collapsed && (
-              <div className="flex items-center justify-center">
-                <h1 className="text-xl font-bold text-gray-900">HTFC</h1>
+        {/* Logo */}
+        <div
+          className={`flex items-center h-16 border-b border-gray-100 shrink-0 ${
+            collapsed ? "justify-center px-4" : "px-5 justify-between"
+          }`}
+        >
+          {!collapsed && (
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center">
+                <span className="text-white text-xs font-black tracking-tight">A</span>
               </div>
-            )}
-            
-            {/* Collapse Toggle - Desktop only */}
+              <span className="text-sm font-bold tracking-tight text-gray-900">Archive</span>
+            </div>
+          )}
+
+          {collapsed && (
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+              <span className="text-white text-xs font-black">A</span>
+            </div>
+          )}
+
+          {!collapsed && (
             <button
+              type="button"
               onClick={onToggleCollapse}
-              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200 cursor-pointer"
+              className="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-gray-300 hover:text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              {collapsed ? (
-                <LuChevronRight className="w-4 h-4 text-gray-600" />
-              ) : (
-                <LuChevronLeft className="w-4 h-4 text-gray-600" />
-              )}
+              <LuChevronLeft className="w-4 h-4" />
             </button>
+          )}
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 flex flex-col px-3 py-4 overflow-y-auto custom-scrollbar gap-5">
+          {/* Main */}
+          <div className="flex flex-col gap-0.5">
+            {!collapsed && (
+              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-300">
+                Main
+              </p>
+            )}
+            {menuItems.map((item) => (
+              <NavItem key={item.href} item={item} collapsed={collapsed} />
+            ))}
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {/* Main Menu */}
-            <div>
-              {!collapsed && (
-                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                  Main Menu
-                </h3>
-              )}
-              <div className="space-y-1">
-                {menuItems.map((item) => {
-                  const active = isActive(item.href);
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onMouseEnter={() => setHoveredItem(item.name)}
-                      onMouseLeave={() => setHoveredItem(null)}
-                      className={`relative flex items-center transition-all duration-200 group cursor-pointer ${
-                        collapsed ? 'justify-center px-3 py-3 rounded-lg' : 'px-3 py-3 rounded-lg mx-2'
-                      } ${
-                        active
-                          ? "bg-gray-100 text-gray-900 shadow-sm"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    >
-                      {/* Active indicator */}
-                      {active && (
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-gray-500 rounded-r-full"></div>
-                      )}
-                      
-                      <span className={`transition-colors cursor-pointer ${active ? 'text-gray-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
-                        {item.icon}
-                      </span>
-                      
-                      {!collapsed && (
-                        <span className="ml-3 text-sm font-medium cursor-pointer">{item.name}</span>
-                      )}
-                      
-                      {/* Tooltip for collapsed state */}
-                      {collapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 cursor-pointer">
-                          {item.name}
-                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0"></div>
-                        </div>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+          {/* General */}
+          <div className="flex flex-col gap-0.5">
+            {!collapsed && (
+              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-300">
+                General
+              </p>
+            )}
+            {generalItems.map((item) => (
+              <NavItem key={item.href} item={item} collapsed={collapsed} />
+            ))}
+          </div>
+        </nav>
 
-            {/* General Section */}
-            <div className="pt-6">
-              {!collapsed && (
-                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                  General
-                </h3>
-              )}
-              <div className="space-y-1">
-                {generalItems.map((item) => {
-                  const active = isActive(item.href);
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onMouseEnter={() => setHoveredItem(item.name)}
-                      onMouseLeave={() => setHoveredItem(null)}
-                      className={`relative flex items-center transition-all duration-200 group ${
-                        collapsed ? 'justify-center px-3 py-3 rounded-lg' : 'px-3 py-3 rounded-lg mx-2'
-                      } ${
-                        active
-                          ? "bg-gray-100 text-gray-900 shadow-sm"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    >
-                      {active && (
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-gray-500 rounded-r-full"></div>
-                      )}
-                      
-                      <span className={`transition-colors ${active ? 'text-gray-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
-                        {item.icon}
-                      </span>
-                      
-                      {!collapsed && (
-                        <span className="ml-3 text-sm font-medium">{item.name}</span>
-                      )}
-                      
-                      {collapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-                          {item.name}
-                          <div className="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0"></div>
-                        </div>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </nav>
-        </div>
-      </div>
+        {/* Expand button when collapsed */}
+        {collapsed && (
+          <div className="px-3 pb-4 shrink-0">
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="hidden lg:flex w-full items-center justify-center p-3 rounded-xl text-gray-300 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+              title="Expand sidebar"
+            >
+              <LuChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Footer */}
+        {!collapsed && (
+          <div className="px-4 py-4 border-t border-gray-100 shrink-0">
+            <p className="text-[10px] text-gray-300 text-center tracking-wide">
+              Kwibuka Admin Platform
+            </p>
+          </div>
+        )}
+      </aside>
     </>
   );
 }

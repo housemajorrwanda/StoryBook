@@ -105,7 +105,7 @@ const TourCard = ({ tour }: { tour: VirtualTour }) => {
                   loading="lazy"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
                   <div className="text-center p-6">
                     <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-sm text-gray-500 font-medium">
@@ -116,7 +116,7 @@ const TourCard = ({ tour }: { tour: VirtualTour }) => {
               )}
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <div className="text-center p-6">
                 <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                 <p className="text-sm text-gray-500 font-medium">
@@ -134,7 +134,7 @@ const TourCard = ({ tour }: { tour: VirtualTour }) => {
           </div>
 
           {/* Hover overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" />
         </div>
 
         <div className="p-6">

@@ -3,6 +3,7 @@
 import { Upload, Plus, X, Volume2, Zap } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { Select, Checkbox } from "@/components/shared";
 import { useCreateVirtualTour } from "@/hooks/virtual-tour/use-virtual-tours";
 import { CreateVirtualTourRequest , CreateAudioRegionData , CreateEffectData , CreateHotspotData } from "@/types/tour";
 import { useRouter } from "next/navigation";
@@ -385,9 +386,20 @@ export default function CreateTour() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">
-          Create New Tour
-        </h1>
+        <div className="flex items-center gap-4 mb-8">
+          <Link
+            href="/dashboard/virtual-tour"
+            className="flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 bg-white text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-colors shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <div>
+            <p className="text-xs text-gray-400 font-medium">Tour Management</p>
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">Create New Tour</h1>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Tour Information Section */}
@@ -444,17 +456,16 @@ export default function CreateTour() {
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Tour Type *
                 </label>
-                <select
-                  name="tourType"
+                <Select
                   value={formData.tourType}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                >
-                  <option value="360_image">360° Image</option>
-                  <option value="360_video">360° Video</option>
-                  <option value="3d_model">3D Model</option>
-                  <option value="embed">Embedded Tour</option>
-                </select>
+                  onChange={(v) => setFormData((p) => ({ ...p, tourType: v as typeof formData.tourType }))}
+                  options={[
+                    { value: "360_image", label: "360° Image" },
+                    { value: "360_video", label: "360° Video" },
+                    { value: "3d_model",  label: "3D Model" },
+                    { value: "embed",     label: "Embedded Tour" },
+                  ]}
+                />
               </div>
 
               {formData.tourType === "embed" && (
@@ -494,31 +505,24 @@ export default function CreateTour() {
                   <label className="block text-sm font-medium text-gray-900 mb-2">
                     Status
                   </label>
-                  <select
-                    name="status"
+                  <Select
                     value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
+                    onChange={(v) => setFormData((p) => ({ ...p, status: v as typeof formData.status }))}
+                    options={[
+                      { value: "draft",     label: "Draft" },
+                      { value: "published", label: "Published" },
+                      { value: "archived",  label: "Archived" },
+                    ]}
+                  />
                 </div>
 
-                <div className="flex items-center">
-                  <label className="flex items-center gap-2 cursor-pointer mt-6">
-                    <input
-                      type="checkbox"
-                      name="isPublished"
-                      checked={formData.isPublished}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                    />
-                    <span className="text-sm text-gray-900">
-                      Publish immediately
-                    </span>
-                  </label>
+                <div className="flex items-end pb-0.5">
+                  <Checkbox
+                    checked={formData.isPublished}
+                    onChange={(v) => setFormData((p) => ({ ...p, isPublished: v }))}
+                    label="Publish immediately"
+                    description="Tour will be publicly visible"
+                  />
                 </div>
               </div>
             </div>
@@ -556,20 +560,18 @@ export default function CreateTour() {
                       placeholder="Hotspot title"
                       className="flex-1 px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-400"
                     />
-                    <select
+                    <Select
                       value={hotspot.type}
-                      onChange={(e) =>
-                        updateHotspot(hotspot.id!, "type", e.target.value)
-                      }
-                      className="px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                    >
-                      <option value="info">Info</option>
-                      <option value="link">Link</option>
-                      <option value="audio">Audio</option>
-                      <option value="image">Image</option>
-                      <option value="video">Video</option>
-                      <option value="effect">Effect</option>
-                    </select>
+                      onChange={(v) => updateHotspot(hotspot.id!, "type", v)}
+                      options={[
+                        { value: "info",   label: "Info" },
+                        { value: "link",   label: "Link" },
+                        { value: "audio",  label: "Audio" },
+                        { value: "image",  label: "Image" },
+                        { value: "video",  label: "Video" },
+                        { value: "effect", label: "Effect" },
+                      ]}
+                    />
                     <button
                       type="button"
                       onClick={() => removeHotspot(hotspot.id!)}
@@ -701,33 +703,16 @@ export default function CreateTour() {
                   )}
 
                   <div className="space-y-3">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={hotspot.autoTrigger}
-                        onChange={(e) =>
-                          updateHotspot(hotspot.id!, "autoTrigger", e.target.checked)
-                        }
-                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                      />
-                      <span className="text-sm text-gray-900">
-                        Auto-trigger when in range
-                      </span>
-                    </label>
-
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={hotspot.showOnHover}
-                        onChange={(e) =>
-                          updateHotspot(hotspot.id!, "showOnHover", e.target.checked)
-                        }
-                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                      />
-                      <span className="text-sm text-gray-900">
-                        Show on hover only
-                      </span>
-                    </label>
+                    <Checkbox
+                      checked={hotspot.autoTrigger ?? false}
+                      onChange={(v) => updateHotspot(hotspot.id!, "autoTrigger", v)}
+                      label="Auto-trigger when in range"
+                    />
+                    <Checkbox
+                      checked={hotspot.showOnHover ?? false}
+                      onChange={(v) => updateHotspot(hotspot.id!, "showOnHover", v)}
+                      label="Show on hover only"
+                    />
                   </div>
                 </div>
               ))}
@@ -820,20 +805,14 @@ export default function CreateTour() {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Region Type
                           </label>
-                          <select
+                          <Select
                             value={region.regionType}
-                            onChange={(e) =>
-                              updateAudioRegion(
-                                region.id!,
-                                "regionType",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                          >
-                            <option value="sphere">Sphere</option>
-                            <option value="box">Box</option>
-                          </select>
+                            onChange={(v) => updateAudioRegion(region.id!, "regionType", v)}
+                            options={[
+                              { value: "sphere", label: "Sphere" },
+                              { value: "box",    label: "Box" },
+                            ]}
+                          />
                         </div>
 
                         <div>
@@ -949,59 +928,22 @@ export default function CreateTour() {
                       </div>
 
                       <div className="space-y-3">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={region.spatialAudio}
-                            onChange={(e) =>
-                              updateAudioRegion(
-                                region.id!,
-                                "spatialAudio",
-                                e.target.checked
-                              )
-                            }
-                            className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-900">
-                            Enable Spatial Audio (3D positioning)
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={region.autoPlay}
-                            onChange={(e) =>
-                              updateAudioRegion(
-                                region.id!,
-                                "autoPlay",
-                                e.target.checked
-                              )
-                            }
-                            className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-900">
-                            Auto-play when entering region
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={region.loop}
-                            onChange={(e) =>
-                              updateAudioRegion(
-                                region.id!,
-                                "loop",
-                                e.target.checked
-                              )
-                            }
-                            className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-900">
-                            Loop audio
-                          </span>
-                        </label>
+                        <Checkbox
+                          checked={region.spatialAudio ?? false}
+                          onChange={(v) => updateAudioRegion(region.id!, "spatialAudio", v)}
+                          label="Enable Spatial Audio"
+                          description="3D positional audio (HRTF)"
+                        />
+                        <Checkbox
+                          checked={region.autoPlay ?? false}
+                          onChange={(v) => updateAudioRegion(region.id!, "autoPlay", v)}
+                          label="Auto-play when entering region"
+                        />
+                        <Checkbox
+                          checked={region.loop ?? false}
+                          onChange={(v) => updateAudioRegion(region.id!, "loop", v)}
+                          label="Loop audio"
+                        />
                       </div>
                     </div>
                   )}
@@ -1074,22 +1016,16 @@ export default function CreateTour() {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Effect Type
                           </label>
-                          <select
+                          <Select
                             value={effect.effectType}
-                            onChange={(e) =>
-                              updateEffect(
-                                effect.id!,
-                                "effectType",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                          >
-                            <option value="visual">Visual</option>
-                            <option value="sound">Sound</option>
-                            <option value="particle">Particle</option>
-                            <option value="animation">Animation</option>
-                          </select>
+                            onChange={(v) => updateEffect(effect.id!, "effectType", v)}
+                            options={[
+                              { value: "visual",    label: "Visual" },
+                              { value: "sound",     label: "Sound" },
+                              { value: "particle",  label: "Particle" },
+                              { value: "animation", label: "Animation" },
+                            ]}
+                          />
                         </div>
 
                         <div>
@@ -1117,23 +1053,17 @@ export default function CreateTour() {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Trigger Type
                           </label>
-                          <select
+                          <Select
                             value={effect.triggerType}
-                            onChange={(e) =>
-                              updateEffect(
-                                effect.id!,
-                                "triggerType",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-3 py-2 rounded bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-400"
-                          >
-                            <option value="on_enter">On Enter</option>
-                            <option value="on_look">On Look</option>
-                            <option value="on_click">On Click</option>
-                            <option value="on_timer">On Timer</option>
-                            <option value="always">Always</option>
-                          </select>
+                            onChange={(v) => updateEffect(effect.id!, "triggerType", v)}
+                            options={[
+                              { value: "on_enter", label: "On Enter" },
+                              { value: "on_look",  label: "On Look" },
+                              { value: "on_click", label: "On Click" },
+                              { value: "on_timer", label: "On Timer" },
+                              { value: "always",   label: "Always" },
+                            ]}
+                          />
                         </div>
 
                         <div>
