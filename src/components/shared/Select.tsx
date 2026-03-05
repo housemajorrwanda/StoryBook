@@ -95,8 +95,8 @@ export default function Select({
           error
             ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
             : open
-            ? "border-gray-300 ring-2 ring-gray-100"
-            : "border-gray-200 hover:border-gray-300"
+              ? "border-gray-300 ring-2 ring-gray-100"
+              : "border-gray-200 hover:border-gray-300"
         } ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50" : "cursor-pointer"}`}
       >
         <span
@@ -129,7 +129,9 @@ export default function Select({
         >
           <div className="max-h-52 overflow-y-auto custom-scrollbar py-1">
             {options.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-gray-400 text-center">No options</p>
+              <p className="px-4 py-3 text-sm text-gray-400 text-center">
+                No options
+              </p>
             ) : (
               options.map((option) => {
                 const isSelected = option.value === value;
@@ -145,14 +147,16 @@ export default function Select({
                       option.disabled
                         ? "opacity-40 cursor-not-allowed"
                         : isSelected
-                        ? "bg-gray-50"
-                        : "hover:bg-gray-50"
+                          ? "bg-gray-50"
+                          : "hover:bg-gray-50"
                     }`}
                   >
                     <div className="min-w-0">
                       <p
                         className={`text-sm truncate ${
-                          isSelected ? "font-semibold text-gray-900" : "font-medium text-gray-700"
+                          isSelected
+                            ? "font-semibold text-gray-900"
+                            : "font-medium text-gray-700"
                         }`}
                       >
                         {option.label}
