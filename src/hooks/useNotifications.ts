@@ -23,7 +23,8 @@ export function useNotifications(filters?: NotificationFilters) {
   return useQuery({
     queryKey: NOTIFICATION_KEYS.list(filters),
     queryFn: () => notificationsService.getNotifications(filters),
-    refetchInterval: 60_000,
+    // Socket keeps data live — only refetch as fallback if socket drops
+    refetchInterval: 5 * 60_000,
     staleTime: 30_000,
     select: (response) => response,
   });
@@ -46,7 +47,8 @@ export function useInfiniteNotifications(filters?: NotificationFilters) {
       }
       return nextSkip;
     },
-    refetchInterval: 60_000,
+    // Socket keeps data live — only refetch as fallback if socket drops
+    refetchInterval: 5 * 60_000,
     staleTime: 30_000,
   });
 }

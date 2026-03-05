@@ -1,7 +1,16 @@
 "use client";
 
 import PageLayout from "@/layout/PageLayout";
-import { Search, Play, Sparkles, Eye, MapPin, Music, Info } from "lucide-react";
+import {
+  Search,
+  Play,
+  Sparkles,
+  Eye,
+  MapPin,
+  Music,
+  Info,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
@@ -19,8 +28,6 @@ const TourCard = ({ tour }: { tour: VirtualTour }) => {
   const hotspotsCount = tour._count?.hotspots || tour.hotspots?.length || 0;
   const audioRegionsCount =
     tour._count?.audioRegions || tour.audioRegions?.length || 0;
-  const effectsCount = tour._count?.effects || tour.effects?.length || 0;
-
   const isVideoTour = tour.tourType === "360_video";
   const hasMedia =
     tour.image360Url || tour.video360Url || tour.model3dUrl || tour.embedUrl;
@@ -62,13 +69,14 @@ const TourCard = ({ tour }: { tour: VirtualTour }) => {
   }, []);
 
   return (
-    <Link key={tour.id} href={`/virtual-tours/${tour.id}`} onClick={handleTourClick}>
+    <Link href={`/virtual-tours/${tour.id}`} onClick={handleTourClick}>
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="group rounded-xl border border-gray-200 overflow-hidden hover:border-gray-400 transition-all duration-300 hover:shadow-lg hover:shadow-gray-400/20 cursor-pointer h-full bg-white/50"
+        className="group relative rounded-2xl overflow-hidden cursor-pointer h-full bg-white border border-gray-100 hover:border-gray-300 transition-all duration-500 hover:shadow-xl hover:shadow-black/8 hover:-translate-y-0.5"
       >
-        <div className="relative aspect-video overflow-hidden bg-gray-100">
+        {/* Media */}
+        <div className="relative aspect-16/10 overflow-hidden bg-gray-100">
           {hasMedia ? (
             <>
               {isVideoTour && tour.video360Url ? (
@@ -76,39 +84,47 @@ const TourCard = ({ tour }: { tour: VirtualTour }) => {
                   <video
                     ref={videoRef}
                     src={tour.video360Url}
-                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+                    className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                     muted
                     loop
                     playsInline
                     preload="metadata"
                   />
                   <div
-                    className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-300 ${
+                    className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
                       isPlaying ? "opacity-0" : "opacity-100"
                     }`}
                   >
-                    <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Play className="w-6 h-6 text-gray-900 ml-1" />
+                    <div className="w-12 h-12 rounded-full bg-white/95 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <Play
+                        className="w-4 h-4 text-gray-900 ml-0.5"
+                        fill="currentColor"
+                      />
                     </div>
                   </div>
                 </div>
               ) : tour.image360Url ? (
-                <Image
-                  src={tour.image360Url}
-                  alt={tour.title}
-                  fill
-                  className={`object-cover group-hover:scale-110 transition-transform duration-300 ${
-                    imageLoaded ? "opacity-100" : "opacity-0"
-                  }`}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  onLoad={() => setImageLoaded(true)}
-                  loading="lazy"
-                />
+                <>
+                  <Image
+                    src={tour.image360Url}
+                    alt={tour.title}
+                    fill
+                    className={`object-cover transition-all duration-700 group-hover:scale-105 ${
+                      imageLoaded ? "opacity-100" : "opacity-0"
+                    }`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onLoad={() => setImageLoaded(true)}
+                    loading="lazy"
+                  />
+                  {!imageLoaded && (
+                    <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+                  )}
+                </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                  <div className="text-center p-6">
-                    <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500 font-medium">
+                <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                  <div className="text-center">
+                    <Sparkles className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-xs text-gray-400 font-medium tracking-wide uppercase">
                       {getTourTypeDisplay(tour.tourType)}
                     </p>
                   </div>
@@ -116,90 +132,104 @@ const TourCard = ({ tour }: { tour: VirtualTour }) => {
               )}
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-              <div className="text-center p-6">
-                <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 font-medium">
+            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <Sparkles className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-xs text-gray-400 font-medium tracking-wide uppercase">
                   {getTourTypeDisplay(tour.tourType)}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Tour type badge */}
-          <div className="absolute top-3 right-3">
-            <span className="px-2 py-1 text-xs font-medium bg-black/70 text-white rounded-full backdrop-blur-sm">
+          {/* Type badge */}
+          <div className="absolute top-3 left-3">
+            <span className="px-2.5 py-1 text-[10px] font-semibold tracking-widest uppercase bg-black/60 text-white/90 rounded-full backdrop-blur-md">
               {getTourTypeDisplay(tour.tourType)}
             </span>
           </div>
 
-          {/* Hover overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" />
+          {/* Subtle dark overlay on hover */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
         </div>
 
-        <div className="p-6">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors flex-1 pr-2">
+        {/* Content */}
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 flex-1">
               {tour.title}
             </h3>
-            {tour.isPublished ? (
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full shrink-0">
-                Published
-              </span>
-            ) : (
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full shrink-0">
-                Draft
-              </span>
-            )}
+            <span
+              className={`shrink-0 px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full ${
+                tour.isPublished
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-amber-50 text-amber-700"
+              }`}
+            >
+              {tour.isPublished ? "Live" : "Draft"}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-            <MapPin className="w-4 h-4" />
-            {tour.location}
-          </div>
+          {tour.location && (
+            <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
+              <MapPin className="w-3 h-3 shrink-0" />
+              <span className="truncate">{tour.location}</span>
+            </div>
+          )}
 
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-4 text-xs text-gray-400 pt-4 border-t border-gray-50">
             <div className="flex items-center gap-1">
-              <Eye className="w-4 h-4" />
-              {tour.impressions?.toLocaleString() || 0}
+              <Eye className="w-3 h-3" />
+              <span>{tour.impressions?.toLocaleString() || 0}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Sparkles className="w-4 h-4" />
-              {hotspotsCount} hotspots
-            </div>
-            {audioRegionsCount && (
+            {hotspotsCount > 0 && (
               <div className="flex items-center gap-1">
-                <Music className="w-4 h-4" />
-                {audioRegionsCount} audio
+                <Sparkles className="w-3 h-3" />
+                <span>{hotspotsCount}</span>
               </div>
             )}
-            {effectsCount > 0 && (
+            {audioRegionsCount > 0 && (
               <div className="flex items-center gap-1">
-                <Sparkles className="w-4 h-4" />
-                {effectsCount} effects
+                <Music className="w-3 h-3" />
+                <span>{audioRegionsCount}</span>
               </div>
             )}
           </div>
+        </div>
+
+        {/* Right arrow on hover */}
+        <div className="absolute bottom-5 right-5 w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0">
+          <svg
+            className="w-3 h-3 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+            />
+          </svg>
         </div>
       </div>
     </Link>
   );
 };
 
-// Loading skeleton component
 const TourCardSkeleton = () => (
-  <div className="rounded-xl border border-gray-200 overflow-hidden h-full bg-white/50 animate-pulse">
-    <div className="aspect-video bg-gray-200" />
-    <div className="p-6">
-      <div className="flex items-start justify-between mb-2">
-        <div className="h-5 bg-gray-200 rounded flex-1 mr-2" />
-        <div className="h-6 bg-gray-200 rounded w-16" />
+  <div className="rounded-2xl border border-gray-100 overflow-hidden h-full bg-white animate-pulse">
+    <div className="aspect-16/10 bg-gray-100" />
+    <div className="p-5">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="h-4 bg-gray-100 rounded flex-1" />
+        <div className="h-4 bg-gray-100 rounded w-10" />
       </div>
-      <div className="h-4 bg-gray-200 rounded w-3/4 mb-4" />
-      <div className="flex flex-wrap gap-4">
-        <div className="h-4 bg-gray-200 rounded w-1/4" />
-        <div className="h-4 bg-gray-200 rounded w-1/4" />
-        <div className="h-4 bg-gray-200 rounded w-1/4" />
+      <div className="h-3 bg-gray-100 rounded w-1/2 mb-4" />
+      <div className="flex gap-4 pt-4 border-t border-gray-50">
+        <div className="h-3 bg-gray-100 rounded w-8" />
+        <div className="h-3 bg-gray-100 rounded w-8" />
       </div>
     </div>
   </div>
@@ -217,11 +247,12 @@ const FilterChip = ({
   onClick: (value: string) => void;
 }) => (
   <button
+    type="button"
     onClick={() => onClick(value)}
-    className={`px-4 py-2 cursor-pointer rounded-full text-sm font-medium transition-colors ${
+    className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 ${
       isActive
-        ? "bg-gray-600 text-white"
-        : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400"
+        ? "bg-gray-900 text-white"
+        : "bg-white text-gray-500 border border-gray-200 hover:border-gray-400 hover:text-gray-700"
     }`}
   >
     {label}
@@ -235,14 +266,13 @@ export default function Tour() {
   const [page, setPage] = useState(1);
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // Debounce search to avoid too many API calls
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
         setDebouncedSearchTerm(value);
         setPage(1);
       }, 500),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -258,7 +288,7 @@ export default function Tour() {
       search: debouncedSearchTerm || undefined,
       tourType: typeFilter === "all" ? undefined : typeFilter,
     }),
-    [debouncedSearchTerm, typeFilter, page]
+    [debouncedSearchTerm, typeFilter, page],
   );
 
   const {
@@ -272,14 +302,11 @@ export default function Tour() {
   const tours = toursResponse?.data || [];
   const hasMore = tours.length === LIMIT && !isFetching;
 
-  // Reset to page 1 when filters change
   useEffect(() => {
-    // Use a callback to update page state asynchronously to avoid cascading renders
     const timer = setTimeout(() => setPage(1), 0);
     return () => clearTimeout(timer);
   }, [debouncedSearchTerm, typeFilter]);
 
-  // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -287,7 +314,7 @@ export default function Tour() {
           setPage((prev) => prev + 1);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     const currentLoader = loaderRef.current;
@@ -303,10 +330,10 @@ export default function Tour() {
   }, [hasMore, isFetching]);
 
   const filterOptions = [
-    { value: "all", label: "All Tours" },
-    { value: "360_image", label: "360° Images" },
-    { value: "3d_model", label: "3D Models" },
-    { value: "360_video", label: "360° Videos" },
+    { value: "all", label: "All" },
+    { value: "360_image", label: "360° Image" },
+    { value: "3d_model", label: "3D Model" },
+    { value: "360_video", label: "360° Video" },
     { value: "embed", label: "Embedded" },
   ];
 
@@ -321,40 +348,57 @@ export default function Tour() {
 
   return (
     <PageLayout showBackgroundEffects={true} variant="default">
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 py-8">
+      <div className="min-h-screen bg-[#fafafa]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Header */}
-          <div className="space-y-6 mb-12 flex flex-col justify-center items-center ">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 text-balance leading-tight">
-              Virtual Tour{" "}
-              <span className="text-gray-900">360° Experiences</span>
-            </h1>
-            <p className="text-xl w-full  text-gray-600 text-center">
-              Create meaningful Kwibuka virtual tours that honor the memory of
-              the victims of the 1994 Genocide against the Tutsi. Through
-              immersive visuals, thoughtful narration, and interactive elements,
-              offer a respectful space for remembrance, education, and
-              reflection.
-              {/* Build thoughtful Kwibuka virtual tours with interactive details, immersive audio, and respectful visuals creating a space for remembrance, learning, and healing. */}
+          <div className="mb-14 text-center">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-5">
+              Kwibuka — Remember
             </p>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight mb-5">
+              Virtual Tours
+            </h1>
+            <p className="max-w-lg mx-auto text-sm text-gray-500 leading-relaxed mb-8">
+              Step inside sacred sites and memorial spaces through immersive
+              360° experiences — built to honor the memory of victims of the
+              1994 Genocide against the Tutsi and foster education, healing, and
+              reflection.
+            </p>
+            {/* Divider pills */}
+            <div className="flex items-center justify-center gap-3 text-[10px] font-semibold tracking-[0.15em] uppercase text-gray-300">
+              <span>360° Imagery</span>
+              <span className="w-1 h-1 rounded-full bg-gray-300" />
+              <span>3D Models</span>
+              <span className="w-1 h-1 rounded-full bg-gray-300" />
+              <span>Spatial Audio</span>
+              <span className="w-1 h-1 rounded-full bg-gray-300" />
+              <span>Interactive Hotspots</span>
+            </div>
           </div>
 
-          {/* Search and Filters */}
-          <div className="max-w-4xl mx-auto mb-12">
-            {/* Search Bar */}
-            <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          {/* Search + Filters */}
+          <div className="max-w-2xl mx-auto mb-12 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search tours by title, location, or description..."
+                placeholder="Search by title, location, or description…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent shadow-sm"
+                className="w-full pl-11 pr-10 py-3 rounded-xl bg-white border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition-all duration-200"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <X className="w-3 h-3 text-gray-500" />
+                </button>
+              )}
             </div>
 
-            {/* Filter Chips */}
-            <div className="flex  flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-2 justify-center">
               {filterOptions.map((option) => (
                 <FilterChip
                   key={option.value}
@@ -367,84 +411,98 @@ export default function Tour() {
             </div>
           </div>
 
+          {/* Result count */}
+          {!isLoading && tours.length > 0 && (
+            <p className="text-xs text-gray-400 mb-8 text-center">
+              Showing{" "}
+              <span className="text-gray-700 font-medium">{tours.length}</span>{" "}
+              tour{tours.length !== 1 ? "s" : ""}
+              {debouncedSearchTerm ? (
+                <>
+                  {" "}
+                  for{" "}
+                  <span className="text-gray-700 font-medium">
+                    &ldquo;{debouncedSearchTerm}&rdquo;
+                  </span>
+                </>
+              ) : null}
+            </p>
+          )}
+
           {/* Tours Grid */}
-          <div className="container mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {tours.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+            {tours.map((tour) => (
+              <TourCard key={tour.id} tour={tour} />
+            ))}
+
+            {showLoadingSkeletons &&
+              Array.from({ length: LIMIT }).map((_, index) => (
+                <TourCardSkeleton key={`skeleton-${index}`} />
               ))}
-
-              {showLoadingSkeletons &&
-                Array.from({ length: LIMIT }).map((_, index) => (
-                  <TourCardSkeleton key={`skeleton-${index}`} />
-                ))}
-            </div>
-
-            {/* Loading More Indicator */}
-            {showLoadMore && (
-              <div
-                ref={loaderRef}
-                className="flex justify-center items-center py-8"
-              >
-                <div className="flex items-center gap-3 text-gray-600">
-                  <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
-                  <span>Loading more tours...</span>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {showEmptyState && (
-              <div className="text-center py-16">
-                <div className="max-w-md mx-auto">
-                  <Info className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No tours found
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    {debouncedSearchTerm
-                      ? `No results found for "${debouncedSearchTerm}". Try adjusting your search or filters.`
-                      : "No virtual tours available at the moment. Please check back later."}
-                  </p>
-                  {(debouncedSearchTerm || typeFilter !== "all") && (
-                    <button
-                      onClick={() => {
-                        setSearchTerm("");
-                        setTypeFilter("all");
-                      }}
-                      className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      Clear filters
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-16">
-                <div className="max-w-md mx-auto">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">⚠️</span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Failed to load tours
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    We encountered an error while loading the tours. Please try
-                    again.
-                  </p>
-                  <button
-                    onClick={() => refetch()}
-                    className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                  >
-                    Retry
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Load More */}
+          {showLoadMore && (
+            <div ref={loaderRef} className="flex justify-center py-10">
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <div className="w-4 h-4 border border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+                Loading more
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {showEmptyState && (
+            <div className="text-center py-20">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                <Info className="w-5 h-5 text-gray-400" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                {debouncedSearchTerm
+                  ? "No results found"
+                  : "No tours available"}
+              </h3>
+              <p className="text-xs text-gray-400 mb-6 max-w-xs mx-auto">
+                {debouncedSearchTerm
+                  ? `Nothing matched "${debouncedSearchTerm}". Try a broader term or remove a filter.`
+                  : "Tours will appear here once published. Check back soon."}
+              </p>
+              {(debouncedSearchTerm || typeFilter !== "all") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setTypeFilter("all");
+                  }}
+                  className="px-4 py-2 text-xs font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-20">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                <span className="text-lg">⚠</span>
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                Failed to load tours
+              </h3>
+              <p className="text-xs text-gray-400 mb-6">
+                Something went wrong. Please try again.
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="px-4 py-2 text-xs font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </PageLayout>

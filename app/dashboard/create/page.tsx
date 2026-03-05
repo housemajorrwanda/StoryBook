@@ -30,53 +30,78 @@ import {
 
 type SubmitPhase = "idle" | "uploading" | "saving";
 
-function uploadFileWithProgress(
+interface CloudinarySignature {
+  apiKey: string;
+  timestamp: number;
+  signature: string;
+  folder: string;
+  cloudName: string;
+  resourceType: string;
+}
+
+async function fetchUploadSignature(tourType: string): Promise<CloudinarySignature> {
+  const base = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
+  const token = getAuthToken();
+  const res = await fetch(`${base}/virtual-tours/upload-signature?tourType=${tourType}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error("Failed to get upload signature"), { isUploadError: true });
+  }
+  return res.json();
+}
+
+function uploadToCloudinaryWithProgress(
   file: File,
-  tourType: string,
+  sig: CloudinarySignature,
   onProgress: (pct: number) => void,
-): Promise<{ image360Url: string; fileName: string; tourType: string }> {
+): Promise<{ secure_url: string; public_id: string; original_filename: string }> {
   return new Promise((resolve, reject) => {
     const fd = new FormData();
-    fd.append("tourFile", file);
-    fd.append("tourType", tourType);
+    fd.append("file", file);
+    fd.append("api_key", sig.apiKey);
+    fd.append("timestamp", sig.timestamp.toString());
+    fd.append("signature", sig.signature);
+    fd.append("folder", sig.folder);
 
     const xhr = new XMLHttpRequest();
-    const base = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(
-      /\/$/,
-      "",
-    );
-    xhr.open("POST", `${base}/virtual-tours/upload-file`);
-
-    const token = getAuthToken();
-    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${sig.cloudName}/${sig.resourceType}/upload`);
 
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable)
-        onProgress(Math.round((e.loaded * 100) / e.total));
+      if (e.lengthComputable) onProgress(Math.round((e.loaded * 100) / e.total));
     };
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText));
       } else {
-        const err = Object.assign(new Error("Upload failed"), {
-          isUploadError: true,
-        });
-        reject(err);
+        reject(Object.assign(new Error("Upload failed"), { isUploadError: true }));
       }
     };
 
-    xhr.onerror = () =>
-      reject(
-        Object.assign(new Error("Upload failed"), { isUploadError: true }),
-      );
-    xhr.ontimeout = () =>
-      reject(
-        Object.assign(new Error("Upload timed out"), { isUploadError: true }),
-      );
+    xhr.onerror = () => reject(Object.assign(new Error("Upload failed"), { isUploadError: true }));
+    xhr.ontimeout = () => reject(Object.assign(new Error("Upload timed out"), { isUploadError: true }));
 
     xhr.send(fd);
   });
+}
+
+async function uploadFileWithProgress(
+  file: File,
+  tourType: string,
+  onProgress: (pct: number) => void,
+): Promise<{ image360Url: string; fileName: string; tourType: string }> {
+  // Step 1: get signature from backend (fast, < 5ms, no file sent to server)
+  const sig = await fetchUploadSignature(tourType);
+
+  // Step 2: upload directly to Cloudinary (bypasses your server + Cloudflare entirely)
+  const result = await uploadToCloudinaryWithProgress(file, sig, onProgress);
+
+  return {
+    image360Url: result.secure_url,
+    fileName: result.original_filename ?? file.name,
+    tourType,
+  };
 }
 
 export default function CreateTour() {
