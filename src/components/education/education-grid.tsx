@@ -1,6 +1,6 @@
 "use client"
 
-import { BookOpen, Loader2, FilterX } from "lucide-react"
+import { BookOpen, FilterX, Search } from "lucide-react"
 import { useState } from "react"
 import EducationCard from "./education-card"
 import { useEducationContent } from "@/hooks/education/use-education-content"
@@ -12,11 +12,28 @@ interface EducationGridProps {
   onClearFilters: () => void
 }
 
-export default function EducationGrid({ 
-  category, 
-  contentType, 
-  searchQuery, 
-  onClearFilters 
+function CardSkeleton() {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden animate-pulse">
+      <div className="aspect-video bg-gray-100" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 w-3/4 bg-gray-100 rounded" />
+        <div className="h-3 w-1/2 bg-gray-100 rounded" />
+        <div className="space-y-1.5">
+          <div className="h-3 w-full bg-gray-100 rounded" />
+          <div className="h-3 w-4/5 bg-gray-100 rounded" />
+        </div>
+        <div className="h-9 w-full bg-gray-100 rounded-xl mt-2" />
+      </div>
+    </div>
+  )
+}
+
+export default function EducationGrid({
+  category,
+  contentType,
+  searchQuery,
+  onClearFilters
 }: EducationGridProps) {
   const [skip, setSkip] = useState(0)
   const limit = 12
@@ -33,67 +50,71 @@ export default function EducationGrid({
   const content = data?.data || []
   const total = data?.meta.total || 0
   const hasNextPage = skip + limit < total
-
-  // Check if filters are active
   const hasActiveFilters = category !== "all" || contentType !== "all" || searchQuery !== ""
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Content</h3>
-          <p className="text-gray-700">Please try again later or contact support.</p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <BookOpen className="w-10 h-10 text-gray-200 mx-auto mb-4" />
+        <p className="text-sm font-semibold text-gray-900 mb-1">Failed to load content</p>
+        <p className="text-sm text-gray-400 mb-5">Please try again later.</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="text-xs font-semibold text-gray-900 underline underline-offset-2"
+        >
+          Try again
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {isLoading ? (
-        <div className="text-center py-12">
-          <Loader2 className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
-          <p className="text-gray-700">Loading educational content...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
         </div>
       ) : content.length === 0 ? (
-        <EmptyState 
+        <EmptyState
           hasActiveFilters={hasActiveFilters}
           onClearFilters={onClearFilters}
           searchQuery={searchQuery}
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
+          {/* Result header */}
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-black">{total} Resources Found</h2>
-              <p className="text-sm text-gray-600 mt-1">Explore and learn at your own pace</p>
-            </div>
+            <p className="text-sm text-gray-400">
+              <span className="font-semibold text-gray-900">{total.toLocaleString()}</span>{" "}
+              {total === 1 ? "resource" : "resources"} found
+            </p>
             {hasActiveFilters && (
               <button
+                type="button"
                 onClick={onClearFilters}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-black transition-colors border border-border rounded-lg hover:border-foreground/20"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
               >
-                <FilterX className="h-4 w-4" />
-                Clear Filters
+                <FilterX className="w-3.5 h-3.5" />
+                Clear filters
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {content.map((item) => (
               <EducationCard key={item.id} content={item} />
             ))}
           </div>
 
-          {/* Pagination */}
           {hasNextPage && (
-            <div className="flex justify-center pt-8">
+            <div className="flex justify-center pt-4">
               <button
+                type="button"
                 onClick={() => setSkip(skip + limit)}
-                className="px-6 py-2 bg-primary text-gray-800 rounded-lg hover:bg-primary/90 transition-colors"
+                className="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
               >
-                Load More
+                Load more
               </button>
             </div>
           )}
@@ -103,7 +124,6 @@ export default function EducationGrid({
   )
 }
 
-// Empty State Component
 interface EmptyStateProps {
   hasActiveFilters: boolean
   onClearFilters: () => void
@@ -112,36 +132,31 @@ interface EmptyStateProps {
 
 function EmptyState({ hasActiveFilters, onClearFilters, searchQuery }: EmptyStateProps) {
   return (
-    <div className="text-center py-16">
-      <BookOpen className="h-20 w-20 text-gray-700 mx-auto mb-6 opacity-50" />
-      
+    <div className="text-center py-20">
       {hasActiveFilters ? (
         <>
-          <h3 className="text-2xl font-semibold text-foreground mb-3">
-            No matching content found
-          </h3>
-          <p className="text-gray-700 mb-6 max-w-md mx-auto">
-            {searchQuery ? (
-              `No results found for "${searchQuery}" with the current filters. Try adjusting your search or filters.`
-            ) : (
-              "No content matches the current filters. Try adjusting your selection."
-            )}
+          <Search className="w-10 h-10 text-gray-200 mx-auto mb-4" />
+          <p className="text-sm font-semibold text-gray-900 mb-1">No results found</p>
+          <p className="text-sm text-gray-400 mb-5 max-w-xs mx-auto">
+            {searchQuery
+              ? `Nothing matched "${searchQuery}". Try a different search or clear your filters.`
+              : "No content matches the current filters."}
           </p>
           <button
+            type="button"
             onClick={onClearFilters}
-            className="inline-flex items-center gap-2 px-6 py-3 text-sm text-gray-700 hover:text-black transition-colors border border-border rounded-lg hover:border-foreground/20"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <FilterX className="h-5 w-5" />
-            Clear All Filters
+            <FilterX className="w-3.5 h-3.5" />
+            Clear all filters
           </button>
         </>
       ) : (
         <>
-          <h3 className="text-2xl font-semibold text-foreground mb-3">
-            No educational content available
-          </h3>
-          <p className="text-gray-700 max-w-md mx-auto">
-            We&lsquo;re working on adding new educational resources. Check back soon for updates.
+          <BookOpen className="w-10 h-10 text-gray-200 mx-auto mb-4" />
+          <p className="text-sm font-semibold text-gray-900 mb-1">No content yet</p>
+          <p className="text-sm text-gray-400 max-w-xs mx-auto">
+            We&apos;re working on adding new resources. Check back soon.
           </p>
         </>
       )}

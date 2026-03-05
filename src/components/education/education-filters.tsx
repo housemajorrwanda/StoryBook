@@ -8,21 +8,21 @@ interface FilterProps {
 }
 
 const categories = [
-  { id: "all", label: "All Content" },
-  { id: "history", label: "History & Context" },
-  { id: "prevention", label: "Genocide Prevention" },
-  { id: "reconciliation", label: "Reconciliation & Unity" },
-  { id: "survivor-stories", label: "Survivor Stories" },
-  { id: "memorials", label: "Memorials & Testimonies" }, 
+  { id: "all", label: "All Themes" },
+  { id: "history", label: "History" },
+  { id: "prevention", label: "Prevention" },
+  { id: "reconciliation", label: "Reconciliation" },
+  { id: "survivor-stories", label: "Survivors" },
+  { id: "memorials", label: "Memorials" },
 ];
 
 const contentTypes = [
   { id: "all", label: "All Formats" },
-  { id: "article", label: "Articles & Documents" },
-  { id: "video", label: "Video Stories" },
-  { id: "interactive", label: "Interactive Learning" },
-  { id: "timeline", label: "Historical Timelines" },
-  { id: "audio", label: "Audio Testimonies" },
+  { id: "article", label: "Articles" },
+  { id: "video", label: "Videos" },
+  { id: "interactive", label: "Interactive" },
+  { id: "timeline", label: "Timelines" },
+  { id: "audio", label: "Audio" },
 ];
 
 export default function EducationFilters({
@@ -31,50 +31,48 @@ export default function EducationFilters({
   contentType,
   setContentType,
 }: FilterProps) {
-
-
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-8">
-        {/* Category Filter */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900">Theme</h3>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === cat.id
-                    ? "bg-gray-600 text-white"
-                    : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400"
-                }`}
-                onClick={() => setSelectedCategory(cat.id)}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="flex flex-col gap-3">
+      {/* Category row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mr-1 shrink-0">
+          Theme
+        </span>
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              selectedCategory === cat.id
+                ? "bg-gray-900 text-white"
+                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Content Type Filter */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900">Format</h3>
-          <div className="flex flex-wrap gap-2">
-            {contentTypes.map((type) => (
-              <button
-                key={type.id}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  contentType === type.id
-                    ? "bg-gray-600 text-white"
-                    : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400"
-                }`}
-                onClick={() => setContentType(type.id)}
-              >
-                {type.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Format row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mr-1 shrink-0">
+          Format
+        </span>
+        {contentTypes.map((type) => (
+          <button
+            key={type.id}
+            type="button"
+            onClick={() => setContentType(type.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              contentType === type.id
+                ? "bg-gray-900 text-white"
+                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            {type.label}
+          </button>
+        ))}
       </div>
     </div>
   );

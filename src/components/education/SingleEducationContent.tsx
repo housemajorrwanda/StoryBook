@@ -443,7 +443,7 @@ export default function SingleEducationContent({
                 </button>
                 
                 {showShareOptions && (
-                  <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 min-w-[160px] z-10">
+                  <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 min-w-40 z-10">
                     <button
                       onClick={handleShare}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"

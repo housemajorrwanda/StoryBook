@@ -30,6 +30,7 @@ export { default as UnderDevelopment } from "./UnderDevelopment";
 export { default as Select } from "./Select";
 export type { SelectOption } from "./Select";
 export { default as Checkbox } from "./Checkbox";
+export { default as RichTextEditor } from "./RichTextEditor";
 
 // User
 export { default as UserAvatar } from "./UserAvatar";
