@@ -54,16 +54,11 @@ class VirtualTourService {
     return response.data;
   }
 
-  // POST /virtual-tours 
-
-  async createTour(formData: FormData): Promise<VirtualTour> {
-  const response = await axiosInstance.post<VirtualTour>('/virtual-tours', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
-}
+  // POST /virtual-tours - Create tour with URL (no file, instant)
+  async createTour(data: Record<string, unknown>): Promise<VirtualTour> {
+    const response = await axiosInstance.post<VirtualTour>("/virtual-tours", data);
+    return response.data;
+  }
 
   // PATCH /virtual-tours/{id} - Update a virtual tour
   async updateTour(id: number, tourData: UpdateVirtualTourRequest): Promise<VirtualTour> {
