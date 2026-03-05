@@ -51,6 +51,9 @@
   * {
     border-color: hsl(var(--color-border));
   }
+  button, [role="button"] {
+    cursor: pointer;
+  }
 }
 
 body {

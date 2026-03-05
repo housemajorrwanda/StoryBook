@@ -75,16 +75,15 @@ export const useVirtualTour = (
 export const useCreateVirtualTour = (): UseMutationResult<
   VirtualTour,
   Error,
-  FormData
+  Record<string, unknown>
 > => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (formData: FormData) => virtualTourService.createTour(formData),
+    mutationFn: (data: Record<string, unknown>) => virtualTourService.createTour(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.lists() });
       queryClient.invalidateQueries({ queryKey: virtualTourKeys.myTours({}) });
-      
       toast.success("Virtual tour created successfully");
     },
     onError: (error) => {
