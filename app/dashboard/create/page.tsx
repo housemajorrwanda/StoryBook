@@ -316,6 +316,71 @@ export default function CreateTour() {
     }
   };
 
+  // ── Sample data ──
+  const fillSampleData = () => {
+    setFormData({
+      title: "Kigali Genocide Memorial — Main Hall",
+      description: "A remote virtual visit to the Kigali Genocide Memorial, allowing people worldwide to pay their respects and learn about the 1994 Rwandan Genocide against the Tutsi.",
+      location: "Kigali, Rwanda",
+      tourType: "360_image",
+      embedUrl: "",
+      status: "draft",
+      isPublished: false,
+    });
+    setHotspots([
+      {
+        type: "info",
+        title: "Memorial Garden",
+        description: "The garden of remembrance where over 250,000 victims are buried. A place of reflection and peace.",
+        positionX: 0, positionY: 0, positionZ: 0,
+        pitch: -10, yaw: 45,
+        icon: "", actionUrl: "", color: "", size: 1, triggerDistance: 5,
+        autoTrigger: false, showOnHover: false, order: 0,
+      },
+      {
+        type: "info",
+        title: "Wall of Names",
+        description: "The wall inscribed with the names of victims — a powerful reminder of the lives lost during the genocide.",
+        positionX: 0, positionY: 0, positionZ: 0,
+        pitch: 5, yaw: -60,
+        icon: "", actionUrl: "", color: "", size: 1, triggerDistance: 5,
+        autoTrigger: false, showOnHover: false, order: 1,
+      },
+      {
+        type: "info",
+        title: "Reflection Pool",
+        description: "A serene water feature symbolizing tears shed and the cleansing of wounds through memory and justice.",
+        positionX: 0, positionY: 0, positionZ: 0,
+        pitch: -20, yaw: 150,
+        icon: "", actionUrl: "", color: "", size: 1, triggerDistance: 5,
+        autoTrigger: false, showOnHover: false, order: 2,
+      },
+    ]);
+    setAudioRegions([
+      {
+        title: "Ambient Remembrance",
+        description: "Soft solemn ambient audio playing throughout the memorial space.",
+        regionType: "sphere", centerX: 0, centerY: 0, centerZ: 0,
+        radius: 50, width: 0, height: 0, depth: 0,
+        volume: 0.4, loop: true, fadeInDuration: 2, fadeOutDuration: 2,
+        spatialAudio: false, minDistance: 1, maxDistance: 50,
+        autoPlay: true, playOnce: false, order: 0,
+      },
+    ]);
+    setEffects([
+      {
+        effectType: "visual", effectName: "vignette", triggerType: "always",
+        positionX: 0, positionY: 0, positionZ: 0, pitch: 0, yaw: 0,
+        triggerDistance: 0, triggerDelay: 0, intensity: 0.4, duration: 0,
+        color: "", particleCount: 0, opacity: 0.4, size: 1,
+        animationType: "", animationSpeed: 1,
+        title: "Vignette", description: "Subtle dark vignette to create a solemn atmosphere.",
+        order: 0,
+      },
+    ]);
+    setStep(2);
+  };
+
   // ── Step validation ──
   const canGoNext = () => {
     if (step === 1) return true;
@@ -339,10 +404,17 @@ export default function CreateTour() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <div>
+        <div className="flex-1">
           <p className="text-xs text-gray-400 font-medium">Tour Management</p>
           <h1 className="text-xl font-bold text-gray-900 leading-tight">Create New Tour</h1>
         </div>
+        <button
+          type="button"
+          onClick={fillSampleData}
+          className="px-3.5 py-2 rounded-xl border border-dashed border-gray-300 bg-white text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
+        >
+          Fill Sample Data
+        </button>
       </div>
 
       {/* Step indicator */}
