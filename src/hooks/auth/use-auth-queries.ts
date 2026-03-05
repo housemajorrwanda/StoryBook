@@ -114,7 +114,9 @@ export const useForgotPassword = () => {
   return useMutation({
     mutationFn: (email: string) => authService.forgotPassword(email),
     onSuccess: () => {
-      toast.success("If the email exists, a password reset link has been sent.");
+      toast.success(
+        "If the email exists, a password reset link has been sent.",
+      );
     },
     onError: (error: unknown) => {
       const message =
@@ -129,8 +131,13 @@ export const useResetPassword = () => {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
-      authService.resetPassword(token, newPassword),
+    mutationFn: ({
+      token,
+      newPassword,
+    }: {
+      token: string;
+      newPassword: string;
+    }) => authService.resetPassword(token, newPassword),
     onSuccess: () => {
       toast.success("Password reset successfully! Please sign in.");
       router.push("/login");
@@ -138,7 +145,8 @@ export const useResetPassword = () => {
     onError: (error: unknown) => {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message || "Invalid or expired reset token. Please try again.";
+          ?.data?.message ||
+        "Invalid or expired reset token. Please try again.";
       toast.error(message);
     },
   });
@@ -155,7 +163,7 @@ export const useGoogleAuth = () => {
     handleCallback: async (): Promise<void> => {
       try {
         const data = await authService.handleGoogleCallback();
-        
+
         // Check if response has access_token (might be in data or nested)
         interface GoogleAuthResponse {
           access_token?: string;
@@ -166,16 +174,14 @@ export const useGoogleAuth = () => {
           };
           token?: string;
         }
-        
+
         const response = data as unknown as GoogleAuthResponse;
-        const accessToken = 
-          response?.access_token || 
+        const accessToken =
+          response?.access_token ||
           response?.data?.access_token ||
           response?.token;
-        
-        const user = 
-          response?.user || 
-          response?.data?.user;
+
+        const user = response?.user || response?.data?.user;
 
         if (accessToken && user) {
           setAuthToken(accessToken);
@@ -195,7 +201,6 @@ export const useGoogleAuth = () => {
             router.push("/");
           }
         } else {
-          // Check URL params for token (in case backend redirects with token in URL)
           const urlParams = new URLSearchParams(window.location.search);
           const tokenFromUrl = urlParams.get("token");
           const userFromUrl = urlParams.get("user");
@@ -225,7 +230,8 @@ export const useGoogleAuth = () => {
       } catch (error: unknown) {
         const message =
           (error as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message || "Google authentication failed. Please try again.";
+            ?.data?.message ||
+          "Google authentication failed. Please try again.";
         toast.error(message);
         router.push("/login");
       }

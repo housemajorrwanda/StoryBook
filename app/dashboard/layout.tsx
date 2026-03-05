@@ -41,7 +41,7 @@ export default function DashboardLayout({
     const map: Record<string, string> = {
       "/dashboard": "Overview",
       "/dashboard/users-management": "User Management",
-      "/dashboard/content-moderations": "Content Moderation",
+      "/dashboard/content-moderations": "Moderation",
       "/dashboard/virtual-tour": "Tour Management",
       "/dashboard/all-testimonies": "Testimonies",
       "/dashboard/education": "Education",
@@ -67,7 +67,9 @@ export default function DashboardLayout({
           onMenuClick={() => setSidebarOpen(true)}
           sidebarCollapsed={sidebarCollapsed}
         />
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

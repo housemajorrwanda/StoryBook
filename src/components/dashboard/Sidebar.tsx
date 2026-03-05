@@ -22,12 +22,28 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { name: "Dashboard",          href: "/dashboard",                     icon: LuLayoutDashboard },
-  { name: "User Management",    href: "/dashboard/users-management",    icon: LuUsers },
-  { name: "Tour Management",    href: "/dashboard/virtual-tour",        icon: LuMapPinned },
-  { name: "Content Moderation", href: "/dashboard/content-moderations", icon: LuShieldCheck },
-  { name: "Testimonies",        href: "/dashboard/all-testimonies",     icon: LuMessageSquareQuote },
-  { name: "Education",          href: "/dashboard/education",           icon: LuGraduationCap },
+  { name: "Dashboard", href: "/dashboard", icon: LuLayoutDashboard },
+  {
+    name: "User Management",
+    href: "/dashboard/users-management",
+    icon: LuUsers,
+  },
+  {
+    name: "Tour Management",
+    href: "/dashboard/virtual-tour",
+    icon: LuMapPinned,
+  },
+  {
+    name: "Moderation",
+    href: "/dashboard/content-moderations",
+    icon: LuShieldCheck,
+  },
+  {
+    name: "Testimonies",
+    href: "/dashboard/all-testimonies",
+    icon: LuMessageSquareQuote,
+  },
+  { name: "Education", href: "/dashboard/education", icon: LuGraduationCap },
 ];
 
 const generalItems = [
@@ -107,35 +123,32 @@ export default function Sidebar({
         } ${collapsed ? "w-[68px]" : "w-[220px]"}`}
       >
         {/* Logo */}
-        <div
-          className={`flex items-center h-16 border-b border-gray-100 shrink-0 ${
-            collapsed ? "justify-center px-4" : "px-5 justify-between"
-          }`}
-        >
-          {!collapsed && (
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xs font-black tracking-tight">A</span>
-              </div>
-              <span className="text-sm font-bold tracking-tight text-gray-900">Archive</span>
+        <div className="flex items-center h-16 border-b border-gray-100 shrink-0 px-3 justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-white text-xs font-black tracking-tight">
+                I
+              </span>
             </div>
-          )}
+            {!collapsed && (
+              <span className="text-sm font-bold tracking-tight text-gray-900 truncate">
+                iHame
+              </span>
+            )}
+          </div>
 
-          {collapsed && (
-            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xs font-black">A</span>
-            </div>
-          )}
-
-          {!collapsed && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-gray-300 hover:text-gray-600 hover:bg-gray-50 transition-colors"
-            >
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-gray-300 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <LuChevronRight className="w-4 h-4" />
+            ) : (
               <LuChevronLeft className="w-4 h-4" />
-            </button>
-          )}
+            )}
+          </button>
         </div>
 
         {/* Nav */}
@@ -164,20 +177,6 @@ export default function Sidebar({
             ))}
           </div>
         </nav>
-
-        {/* Expand button when collapsed */}
-        {collapsed && (
-          <div className="px-3 pb-4 shrink-0">
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="hidden lg:flex w-full items-center justify-center p-3 rounded-xl text-gray-300 hover:text-gray-600 hover:bg-gray-50 transition-colors"
-              title="Expand sidebar"
-            >
-              <LuChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
 
         {/* Footer */}
         {!collapsed && (

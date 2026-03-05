@@ -13,6 +13,8 @@ import {
   CreateOrUpdateTestimonyRequest,
   TranscriptResponse,
   MyTestimonyConnection,
+  TestimonyAnalytics,
+  MostConnectedTestimony,
 } from "@/types/testimonies";
 import {
   testimoniesService,
@@ -48,6 +50,9 @@ export const TESTIMONY_KEYS = {
   myConnections: () => [...TESTIMONY_KEYS.all, "my-connections"] as const,
   transcripts: () => [...TESTIMONY_KEYS.all, "transcript"] as const,
   transcript: (id: number) => [...TESTIMONY_KEYS.transcripts(), id] as const,
+  analytics: () => [...TESTIMONY_KEYS.all, "analytics"] as const,
+  mostConnected: () => [...TESTIMONY_KEYS.all, "most-connected"] as const,
+  adminList: (filters: string) => [...TESTIMONY_KEYS.all, "admin-list", { filters }] as const,
 };
 
 type TestimoniesPage = {
@@ -309,5 +314,72 @@ export function useTranscript(
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
+  });
+}
+
+// Admin analytics — GET /testimonies/admin/analytics
+export function useTestimonyAnalytics(): UseQueryResult<TestimonyAnalytics, Error> {
+  return useQuery({
+    queryKey: TESTIMONY_KEYS.analytics(),
+    queryFn: () => testimoniesService.getAnalytics(),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+// Most-connected testimonies
+export function useMostConnected(): UseQueryResult<MostConnectedTestimony[], Error> {
+  return useQuery({
+    queryKey: TESTIMONY_KEYS.mostConnected(),
+    queryFn: () => testimoniesService.getMostConnected(),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+// Admin: infinite list of all testimonies with filters
+export function useAdminTestimonies(filters?: {
+  search?: string;
+  status?: string;
+  submissionType?: string;
+  limit?: number;
+}) {
+  return useInfiniteQuery({
+    queryKey: TESTIMONY_KEYS.adminList(JSON.stringify(filters ?? {})),
+    queryFn: ({ pageParam = 0 }) =>
+      testimoniesService.getAdminTestimonies({ ...filters, skip: pageParam as number, limit: filters?.limit ?? 20 }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextSkip = lastPage.skip + lastPage.data.length;
+      return nextSkip >= lastPage.total ? undefined : nextSkip;
+    },
+    staleTime: 30_000,
+  });
+}
+
+// Admin: update testimony status
+export function useUpdateTestimonyStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: "approved" | "rejected" }) =>
+      testimoniesService.updateTestimonyStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TESTIMONY_KEYS.all });
+      toast.success("Testimony status updated");
+    },
+    onError: () => toast.error("Failed to update status. Please try again."),
+  });
+}
+
+// Admin: delete testimony
+export function useDeleteTestimony() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => testimoniesService.deleteTestimony(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TESTIMONY_KEYS.all });
+      toast.success("Testimony deleted");
+    },
+    onError: () => toast.error("Failed to delete testimony. Please try again."),
   });
 }

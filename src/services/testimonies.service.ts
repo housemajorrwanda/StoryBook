@@ -6,6 +6,8 @@ import {
   CreateOrUpdateTestimonyRequest,
   TranscriptResponse,
   MyTestimonyConnection,
+  TestimonyAnalytics,
+  MostConnectedTestimony,
 } from "@/types/testimonies";
 import axiosInstance from "@/config/axiosInstance";
 import { getAuthToken, isTokenExpired } from "@/lib/cookies";
@@ -409,6 +411,67 @@ export const testimoniesService = {
     }
 
     return successfulUploads;
+  },
+
+  // Admin analytics
+  async getAnalytics(): Promise<TestimonyAnalytics> {
+    const response = await axiosInstance.get<{
+      testimonies: { total: number; approved: number; pending: number; rejected: number; drafts: number; lastWeek: number; byType?: { audio: number; written: number; video?: number } };
+      users: { total: number };
+      connections: { total: number; averageScore: number };
+    }>("/testimonies/admin/analytics");
+    const { testimonies, users, connections } = response.data;
+    return {
+      total: testimonies.total,
+      approved: testimonies.approved,
+      pending: testimonies.pending,
+      rejected: testimonies.rejected,
+      drafts: testimonies.drafts,
+      lastWeek: testimonies.lastWeek,
+      byType: testimonies.byType ? { written: testimonies.byType.written ?? 0, audio: testimonies.byType.audio ?? 0, video: testimonies.byType.video ?? 0 } : undefined,
+      users,
+      connections,
+    };
+  },
+
+  // Most connected testimonies
+  async getMostConnected(): Promise<MostConnectedTestimony[]> {
+    const response = await axiosInstance.get<MostConnectedTestimony[]>(
+      "/testimonies/most-connected",
+    );
+    return response.data;
+  },
+
+  // Admin: get all testimonies with filters
+  async getAdminTestimonies(filters?: {
+    search?: string;
+    status?: string;
+    submissionType?: string;
+    skip?: number;
+    limit?: number;
+  }): Promise<{ data: Testimony[]; total: number; skip: number; limit: number }> {
+    const params: Record<string, string | number> = {};
+    if (filters?.search) params.search = filters.search;
+    if (filters?.status) params.status = filters.status;
+    if (filters?.submissionType) params.submissionType = filters.submissionType;
+    params.skip = filters?.skip ?? 0;
+    params.limit = filters?.limit ?? 20;
+    const response = await axiosInstance.get<{ data: Testimony[]; total: number; skip: number; limit: number }>(
+      "/testimonies",
+      { params },
+    );
+    return response.data;
+  },
+
+  // Admin: approve/reject testimony
+  async updateTestimonyStatus(id: number, status: "approved" | "rejected"): Promise<Testimony> {
+    const response = await axiosInstance.patch<Testimony>(`/testimonies/${id}/status`, { status });
+    return response.data;
+  },
+
+  // Admin: delete testimony
+  async deleteTestimony(id: number): Promise<void> {
+    await axiosInstance.delete(`/testimonies/${id}`);
   },
 
   // Stream transcript for live transcription (Server-Sent Events)
