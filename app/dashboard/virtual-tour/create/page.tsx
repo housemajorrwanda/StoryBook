@@ -3,6 +3,8 @@
 import { Check } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { useCreateVirtualTour } from "@/hooks/virtual-tour/use-virtual-tours";
+import { getAuthToken } from "@/lib/cookies";
 import {
   CreateVirtualTourRequest,
   CreateAudioRegionData,
@@ -11,17 +13,15 @@ import {
 } from "@/types/tour";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { useCreateVirtualTour } from "@/hooks/virtual-tour/use-virtual-tours";
-import { getAuthToken } from "@/lib/cookies";
-import { AudioEffectsStep } from "../virtual-tour/create/_components/AudioEffectsStep";
-import { HotspotStep } from "../virtual-tour/create/_components/HotspotStep";
-import { StepIndicator } from "../virtual-tour/create/_components/shared";
+import { StepIndicator } from "./_components/shared";
+import { HotspotStep } from "./_components/HotspotStep";
+import { AudioEffectsStep } from "./_components/AudioEffectsStep";
 import {
   TourTypeStep,
-  TourType,
   BasicInfoStep,
   MediaStep,
-} from "../virtual-tour/create/_components/TourSteps";
+  TourType,
+} from "./_components/TourSteps";
 
 type SubmitPhase = "idle" | "uploading" | "saving";
 

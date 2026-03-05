@@ -22,7 +22,12 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LuLayoutDashboard },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LuLayoutDashboard,
+    exact: true,
+  },
   {
     name: "User Management",
     href: "/dashboard/users-management",
@@ -54,11 +59,13 @@ function NavItem({
   item,
   collapsed,
 }: {
-  item: (typeof menuItems)[0];
+  item: (typeof menuItems)[number];
   collapsed: boolean;
 }) {
   const pathname = usePathname();
-  const active = pathname === item.href;
+  const active = item.exact
+    ? pathname === item.href
+    : pathname.startsWith(item.href);
   const Icon = item.icon;
 
   return (

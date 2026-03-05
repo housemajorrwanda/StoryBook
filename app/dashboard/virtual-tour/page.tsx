@@ -173,7 +173,7 @@ export default function AdminDashboard() {
         actions={[
           {
             label: "Create Tour",
-            href: "/dashboard/create",
+            href: "/dashboard/virtual-tour/create",
             icon: <Plus className="w-4 h-4" />,
           },
         ]}
@@ -366,7 +366,7 @@ export default function AdminDashboard() {
             subtitle="Create your first tour to get started."
             action={{
               label: "Create Tour",
-              href: "/dashboard/create",
+              href: "/dashboard/virtual-tour/create",
               icon: <Plus className="w-4 h-4" />,
             }}
           />
