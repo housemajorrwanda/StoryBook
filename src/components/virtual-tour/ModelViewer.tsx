@@ -3,23 +3,26 @@
 import { useEffect } from "react";
 
 // TypeScript declaration for the <model-viewer> web component
+type ModelViewerAttributes = React.HTMLAttributes<HTMLElement> & {
+  src?: string;
+  alt?: string;
+  "camera-controls"?: boolean | "";
+  "auto-rotate"?: boolean | "";
+  ar?: boolean | "";
+  "shadow-intensity"?: string;
+  "environment-image"?: string;
+  exposure?: string;
+  style?: React.CSSProperties;
+  loading?: "auto" | "lazy" | "eager";
+  poster?: string;
+};
+
 declare global {
-  namespace JSX {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace React.JSX {
     interface IntrinsicElements {
       "model-viewer": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          src?: string;
-          alt?: string;
-          "camera-controls"?: boolean | "";
-          "auto-rotate"?: boolean | "";
-          ar?: boolean | "";
-          "shadow-intensity"?: string;
-          "environment-image"?: string;
-          exposure?: string;
-          style?: React.CSSProperties;
-          loading?: "auto" | "lazy" | "eager";
-          poster?: string;
-        },
+        ModelViewerAttributes,
         HTMLElement
       >;
     }
@@ -34,7 +37,10 @@ interface ModelViewerComponentProps {
   title?: string;
 }
 
-export default function ModelViewerComponent({ modelUrl, title }: ModelViewerComponentProps) {
+export default function ModelViewerComponent({
+  modelUrl,
+  title,
+}: ModelViewerComponentProps) {
   useEffect(() => {
     if (document.querySelector(`script[src="${MODEL_VIEWER_SCRIPT}"]`)) return;
     const script = document.createElement("script");
@@ -45,7 +51,6 @@ export default function ModelViewerComponent({ modelUrl, title }: ModelViewerCom
 
   return (
     <div className="w-full h-full bg-gray-950 relative">
-      {/* @ts-expect-error model-viewer is a custom element */}
       <model-viewer
         src={modelUrl}
         alt={title ?? "3D Model"}

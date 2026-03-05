@@ -12,7 +12,7 @@ interface AudioNode_ {
 
 export function useSpatialAudio(
   audioRegions: VirtualTourAudioRegion[],
-  audioEnabled: boolean
+  audioEnabled: boolean,
 ) {
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<AudioNode_[]>([]);
@@ -20,7 +20,7 @@ export function useSpatialAudio(
   const fadeVolume = (
     gainNode: GainNode,
     targetVolume: number,
-    durationSec: number
+    durationSec: number,
   ) => {
     const ctx = ctxRef.current;
     if (!ctx) return;
@@ -28,7 +28,7 @@ export function useSpatialAudio(
     gainNode.gain.setValueAtTime(gainNode.gain.value, ctx.currentTime);
     gainNode.gain.linearRampToValueAtTime(
       targetVolume,
-      ctx.currentTime + durationSec
+      ctx.currentTime + durationSec,
     );
   };
 
@@ -48,14 +48,15 @@ export function useSpatialAudio(
       });
       setTimeout(() => ctx.suspend(), 400);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioEnabled]);
 
   // Bootstrap audio regions
   useEffect(() => {
     if (!audioRegions.length) return;
 
-    const autoPlayRegions = audioRegions.filter((r) => r.autoPlay && r.audioUrl);
+    const autoPlayRegions = audioRegions.filter(
+      (r) => r.autoPlay && r.audioUrl,
+    );
     if (!autoPlayRegions.length) return;
 
     let ctx: AudioContext;
@@ -78,8 +79,6 @@ export function useSpatialAudio(
 
         const gainNode = ctx.createGain();
         gainNode.gain.setValueAtTime(0, ctx.currentTime);
-
-        let destination: AudioNode = gainNode;
 
         if (region.spatialAudio) {
           const panner = ctx.createPanner();
@@ -124,6 +123,6 @@ export function useSpatialAudio(
       nodesRef.current = [];
       ctx.close();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioRegions]);
 }

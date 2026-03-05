@@ -263,7 +263,7 @@ export default function DashboardWidgets() {
             Kwibuka Archive Platform
           </h2>
           <p className="text-sm text-gray-400 mt-1 max-w-xs">
-            Here's what's happening with your archive today.
+            Here&apos;s what&apos;s happening with your archive today.
           </p>
         </div>
         {/* Decorative circles */}
