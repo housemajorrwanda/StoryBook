@@ -9,6 +9,7 @@ import {
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from "@/hooks/useNotifications";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { Notification } from "@/types/notifications";
 import {
   LuMenu,
@@ -18,7 +19,6 @@ import {
   LuLogOut,
   LuBell,
   LuCheck,
-  LuRefreshCcw,
 } from "react-icons/lu";
 
 interface HeaderProps {
@@ -66,12 +66,13 @@ export default function Header({
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const notificationFilters = useMemo(() => ({ limit: 5 }), []);
 
+  // Connect socket — keeps notification list live in real-time
+  useNotificationSocket();
+
   const {
     data: notificationsPages,
     isLoading: isLoadingNotifications,
     isError: notificationsError,
-    isFetching: isFetchingNotifications,
-    refetch: refetchNotifications,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -176,12 +177,19 @@ export default function Header({
             onClick={() => setShowNotifications(!showNotifications)}
             className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <LuBell className="w-[18px] h-[18px]" />
+            <LuBell className={`w-[18px] h-[18px] transition-transform duration-200 ${unreadCount > 0 ? "text-gray-700" : ""}`} />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-gray-900 rounded-full" />
-            )}
-            {isFetchingNotifications && !unreadCount && (
-              <span className="absolute bottom-1.5 right-1.5 w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" />
+              <>
+                {/* Ping animation ring */}
+                <span className="absolute top-1 right-1 w-2.5 h-2.5">
+                  <span className="absolute inset-0 rounded-full bg-gray-900 opacity-30 animate-ping" />
+                  <span className="absolute inset-0 rounded-full bg-gray-900 flex items-center justify-center">
+                    <span className="text-[7px] text-white font-bold leading-none">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  </span>
+                </span>
+              </>
             )}
           </button>
 
@@ -200,14 +208,6 @@ export default function Header({
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => refetchNotifications()}
-                    disabled={isFetchingNotifications}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-colors disabled:opacity-40"
-                  >
-                    <LuRefreshCcw className="w-3.5 h-3.5" />
-                  </button>
                   {unreadCount > 0 && (
                     <button
                       type="button"
