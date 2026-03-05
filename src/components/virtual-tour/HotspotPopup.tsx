@@ -45,9 +45,10 @@ export default function HotspotPopup({ hotspot, onClose }: HotspotPopupProps) {
     if (hotspot.type === "audio" && hotspot.actionAudioUrl && audioRef.current) {
       audioRef.current.play().catch(() => {});
     }
+    const audio = audioRef.current;
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (audio) {
+        audio.pause();
       }
     };
   }, [hotspot]);

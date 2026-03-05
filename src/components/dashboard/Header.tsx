@@ -44,13 +44,19 @@ function formatRelativeTime(dateString: string): string {
   let duration = (date.getTime() - now.getTime()) / 1000;
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
   for (const [amount, unit] of RELATIVE_TIME_DIVISIONS) {
-    if (Math.abs(duration) < amount) return rtf.format(Math.round(duration), unit);
+    if (Math.abs(duration) < amount)
+      return rtf.format(Math.round(duration), unit);
     duration /= amount;
   }
   return rtf.format(Math.round(duration), "year");
 }
 
-export default function Header({ title, user, onMenuClick, sidebarCollapsed }: HeaderProps) {
+export default function Header({
+  title,
+  user,
+  onMenuClick,
+  sidebarCollapsed,
+}: HeaderProps) {
   const router = useRouter();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -74,7 +80,8 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
   const markNotificationRead = useMarkNotificationRead();
   const markAllNotificationsRead = useMarkAllNotificationsRead();
 
-  const notifications = notificationsPages?.pages.flatMap((page) => page.data) ?? [];
+  const notifications =
+    notificationsPages?.pages.flatMap((page) => page.data) ?? [];
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
   const handleNotificationClick = (notification: Notification) => {
@@ -98,8 +105,10 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
     const target = loadMoreRef.current;
     if (!root || !target) return;
     const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) fetchNextPage(); },
-      { root, rootMargin: "0px", threshold: 1.0 }
+      (entries) => {
+        if (entries[0].isIntersecting) fetchNextPage();
+      },
+      { root, rootMargin: "0px", threshold: 1.0 },
     );
     observer.observe(target);
     return () => observer.disconnect();
@@ -128,7 +137,10 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
     return "U";
   };
 
-  const firstName = user?.fullName?.split(" ")[0] ?? user?.username ?? "";
+  const firstName =
+    (user?.fullName ? String(user.fullName).split(" ")[0] : null) ??
+    user?.username ??
+    "";
 
   return (
     <header className="h-16 bg-white border-b border-gray-100 px-6 flex items-center justify-between shrink-0">
@@ -143,8 +155,12 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
           <LuMenu className="w-4.5 h-4.5" />
         </button>
 
-        <div className={`min-w-0 transition-all duration-300 ${sidebarCollapsed ? "lg:ml-1" : ""}`}>
-          <h1 className="text-sm font-semibold text-gray-900 leading-tight truncate">{title}</h1>
+        <div
+          className={`min-w-0 transition-all duration-300 ${sidebarCollapsed ? "lg:ml-1" : ""}`}
+        >
+          <h1 className="text-sm font-semibold text-gray-900 leading-tight truncate">
+            {title}
+          </h1>
           <p className="text-xs text-gray-400 leading-tight mt-0.5">
             {firstName ? `Good day, ${firstName}` : "Welcome back"}
           </p>
@@ -153,7 +169,6 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
 
       {/* Right */}
       <div className="flex items-center gap-1.5 shrink-0">
-
         {/* Notifications */}
         <div className="relative notifications-dropdown">
           <button
@@ -175,9 +190,13 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
               {/* Header */}
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Notifications</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    Notifications
+                  </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+                    {unreadCount > 0
+                      ? `${unreadCount} unread`
+                      : "All caught up"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -204,7 +223,10 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
               </div>
 
               {/* List */}
-              <div className="max-h-80 overflow-y-auto custom-scrollbar" ref={notificationsScrollRef}>
+              <div
+                className="max-h-80 overflow-y-auto custom-scrollbar"
+                ref={notificationsScrollRef}
+              >
                 {isLoadingNotifications ? (
                   <div className="space-y-4 px-5 py-4">
                     {[...Array(3)].map((_, i) => (
@@ -240,7 +262,9 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                       <div className="flex items-start gap-3">
                         <div
                           className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${
-                            notification.status === "unread" ? "bg-gray-900" : "bg-gray-200"
+                            notification.status === "unread"
+                              ? "bg-gray-900"
+                              : "bg-gray-200"
                           }`}
                         />
                         <div className="flex-1 min-w-0">
@@ -271,9 +295,10 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                                 className={`px-1.5 py-0.5 text-[10px] rounded-md capitalize font-medium ${
                                   notification.metadata.status === "approved"
                                     ? "bg-green-50 text-green-700"
-                                    : notification.metadata.status === "rejected"
-                                    ? "bg-red-50 text-red-600"
-                                    : "bg-gray-100 text-gray-500"
+                                    : notification.metadata.status ===
+                                        "rejected"
+                                      ? "bg-red-50 text-red-600"
+                                      : "bg-gray-100 text-gray-500"
                                 }`}
                               >
                                 {notification.metadata.status}
@@ -284,8 +309,8 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                                 notification.priority === "high"
                                   ? "bg-red-50 text-red-600"
                                   : notification.priority === "medium"
-                                  ? "bg-amber-50 text-amber-600"
-                                  : "bg-gray-100 text-gray-500"
+                                    ? "bg-amber-50 text-amber-600"
+                                    : "bg-gray-100 text-gray-500"
                               }`}
                             >
                               {notification.priority}
@@ -298,7 +323,10 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                 )}
 
                 {infiniteMode && hasNextPage && (
-                  <div ref={loadMoreRef} className="py-3 text-center text-xs text-gray-400">
+                  <div
+                    ref={loadMoreRef}
+                    className="py-3 text-center text-xs text-gray-400"
+                  >
                     {isFetchingNextPage ? "Loading…" : "Scroll for more"}
                   </div>
                 )}
@@ -314,7 +342,9 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                     className="text-xs font-semibold text-gray-500 hover:text-gray-900 disabled:opacity-50 transition-colors"
                   >
                     {infiniteMode
-                      ? isFetchingNextPage ? "Loading…" : "Scroll for more"
+                      ? isFetchingNextPage
+                        ? "Loading…"
+                        : "Scroll for more"
                       : "View more"}
                   </button>
                 ) : (
@@ -365,7 +395,9 @@ export default function Header({ title, user, onMenuClick, sidebarCollapsed }: H
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {user?.fullName || user?.username || "User"}
                     </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5 truncate">{user?.email}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
                 <span className="inline-block mt-3 px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] rounded-md font-semibold uppercase tracking-wide">

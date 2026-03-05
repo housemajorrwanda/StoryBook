@@ -15,25 +15,34 @@ export default function UnderDevelopment({
   className = "",
 }: UnderDevelopmentProps) {
   return (
-    <div className={`min-h-[80vh] flex items-center justify-center py-20 px-4 ${className}`}>
+    <div
+      className={`min-h-[80vh] flex items-center justify-center py-20 px-4 ${className}`}
+    >
       <div className="text-center max-w-2xl mx-auto">
         {/* Animated Icon Container */}
         <div className="mb-8 relative">
           <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-linear-to-br from-gray-100 to-gray-200 mb-6 relative overflow-hidden">
             <Construction className="w-16 h-16 text-gray-600 relative z-10 animate-pulse" />
-            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent" 
+            <div
+              className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
               style={{
                 animation: "shimmer 3s infinite",
               }}
             />
           </div>
-          
+
           {/* Floating Sparkles */}
           <div className="absolute top-0 left-1/4">
-            <Sparkles className="w-6 h-6 text-gray-400 animate-bounce" style={{ animationDelay: "0s", animationDuration: "2s" }} />
+            <Sparkles
+              className="w-6 h-6 text-gray-400 animate-bounce"
+              style={{ animationDelay: "0s", animationDuration: "2s" }}
+            />
           </div>
           <div className="absolute top-0 right-1/4">
-            <Sparkles className="w-5 h-5 text-gray-400 animate-bounce" style={{ animationDelay: "1s", animationDuration: "2.5s" }} />
+            <Sparkles
+              className="w-5 h-5 text-gray-400 animate-bounce"
+              style={{ animationDelay: "1s", animationDuration: "2.5s" }}
+            />
           </div>
         </div>
 
@@ -50,12 +59,14 @@ export default function UnderDevelopment({
         {/* Progress Indicator */}
         <div className="mb-8 max-w-md mx-auto">
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-linear-to-r from-gray-400 to-gray-600 rounded-full transition-all duration-2000 ease-out" 
-              style={{ width: "65%" }} 
+            <div
+              className="h-full bg-linear-to-r from-gray-400 to-gray-600 rounded-full transition-all duration-2000 ease-out"
+              style={{ width: "65%" }}
             />
           </div>
-          <p className="text-sm text-gray-500 mt-2">We&apos;re making progress...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            We&apos;re making progress...
+          </p>
         </div>
 
         {/* Action Buttons */}
@@ -80,4 +91,3 @@ export default function UnderDevelopment({
     </div>
   );
 }
-

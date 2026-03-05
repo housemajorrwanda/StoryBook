@@ -14,20 +14,16 @@ interface Particle { id: number; x: number; y: number; size: number; delay: numb
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [copied, setCopied] = useState(false);
-  const [particles, setParticles] = useState<Particle[]>([]);
-
-  useEffect(() => {
-    setParticles(
-      Array.from({ length: 30 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 3 + 1,
-        delay: Math.random() * 5,
-        duration: Math.random() * 10 + 10,
-      }))
-    );
-  }, []);
+  const [particles] = useState<Particle[]>(() =>
+    Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      delay: Math.random() * 5,
+      duration: Math.random() * 10 + 10,
+    }))
+  );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();

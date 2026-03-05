@@ -15,13 +15,13 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const authenticated = isAuthenticated();
-    setIsLoggedIn(authenticated);
-    if (!authenticated) router.push("/login");
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated()) router.push("/login");
   }, [router]);
 
   if (!mounted) {
@@ -32,7 +32,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!isLoggedIn) return null;
+  if (!isAuthenticated()) return null;
 
   const user = getCurrentUser();
 
