@@ -257,3 +257,40 @@ export interface TranscriptSegment {
   endTime: number;
   confidence?: number;
 }
+
+// Admin analytics — GET /testimonies/admin/analytics
+export interface TestimonyAnalytics {
+  total: number;
+  approved: number;
+  pending: number;
+  rejected: number;
+  drafts: number;
+  lastWeek: number;
+  byType?: {
+    written: number;
+    audio: number;
+    video: number;
+  };
+  users?: {
+    total: number;
+  };
+  connections?: {
+    total: number;
+    averageScore: number;
+  };
+}
+
+// Most-connected testimonies — GET /testimonies/most-connected
+export interface MostConnectedTestimony {
+  id: number;
+  eventTitle: string;
+  eventDescription: string | null;
+  summary: string | null;
+  location: string;
+  submissionType: StoryType;
+  createdAt: string;
+  connectionsCount: number;
+  impressions: number;
+  images: { imageUrl: string; description: string }[];
+  user: { id: string; name: string; email: string } | null;
+}

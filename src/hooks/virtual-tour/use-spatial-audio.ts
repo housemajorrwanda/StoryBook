@@ -116,9 +116,7 @@ export function useSpatialAudio(
         try {
           gainNode.gain.setValueAtTime(0, ctx.currentTime);
           source.stop();
-        } catch {
-          // already stopped
-        }
+        } catch {}
       });
       nodesRef.current = [];
       ctx.close();

@@ -1,17 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { educationService } from "@/services/education.service";
-import { 
-  UseEducationContentParams, 
-  EducationResponse, 
+import {
+  UseEducationContentParams,
+  EducationResponse,
   EducationContent,
   EducationStatistics,
-  UserProgressResponse
+  UserProgressResponse,
 } from "@/types/education";
 
-
-// =========================
-// GET /education
-// =========================
 export function useEducationContent(params: UseEducationContentParams = {}) {
   return useQuery<EducationResponse>({
     queryKey: ["education-content", params],
@@ -21,11 +17,9 @@ export function useEducationContent(params: UseEducationContentParams = {}) {
   });
 }
 
-
-// =========================
-// GET /education/published
-// =========================
-export function usePublishedEducation(params: { skip?: number; limit?: number; search?: string } = {}) {
+export function usePublishedEducation(
+  params: { skip?: number; limit?: number; search?: string } = {},
+) {
   return useQuery<EducationResponse>({
     queryKey: ["education-published", params],
     queryFn: () => educationService.getPublished(params),
@@ -33,10 +27,6 @@ export function usePublishedEducation(params: { skip?: number; limit?: number; s
   });
 }
 
-
-// =========================
-// GET /education/category/{category}
-// =========================
 export function useEducationByCategory(
   category: "history" | "prevention" | "reconciliation" | "education",
   params: { skip?: number; limit?: number; search?: string } = {},
@@ -49,10 +39,6 @@ export function useEducationByCategory(
   });
 }
 
-
-// =========================
-// GET /education/popular
-// =========================
 export function usePopularEducation(limit?: number) {
   return useQuery<EducationContent[]>({
     queryKey: ["education-popular", limit],
@@ -61,22 +47,14 @@ export function usePopularEducation(limit?: number) {
   });
 }
 
-
-// =========================
-// GET /education/statistics
-// =========================
 export function useEducationStatistics() {
   return useQuery<EducationStatistics>({
     queryKey: ["education-statistics"],
     queryFn: () => educationService.getStatistics(),
-    staleTime: 10 * 60 * 1000, // Longer cache for statistics
+    staleTime: 10 * 60 * 1000,
   });
 }
 
-
-// =========================
-// GET /education/my-content
-// =========================
 export function useMyEducationContent(params: UseEducationContentParams = {}) {
   return useQuery<EducationResponse>({
     queryKey: ["education-my-content", params],
@@ -85,22 +63,14 @@ export function useMyEducationContent(params: UseEducationContentParams = {}) {
   });
 }
 
-
-// =========================
-// GET /education/my-progress
-// =========================
 export function useMyEducationProgress() {
   return useQuery<UserProgressResponse>({
     queryKey: ["education-my-progress"],
     queryFn: () => educationService.getMyProgress(),
-    staleTime: 2 * 60 * 1000, // Shorter cache for progress data
+    staleTime: 2 * 60 * 1000,
   });
 }
 
-
-// =========================
-// GET /education/{id}
-// =========================
 export function useEducationById(id: number) {
   return useQuery<EducationContent>({
     queryKey: ["education-by-id", id],
@@ -109,10 +79,6 @@ export function useEducationById(id: number) {
   });
 }
 
-
-// =========================
-// POST /education/{id}/view
-// =========================
 export function useIncrementViews() {
   const queryClient = useQueryClient();
 
@@ -120,7 +86,6 @@ export function useIncrementViews() {
     mutationFn: (id: number) => educationService.incrementViews(id),
 
     onSuccess: (_, id) => {
-      // Invalidate specific content and popular content
       queryClient.invalidateQueries({ queryKey: ["education-by-id", id] });
       queryClient.invalidateQueries({ queryKey: ["education-popular"] });
       queryClient.invalidateQueries({ queryKey: ["education-content"] });
@@ -132,15 +97,17 @@ export function useIncrementViews() {
   });
 }
 
-// =========================
-// POST /education/{id}/progress
-// =========================
 export function useTrackProgress() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, completed = true }: { id: number; completed?: boolean }) => 
-      educationService.trackProgress(id, completed),
+    mutationFn: ({
+      id,
+      completed = true,
+    }: {
+      id: number;
+      completed?: boolean;
+    }) => educationService.trackProgress(id, completed),
 
     onSuccess: (_, { id }) => {
       // Invalidate progress-related queries
@@ -151,10 +118,6 @@ export function useTrackProgress() {
   });
 }
 
-
-// =========================
-// POST /education
-// =========================
 export function useCreateEducation() {
   const queryClient = useQueryClient();
 
@@ -170,10 +133,6 @@ export function useCreateEducation() {
   });
 }
 
-
-// =========================
-// PATCH /education/{id}
-// =========================
 export function useUpdateEducation(id: number) {
   const queryClient = useQueryClient();
 
@@ -190,10 +149,6 @@ export function useUpdateEducation(id: number) {
   });
 }
 
-
-// =========================
-// DELETE /education/{id}
-// =========================
 export function useDeleteEducation() {
   const queryClient = useQueryClient();
 

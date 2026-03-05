@@ -49,12 +49,8 @@ const requestHandler = (request: InternalAxiosRequestConfig) => {
     console.warn("NO TOKEN FOUND IN REQUEST INTERCEPTOR");
   }
 
-  // Handle FormData - delete Content-Type to let browser set boundary
   if (request.data instanceof FormData) {
-    // Delete Content-Type so browser can set it with proper boundary
     delete request.headers["Content-Type"];
-
-    // CRITICAL: Verify Authorization header is STILL there after deleting Content-Type
     const authStillPresent = !!request.headers.Authorization;
 
     if (!authStillPresent && token) {

@@ -360,8 +360,8 @@ export default function Tour() {
             </h1>
             <p className="max-w-lg mx-auto text-sm text-gray-500 leading-relaxed mb-8">
               Step inside sacred sites and memorial spaces through immersive
-              360° experiences — built to honor the memory of victims of the
-              1994 Genocide against the Tutsi and foster education, healing, and
+              360° experiences built to honor the memory of victims of the 1994
+              Genocide against the Tutsi and foster education, healing, and
               reflection.
             </p>
             {/* Divider pills */}
