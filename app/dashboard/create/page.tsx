@@ -39,14 +39,21 @@ interface CloudinarySignature {
   resourceType: string;
 }
 
-async function fetchUploadSignature(tourType: string): Promise<CloudinarySignature> {
+async function fetchUploadSignature(
+  tourType: string,
+): Promise<CloudinarySignature> {
   const base = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
   const token = getAuthToken();
-  const res = await fetch(`${base}/virtual-tours/upload-signature?tourType=${tourType}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const res = await fetch(
+    `${base}/virtual-tours/upload-signature?tourType=${tourType}`,
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    },
+  );
   if (!res.ok) {
-    throw Object.assign(new Error("Failed to get upload signature"), { isUploadError: true });
+    throw Object.assign(new Error("Failed to get upload signature"), {
+      isUploadError: true,
+    });
   }
   return res.json();
 }
@@ -55,7 +62,11 @@ function uploadToCloudinaryWithProgress(
   file: File,
   sig: CloudinarySignature,
   onProgress: (pct: number) => void,
-): Promise<{ secure_url: string; public_id: string; original_filename: string }> {
+): Promise<{
+  secure_url: string;
+  public_id: string;
+  original_filename: string;
+}> {
   return new Promise((resolve, reject) => {
     const fd = new FormData();
     fd.append("file", file);
@@ -65,22 +76,40 @@ function uploadToCloudinaryWithProgress(
     fd.append("folder", sig.folder);
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${sig.cloudName}/${sig.resourceType}/upload`);
+    xhr.open(
+      "POST",
+      `https://api.cloudinary.com/v1_1/${sig.cloudName}/${sig.resourceType}/upload`,
+    );
 
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded * 100) / e.total));
+      if (e.lengthComputable)
+        onProgress(Math.round((e.loaded * 100) / e.total));
     };
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText));
       } else {
-        reject(Object.assign(new Error("Upload failed"), { isUploadError: true }));
+        reject(
+          Object.assign(new Error("Upload failed"), { isUploadError: true }),
+        );
       }
     };
 
-    xhr.onerror = () => reject(Object.assign(new Error("Upload failed"), { isUploadError: true }));
-    xhr.ontimeout = () => reject(Object.assign(new Error("Upload timed out"), { isUploadError: true }));
+    xhr.onerror = () => {
+      console.error("[Cloudinary] XHR error — likely CORS or network issue", {
+        url: xhr.responseURL,
+        status: xhr.status,
+        response: xhr.responseText,
+      });
+      reject(
+        Object.assign(new Error("Upload failed"), { isUploadError: true }),
+      );
+    };
+    xhr.ontimeout = () =>
+      reject(
+        Object.assign(new Error("Upload timed out"), { isUploadError: true }),
+      );
 
     xhr.send(fd);
   });
@@ -317,12 +346,12 @@ export default function CreateTour() {
     });
 
   const FILE_SIZE_LIMITS: Record<string, number> = {
-    "360_image": 50 * 1024 * 1024,
-    "3d_model": 100 * 1024 * 1024,
-    "360_video": 500 * 1024 * 1024,
+    "360_image": 10 * 1024 * 1024,
+    "3d_model": 10 * 1024 * 1024,
+    "360_video": 10 * 1024 * 1024,
   };
   const FILE_SIZE_LIMIT =
-    FILE_SIZE_LIMITS[formData.tourType] ?? 100 * 1024 * 1024;
+    FILE_SIZE_LIMITS[formData.tourType] ?? 10 * 1024 * 1024;
 
   // ── Submit logic (shared by form submit + retry button) ──
   const doSubmit = async () => {
@@ -519,18 +548,13 @@ export default function CreateTour() {
               <div className="bg-red-50 border border-red-200 rounded-2xl px-6 py-3 mb-5 flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                 <p className="text-xs text-red-700">
-                  File too large ({mb.toFixed(1)} MB). Max for{" "}
-                  {formData.tourType === "360_image"
-                    ? "360° images"
-                    : formData.tourType === "3d_model"
-                      ? "3D models"
-                      : "360° videos"}{" "}
-                  is <strong>{limitMb} MB</strong>. Please compress or choose a
-                  smaller file.
+                  File too large ({mb.toFixed(1)} MB). Maximum allowed is{" "}
+                  <strong>{limitMb} MB</strong> for this tour type. Please
+                  compress or choose a smaller file.
                 </p>
               </div>
             );
-          if (mb > 10)
+          if (mb > 7)
             return (
               <div className="bg-amber-50 border border-amber-100 rounded-2xl px-6 py-3 mb-5 flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />

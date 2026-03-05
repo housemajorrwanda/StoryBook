@@ -154,7 +154,7 @@ export function MediaStep({
           label={`Click or drag to upload ${tourType.label}`}
           hint={tourType.hint}
           currentFile={tourFile || undefined}
-          maxSizeMb={{ "360_image": 50, "3d_model": 100, "360_video": 500, "embed": undefined }[formData.tourType]}
+          maxSizeMb={{ "360_image": 10, "3d_model": 10, "360_video": 10, "embed": undefined }[formData.tourType]}
         />
       )}
 
