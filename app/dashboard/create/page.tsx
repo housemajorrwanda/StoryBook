@@ -147,6 +147,7 @@ export default function CreateTour() {
   const [audioRegions, setAudioRegions] = useState<CreateAudioRegionData[]>([]);
   const [effects, setEffects] = useState<CreateEffectData[]>([]);
   const [tourFile, setTourFile] = useState<File | null>(null);
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | undefined>(undefined);
   const [audioFiles, setAudioFiles] = useState<(File | undefined)[]>([]);
   const [hotspotAudioFiles, setHotspotAudioFiles] = useState<
     (File | undefined)[]
@@ -559,12 +560,18 @@ export default function CreateTour() {
             onEmbedUrlChange={(url) =>
               setFormData((p) => ({ ...p, embedUrl: url }))
             }
-            onFileSelect={setTourFile}
+            onFileSelect={(file) => {
+              setTourFile(file);
+              if (mediaPreviewUrl) URL.revokeObjectURL(mediaPreviewUrl);
+              setMediaPreviewUrl(file ? URL.createObjectURL(file) : undefined);
+            }}
           />
         )}
 
         {step === 4 && (
           <HotspotStep
+            tourType={formData.tourType}
+            mediaUrl={mediaPreviewUrl}
             hotspots={hotspots}
             hotspotAudioFiles={hotspotAudioFiles}
             hotspotImageFiles={hotspotImageFiles}
@@ -580,6 +587,8 @@ export default function CreateTour() {
 
         {step === 5 && (
           <AudioEffectsStep
+            tourType={formData.tourType}
+            mediaUrl={mediaPreviewUrl}
             audioRegions={audioRegions}
             audioFiles={audioFiles}
             editingAudio={editingAudio}
