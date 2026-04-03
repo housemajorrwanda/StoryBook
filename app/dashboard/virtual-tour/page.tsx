@@ -36,6 +36,19 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("all");
   const [openMenu, setOpenMenu] = useState<number | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+
+  const toggleMenu = (tourId: number, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (openMenu === tourId) {
+      setOpenMenu(null);
+    setMenuPos(null);
+      setMenuPos(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+      setOpenMenu(tourId);
+    }
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -83,16 +96,19 @@ export default function AdminDashboard() {
   const handlePublishTour = (id: number) => {
     publishTourMutation.mutate(id);
     setOpenMenu(null);
+    setMenuPos(null);
   };
 
   const handleUnpublishTour = (id: number) => {
     unpublishTourMutation.mutate(id);
     setOpenMenu(null);
+    setMenuPos(null);
   };
 
   const handleArchiveTour = (id: number) => {
     archiveTourMutation.mutate(id);
     setOpenMenu(null);
+    setMenuPos(null);
   };
 
   const getStatusInfo = (tour: VirtualTour) => {
@@ -132,6 +148,7 @@ export default function AdminDashboard() {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
       setOpenMenu(null);
+    setMenuPos(null);
     }
   };
 
@@ -179,8 +196,12 @@ export default function AdminDashboard() {
         ]}
       />
 
+      {openMenu !== null && (
+        <div className="fixed inset-0 z-40" onClick={() => { setOpenMenu(null); setMenuPos(null); }} />
+      )}
+
       {/* Tours Management */}
-      <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+      <div className="border border-gray-200 rounded-xl bg-white shadow-sm">
         {/* Search bar */}
         <div className="border-b border-gray-100 px-5 py-4">
           <div className="relative max-w-sm">
@@ -216,8 +237,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto overflow-y-visible">
+          <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-left px-6 py-4 text-sm font-semibold text-gray-900">
@@ -282,19 +303,20 @@ export default function AdminDashboard() {
                       {formatDate(tour.createdAt)}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="relative flex justify-center">
+                      <div className="flex justify-center">
                         <button
                           type="button"
-                          onClick={() =>
-                            setOpenMenu(openMenu === tour.id ? null : tour.id)
-                          }
+                          onClick={(e) => toggleMenu(tour.id, e)}
                           className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
                         >
                           <MoreVertical className="w-5 h-5" />
                         </button>
 
-                        {openMenu === tour.id && (
-                          <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg shadow-gray-400/20 overflow-hidden z-50 w-48">
+                        {openMenu === tour.id && menuPos && (
+                          <div
+                            className="fixed bg-white border border-gray-200 rounded-lg shadow-lg shadow-gray-400/20 overflow-hidden z-50 w-48"
+                            style={{ top: menuPos.top, right: menuPos.right }}
+                          >
                             <Link
                               href={`/virtual-tours/${tour.id}`}
                               className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm"
@@ -303,7 +325,7 @@ export default function AdminDashboard() {
                               View Tour
                             </Link>
                             <Link
-                              href={`/dashboard/edit/${tour.id}`}
+                              href={`/dashboard/create?edit=${tour.id}`}
                               className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm"
                             >
                               <Edit className="w-4 h-4" />

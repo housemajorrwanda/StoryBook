@@ -2,47 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { VirtualTourHotspot } from "@/types/tour";
-
-// Pannellum is loaded via CDN script — we declare the global here
-declare global {
-  interface Window {
-    pannellum?: {
-      viewer: (container: string | HTMLElement, config: PannellumConfig) => PannellumViewer;
-    };
-  }
-}
-
-interface PannellumHotSpot {
-  pitch: number;
-  yaw: number;
-  type: "info" | "scene";
-  text?: string;
-  cssClass?: string;
-  clickHandlerFunc?: (e: MouseEvent, args: unknown) => void;
-}
-
-interface PannellumConfig {
-  type: "equirectangular";
-  panorama: string;
-  autoLoad: boolean;
-  autoRotate?: number;
-  compass?: boolean;
-  showControls?: boolean;
-  mouseZoom?: boolean;
-  keyboardZoom?: boolean;
-  hotSpots?: PannellumHotSpot[];
-  hfov?: number;
-  minHfov?: number;
-  maxHfov?: number;
-}
-
-interface PannellumViewer {
-  destroy: () => void;
-  getYaw: () => number;
-  getPitch: () => number;
-  setYaw: (yaw: number) => void;
-  on: (event: string, handler: () => void) => void;
-}
+import type { PannellumViewerBase, PannellumHotSpotBase } from "@/types/pannellum";
 
 interface Panorama360ViewerProps {
   imageUrl: string;
@@ -83,7 +43,7 @@ export default function Panorama360Viewer({
   onYawChange,
 }: Panorama360ViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const viewerRef = useRef<PannellumViewer | null>(null);
+  const viewerRef = useRef<PannellumViewerBase | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -97,7 +57,7 @@ export default function Panorama360Viewer({
       if (destroyed || !containerRef.current || !window.pannellum) return;
 
       // Map our hotspots to pannellum format
-      const pannellumHotspots: PannellumHotSpot[] = hotspots.map((h) => ({
+      const pannellumHotspots: PannellumHotSpotBase[] = hotspots.map((h) => ({
         pitch: h.pitch ?? 0,
         yaw: h.yaw ?? 0,
         type: "info",
@@ -183,8 +143,7 @@ export default function Panorama360Viewer({
       `}</style>
       <div
         ref={containerRef}
-        className="w-full h-full"
-        style={{ minHeight: "100%" }}
+        className="w-full h-full min-h-full"
       />
     </>
   );

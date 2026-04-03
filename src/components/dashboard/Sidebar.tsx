@@ -12,6 +12,7 @@ import {
   LuChevronLeft,
   LuChevronRight,
   LuGraduationCap,
+  LuTreePine,
 } from "react-icons/lu";
 
 interface SidebarProps {
@@ -49,6 +50,7 @@ const menuItems = [
     icon: LuMessageSquareQuote,
   },
   { name: "Education", href: "/dashboard/education", icon: LuGraduationCap },
+  { name: "Family Trees", href: "/dashboard/family-tree", icon: LuTreePine },
 ];
 
 const generalItems = [

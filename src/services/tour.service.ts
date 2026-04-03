@@ -62,11 +62,7 @@ class VirtualTourService {
 
   // PATCH /virtual-tours/{id} - Update a virtual tour
   async updateTour(id: number, tourData: UpdateVirtualTourRequest): Promise<VirtualTour> {
-    const response = await axiosInstance.patch<VirtualTour>(`/virtual-tours/${id}`, tourData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.patch<VirtualTour>(`/virtual-tours/${id}`, tourData);
     return response.data;
   }
 
@@ -100,20 +96,12 @@ class VirtualTourService {
 
   // Hotspot Management
   async createHotspot(tourId: number, hotspotData: CreateHotspotData): Promise<VirtualTourHotspot> {
-    const response = await axiosInstance.post<VirtualTourHotspot>(`/virtual-tours/${tourId}/hotspots`, hotspotData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.post<VirtualTourHotspot>(`/virtual-tours/${tourId}/hotspots`, hotspotData);
     return response.data;
   }
 
   async updateHotspot(tourId: number, hotspotId: number, hotspotData: UpdateHotspotRequest): Promise<VirtualTourHotspot> {
-    const response = await axiosInstance.patch<VirtualTourHotspot>(`/virtual-tours/${tourId}/hotspots/${hotspotId}`, hotspotData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.patch<VirtualTourHotspot>(`/virtual-tours/${tourId}/hotspots/${hotspotId}`, hotspotData);
     return response.data;
   }
 
@@ -123,20 +111,12 @@ class VirtualTourService {
 
   // Audio Region Management
   async createAudioRegion(tourId: number, audioRegionData: CreateAudioRegionData): Promise<VirtualTourAudioRegion> {
-    const response = await axiosInstance.post<VirtualTourAudioRegion>(`/virtual-tours/${tourId}/audio-regions`, audioRegionData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.post<VirtualTourAudioRegion>(`/virtual-tours/${tourId}/audio-regions`, audioRegionData);
     return response.data;
   }
 
   async updateAudioRegion(tourId: number, audioRegionId: number, audioRegionData: UpdateAudioRegionRequest): Promise<VirtualTourAudioRegion> {
-    const response = await axiosInstance.patch<VirtualTourAudioRegion>(`/virtual-tours/${tourId}/audio-regions/${audioRegionId}`, audioRegionData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.patch<VirtualTourAudioRegion>(`/virtual-tours/${tourId}/audio-regions/${audioRegionId}`, audioRegionData);
     return response.data;
   }
 
@@ -146,20 +126,12 @@ class VirtualTourService {
 
   // Effect Management
   async createEffect(tourId: number, effectData: CreateEffectData): Promise<VirtualTourEffect> {
-    const response = await axiosInstance.post<VirtualTourEffect>(`/virtual-tours/${tourId}/effects`, effectData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.post<VirtualTourEffect>(`/virtual-tours/${tourId}/effects`, effectData);
     return response.data;
   }
 
   async updateEffect(tourId: number, effectId: number, effectData: UpdateEffectRequest): Promise<VirtualTourEffect> {
-    const response = await axiosInstance.patch<VirtualTourEffect>(`/virtual-tours/${tourId}/effects/${effectId}`, effectData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.patch<VirtualTourEffect>(`/virtual-tours/${tourId}/effects/${effectId}`, effectData);
     return response.data;
   }
 

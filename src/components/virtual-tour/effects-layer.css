@@ -1,0 +1,128 @@
+/* EffectsLayer — structural styles only. Dynamic values injected via CSS custom properties. */
+
+.vt-effect {
+  position: absolute;
+}
+
+.vt-effect-fullscreen {
+  inset: 0;
+}
+
+.vt-effect-positioned {
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+/* ── Visual effects ── */
+
+.vt-fog {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 20%,
+    var(--vt-color-alpha) 100%
+  );
+  animation: vt-fog-pulse var(--vt-duration, 4s) ease-in-out infinite;
+}
+
+.vt-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    var(--vt-shadow) 100%
+  );
+}
+
+.vt-glow {
+  background: radial-gradient(
+    ellipse at center,
+    var(--vt-color-dim) 0%,
+    transparent 70%
+  );
+  animation: vt-glow-pulse var(--vt-duration, 2s) ease-in-out infinite;
+}
+
+.vt-flash {
+  background: var(--vt-flash-color, rgba(255, 255, 255, 0.8));
+  animation: vt-flash var(--vt-duration, 0.5s) ease-out forwards;
+}
+
+.vt-overlay {
+  background: var(--vt-overlay-color, transparent);
+}
+
+/* ── Particle effects ── */
+
+.vt-particle-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.vt-particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: vt-float-up var(--vt-particle-duration) var(--vt-particle-delay) infinite ease-in;
+}
+
+/* ── Animation effects ── */
+
+.vt-animation-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vt-animation-orb {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--vt-color, #ffffff);
+  opacity: var(--vt-opacity, 0.3);
+}
+
+.vt-anim-fade  { animation: vt-fade-inout var(--vt-duration) ease-in-out infinite; }
+.vt-anim-pulse { animation: vt-pulse      var(--vt-duration) ease-in-out infinite; }
+.vt-anim-shake { animation: vt-shake      var(--vt-duration) ease-in-out infinite; }
+.vt-anim-zoom  { animation: vt-zoom       var(--vt-duration) ease-in-out infinite; }
+
+/* ── Keyframes ── */
+
+@keyframes vt-fog-pulse {
+  0%, 100% { opacity: var(--vt-opacity-hi, 0.6); }
+  50%       { opacity: var(--vt-opacity-lo, 0.2); }
+}
+
+@keyframes vt-glow-pulse {
+  0%, 100% { opacity: var(--vt-opacity-lo, 0.4); }
+  50%       { opacity: var(--vt-opacity-hi, 0.8); }
+}
+
+@keyframes vt-flash {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes vt-float-up {
+  0%   { transform: translateY(0)      scale(1);   opacity: var(--vt-opacity, 0.8); }
+  100% { transform: translateY(-110vh) scale(0.2); opacity: 0; }
+}
+
+@keyframes vt-fade-inout {
+  0%, 100% { opacity: 0; }
+  50%       { opacity: var(--vt-opacity, 0.3); }
+}
+
+@keyframes vt-zoom {
+  0%, 100% { transform: scale(0.8); }
+  50%       { transform: scale(1.2); }
+}
+
+@keyframes vt-shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-5px); }
+  75%       { transform: translateX(5px); }
+}
+
+@keyframes vt-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}

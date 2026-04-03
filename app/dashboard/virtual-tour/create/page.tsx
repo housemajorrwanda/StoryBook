@@ -147,6 +147,8 @@ export default function CreateTour() {
   const [audioRegions, setAudioRegions] = useState<CreateAudioRegionData[]>([]);
   const [effects, setEffects] = useState<CreateEffectData[]>([]);
   const [tourFile, setTourFile] = useState<File | null>(null);
+  // Local object-URL for the uploaded file — used by the visual hotspot/effect editor
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | undefined>(undefined);
   const [audioFiles, setAudioFiles] = useState<(File | undefined)[]>([]);
   const [hotspotAudioFiles, setHotspotAudioFiles] = useState<
     (File | undefined)[]
@@ -479,10 +481,10 @@ export default function CreateTour() {
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gray-900 rounded-full transition-all duration-300"
-              style={{
-                width: submitPhase === "saving" ? "100%" : `${uploadProgress}%`,
-              }}
+              className={`h-full bg-gray-900 rounded-full transition-all duration-300 ${
+                submitPhase === "saving" ? "w-full" : ""
+              }`}
+              style={submitPhase !== "saving" ? { width: `${uploadProgress}%` } : undefined}
             />
           </div>
           {submitPhase === "saving" && (
@@ -559,12 +561,19 @@ export default function CreateTour() {
             onEmbedUrlChange={(url) =>
               setFormData((p) => ({ ...p, embedUrl: url }))
             }
-            onFileSelect={setTourFile}
+            onFileSelect={(file) => {
+              setTourFile(file);
+              // Create a local preview URL so the hotspot/effect editor can show the media
+              if (mediaPreviewUrl) URL.revokeObjectURL(mediaPreviewUrl);
+              setMediaPreviewUrl(file ? URL.createObjectURL(file) : undefined);
+            }}
           />
         )}
 
         {step === 4 && (
           <HotspotStep
+            tourType={formData.tourType}
+            mediaUrl={mediaPreviewUrl}
             hotspots={hotspots}
             hotspotAudioFiles={hotspotAudioFiles}
             hotspotImageFiles={hotspotImageFiles}
@@ -580,6 +589,8 @@ export default function CreateTour() {
 
         {step === 5 && (
           <AudioEffectsStep
+            tourType={formData.tourType}
+            mediaUrl={mediaPreviewUrl}
             audioRegions={audioRegions}
             audioFiles={audioFiles}
             editingAudio={editingAudio}
