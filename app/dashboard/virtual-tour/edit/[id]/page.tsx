@@ -220,6 +220,9 @@ export default function EditTourPage({
   const [editingAudio, setEditingAudio] = useState<string | null>(null);
   const [editingEffect, setEditingEffect] = useState<string | null>(null);
 
+  const [backgroundAudioFile, setBackgroundAudioFile] = useState<File | null>(null);
+  const [backgroundAudioVolume, setBackgroundAudioVolume] = useState(0.5);
+
   // Track which _savedIds were deleted so we can call DELETE
   const [deletedHotspotIds, setDeletedHotspotIds] = useState<number[]>([]);
   const [deletedAudioIds, setDeletedAudioIds] = useState<number[]>([]);
@@ -257,6 +260,7 @@ export default function EditTourPage({
     setHotspotVideoFiles(new Array(tour.hotspots.length).fill(undefined));
     setAudioFiles(new Array(tour.audioRegions.length).fill(undefined));
     setEffectSoundFiles(new Array(tour.effects.length).fill(undefined));
+    setBackgroundAudioVolume(tour.backgroundAudioVolume ?? 0.5);
     setInitialised(true);
   }, [tour, initialised]);
 
