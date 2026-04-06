@@ -86,6 +86,7 @@ export default function Navigation({ variant = "default" }: NavigationProps) {
     { href: "/#testimonies", label: "Testimonies" },
     ...(user ? [{ href: "/connections", label: "Connections" }] : []),
     { href: "/virtual-tours", label: "Virtual Tours" },
+    ...(user ? [{ href: "/family-tree/my", label: "Family Trees" }] : []),
     { href: "/education", label: "Education" },
   ];
 

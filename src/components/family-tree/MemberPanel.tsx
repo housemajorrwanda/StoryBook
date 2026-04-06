@@ -68,8 +68,8 @@ export default function MemberPanel({
         onClick={onClose}
       />
 
-      {/* Panel */}
-      <div className="fixed right-0 top-0 bottom-0 z-40 w-full sm:w-[360px] bg-white shadow-2xl flex flex-col overflow-hidden">
+      {/* Panel — bottom sheet on mobile, right sidebar on sm+ */}
+      <div className="fixed inset-x-0 bottom-0 z-40 sm:inset-x-auto sm:right-0 sm:top-0 sm:bottom-0 sm:w-[360px] bg-white shadow-2xl flex flex-col overflow-hidden rounded-t-2xl sm:rounded-none max-h-[85vh] sm:max-h-none">
         {/* Header */}
         <div className="flex items-start gap-3 px-5 pt-5 pb-4 border-b border-gray-100">
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold shrink-0 ${avatarBg}`}>
