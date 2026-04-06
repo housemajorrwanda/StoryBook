@@ -117,6 +117,32 @@ function effectToCreateData(
   };
 }
 
+// ─── Cloudinary upload helper (audio) ────────────────────────────────────────
+
+async function uploadAudioToCloudinary(file: File): Promise<string> {
+  const base = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
+  const sigRes = await fetch(
+    `${base}/virtual-tours/upload-signature?tourType=audio`,
+    { headers: { Authorization: `Bearer ${document.cookie.match(/auth_token=([^;]+)/)?.[1] ?? ""}` } },
+  );
+  const sig = await sigRes.json() as {
+    apiKey: string; timestamp: number; signature: string;
+    folder: string; cloudName: string; resourceType: string;
+  };
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("api_key", sig.apiKey);
+  fd.append("timestamp", sig.timestamp.toString());
+  fd.append("signature", sig.signature);
+  fd.append("folder", sig.folder);
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${sig.cloudName}/${sig.resourceType}/upload`,
+    { method: "POST", body: fd },
+  );
+  const json = await res.json() as { secure_url: string };
+  return json.secure_url;
+}
+
 // Steps that are available in edit mode
 const EDIT_STEPS = [
   { id: 1, label: "Basic Info" },
@@ -470,6 +496,12 @@ export default function EditTourPage({
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // 0. Upload new background audio if provided
+      let bgAudioUrl: string | undefined;
+      if (backgroundAudioFile) {
+        bgAudioUrl = await uploadAudioToCloudinary(backgroundAudioFile);
+      }
+
       // 1. Update basic tour info
       await updateTour.mutateAsync({
         id: tourId,
@@ -479,6 +511,8 @@ export default function EditTourPage({
           location: formData.location,
           status: formData.status,
           isPublished: formData.isPublished,
+          backgroundAudioVolume,
+          ...(bgAudioUrl ? { backgroundAudioUrl: bgAudioUrl } : {}),
         },
       });
 
@@ -748,6 +782,10 @@ export default function EditTourPage({
           <AudioEffectsStep
             tourType={formData.tourType}
             mediaUrl={mediaUrl}
+            backgroundAudioFile={backgroundAudioFile}
+            backgroundAudioVolume={backgroundAudioVolume}
+            onBackgroundAudioFileSelect={setBackgroundAudioFile}
+            onBackgroundAudioVolumeChange={setBackgroundAudioVolume}
             audioRegions={audioRegions}
             audioFiles={audioFiles}
             editingAudio={editingAudio}
