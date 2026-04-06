@@ -11,7 +11,7 @@ import {
   CreateEffectData,
   CreateHotspotData,
 } from "@/types/tour";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { StepIndicator } from "./_components/shared";
 import { HotspotStep } from "./_components/HotspotStep";
@@ -131,7 +131,21 @@ async function uploadFileWithProgress(
 export default function CreateTour() {
   const createTourMutation = useCreateVirtualTour();
   const router = useRouter();
-  const [step, setStep] = useState(1);
+  const searchParams = useSearchParams();
+
+  const stepFromUrl = Math.min(
+    5,
+    Math.max(1, Number(searchParams.get("step")) || 1),
+  );
+  const [step, setStepState] = useState(stepFromUrl);
+
+  const setStep = (updater: number | ((s: number) => number)) => {
+    const next = typeof updater === "function" ? updater(step) : updater;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("step", String(next));
+    router.replace(`?${params.toString()}`, { scroll: false });
+    setStepState(next);
+  };
 
   const [formData, setFormData] = useState<CreateVirtualTourRequest>({
     title: "",
@@ -148,7 +162,10 @@ export default function CreateTour() {
   const [effects, setEffects] = useState<CreateEffectData[]>([]);
   const [tourFile, setTourFile] = useState<File | null>(null);
   // Local object-URL for the uploaded file — used by the visual hotspot/effect editor
-  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | undefined>(undefined);
+  // Falls back to sessionStorage data URL so refresh doesn't lose the preview
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | undefined>(
+    () => sessionStorage.getItem("tour_preview_url") ?? undefined,
+  );
   const [audioFiles, setAudioFiles] = useState<(File | undefined)[]>([]);
   const [hotspotAudioFiles, setHotspotAudioFiles] = useState<
     (File | undefined)[]
@@ -162,6 +179,8 @@ export default function CreateTour() {
   const [effectSoundFiles, setEffectSoundFiles] = useState<
     (File | undefined)[]
   >([]);
+  const [backgroundAudioFile, setBackgroundAudioFile] = useState<File | null>(null);
+  const [backgroundAudioVolume, setBackgroundAudioVolume] = useState(0.5);
   const [editingHotspot, setEditingHotspot] = useState<string | null>(null);
   const [editingAudio, setEditingAudio] = useState<string | null>(null);
   const [editingEffect, setEditingEffect] = useState<string | null>(null);
@@ -376,6 +395,14 @@ export default function CreateTour() {
         fileName = result.fileName;
       }
 
+      // Phase 1b: upload background audio if provided
+      let bgAudioUrl: string | undefined;
+      if (backgroundAudioFile) {
+        const sig = await fetchUploadSignature("audio");
+        const result = await uploadToCloudinaryWithProgress(backgroundAudioFile, sig, () => {});
+        bgAudioUrl = result.secure_url;
+      }
+
       // Phase 2: create tour with URL (instant JSON request)
       setSubmitPhase("saving");
       await createTourMutation.mutateAsync({
@@ -388,6 +415,7 @@ export default function CreateTour() {
         ...(fileName ? { fileName } : {}),
         status: formData.status,
         isPublished: formData.isPublished,
+        ...(bgAudioUrl ? { backgroundAudioUrl: bgAudioUrl, backgroundAudioVolume } : {}),
         ...(hotspots.length > 0
           ? { hotspots: hotspots.map((h, i) => ({ ...h, order: i })) }
           : {}),
@@ -399,6 +427,7 @@ export default function CreateTour() {
           : {}),
       });
 
+      sessionStorage.removeItem("tour_preview_url");
       router.push("/dashboard/virtual-tour");
     } catch (err) {
       const isUploadErr = (err as { isUploadError?: boolean })?.isUploadError;
@@ -484,7 +513,11 @@ export default function CreateTour() {
               className={`h-full bg-gray-900 rounded-full transition-all duration-300 ${
                 submitPhase === "saving" ? "w-full" : ""
               }`}
-              style={submitPhase !== "saving" ? { width: `${uploadProgress}%` } : undefined}
+              style={
+                submitPhase !== "saving"
+                  ? { width: `${uploadProgress}%` }
+                  : undefined
+              }
             />
           </div>
           {submitPhase === "saving" && (
@@ -563,9 +596,19 @@ export default function CreateTour() {
             }
             onFileSelect={(file) => {
               setTourFile(file);
-              // Create a local preview URL so the hotspot/effect editor can show the media
-              if (mediaPreviewUrl) URL.revokeObjectURL(mediaPreviewUrl);
-              setMediaPreviewUrl(file ? URL.createObjectURL(file) : undefined);
+              if (mediaPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(mediaPreviewUrl);
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const dataUrl = e.target?.result as string;
+                  sessionStorage.setItem("tour_preview_url", dataUrl);
+                  setMediaPreviewUrl(dataUrl);
+                };
+                reader.readAsDataURL(file);
+              } else {
+                sessionStorage.removeItem("tour_preview_url");
+                setMediaPreviewUrl(undefined);
+              }
             }}
           />
         )}
@@ -591,6 +634,10 @@ export default function CreateTour() {
           <AudioEffectsStep
             tourType={formData.tourType}
             mediaUrl={mediaPreviewUrl}
+            backgroundAudioFile={backgroundAudioFile}
+            backgroundAudioVolume={backgroundAudioVolume}
+            onBackgroundAudioFileSelect={setBackgroundAudioFile}
+            onBackgroundAudioVolumeChange={setBackgroundAudioVolume}
             audioRegions={audioRegions}
             audioFiles={audioFiles}
             editingAudio={editingAudio}

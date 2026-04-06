@@ -18,6 +18,7 @@ import {
   TableLoadingState,
   PageHeader,
   Pagination,
+  ConfirmModal,
 } from "@/components/shared";
 import { useState, useMemo } from "react";
 import {
@@ -37,11 +38,14 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("all");
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [publishTarget, setPublishTarget] = useState<number | null>(null);
+  const [unpublishTarget, setUnpublishTarget] = useState<number | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<number | null>(null);
 
   const toggleMenu = (tourId: number, e: React.MouseEvent<HTMLButtonElement>) => {
     if (openMenu === tourId) {
       setOpenMenu(null);
-    setMenuPos(null);
       setMenuPos(null);
     } else {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -84,29 +88,32 @@ export default function AdminDashboard() {
   const filteredTours = tours;
 
   const handleDeleteTour = (id: number) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this tour? This action cannot be undone.",
-      )
-    ) {
-      deleteTourMutation.mutate(id);
+    setDeleteTarget(id);
+    setOpenMenu(null);
+    setMenuPos(null);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget !== null) {
+      deleteTourMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
     }
   };
 
   const handlePublishTour = (id: number) => {
-    publishTourMutation.mutate(id);
+    setPublishTarget(id);
     setOpenMenu(null);
     setMenuPos(null);
   };
 
   const handleUnpublishTour = (id: number) => {
-    unpublishTourMutation.mutate(id);
+    setUnpublishTarget(id);
     setOpenMenu(null);
     setMenuPos(null);
   };
 
   const handleArchiveTour = (id: number) => {
-    archiveTourMutation.mutate(id);
+    setArchiveTarget(id);
     setOpenMenu(null);
     setMenuPos(null);
   };
@@ -194,6 +201,50 @@ export default function AdminDashboard() {
             icon: <Plus className="w-4 h-4" />,
           },
         ]}
+      />
+
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="Delete tour?"
+        description="This action cannot be undone. The tour and all its hotspots and audio regions will be permanently removed."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        isConfirming={deleteTourMutation.isPending}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmModal
+        isOpen={publishTarget !== null}
+        title="Publish tour?"
+        description="This tour will be visible to the public."
+        confirmLabel="Publish"
+        cancelLabel="Cancel"
+        isConfirming={publishTourMutation.isPending}
+        onConfirm={() => { if (publishTarget !== null) { publishTourMutation.mutate(publishTarget); setPublishTarget(null); } }}
+        onClose={() => setPublishTarget(null)}
+      />
+
+      <ConfirmModal
+        isOpen={unpublishTarget !== null}
+        title="Unpublish tour?"
+        description="This tour will be hidden from the public."
+        confirmLabel="Unpublish"
+        cancelLabel="Cancel"
+        isConfirming={unpublishTourMutation.isPending}
+        onConfirm={() => { if (unpublishTarget !== null) { unpublishTourMutation.mutate(unpublishTarget); setUnpublishTarget(null); } }}
+        onClose={() => setUnpublishTarget(null)}
+      />
+
+      <ConfirmModal
+        isOpen={archiveTarget !== null}
+        title="Archive tour?"
+        description="This tour will be archived and hidden from listings."
+        confirmLabel="Archive"
+        cancelLabel="Cancel"
+        isConfirming={archiveTourMutation.isPending}
+        onConfirm={() => { if (archiveTarget !== null) { archiveTourMutation.mutate(archiveTarget); setArchiveTarget(null); } }}
+        onClose={() => setArchiveTarget(null)}
       />
 
       {openMenu !== null && (

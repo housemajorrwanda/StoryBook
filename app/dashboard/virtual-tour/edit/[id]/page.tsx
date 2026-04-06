@@ -33,7 +33,9 @@ import { AudioEffectsStep } from "../../create/_components/AudioEffectsStep";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function hotspotToCreateData(h: VirtualTourHotspot): CreateHotspotData & { _savedId: number } {
+function hotspotToCreateData(
+  h: VirtualTourHotspot,
+): CreateHotspotData & { _savedId: number } {
   return {
     _savedId: h.id,
     id: String(h.id),
@@ -56,7 +58,9 @@ function hotspotToCreateData(h: VirtualTourHotspot): CreateHotspotData & { _save
   };
 }
 
-function audioToCreateData(a: VirtualTourAudioRegion): CreateAudioRegionData & { _savedId: number } {
+function audioToCreateData(
+  a: VirtualTourAudioRegion,
+): CreateAudioRegionData & { _savedId: number } {
   return {
     _savedId: a.id,
     id: String(a.id),
@@ -83,7 +87,9 @@ function audioToCreateData(a: VirtualTourAudioRegion): CreateAudioRegionData & {
   };
 }
 
-function effectToCreateData(e: VirtualTourEffect): CreateEffectData & { _savedId: number } {
+function effectToCreateData(
+  e: VirtualTourEffect,
+): CreateEffectData & { _savedId: number } {
   return {
     _savedId: e.id,
     id: String(e.id),
@@ -127,17 +133,27 @@ function EditStepIndicator({ current }: { current: number }) {
         return (
           <div key={step.id} className="flex items-center">
             <div className="flex flex-col items-center gap-1.5">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                done ? "bg-gray-900 text-white" : active ? "bg-gray-900 text-white ring-4 ring-gray-900/10" : "bg-gray-100 text-gray-400"
-              }`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                  done
+                    ? "bg-gray-900 text-white"
+                    : active
+                      ? "bg-gray-900 text-white ring-4 ring-gray-900/10"
+                      : "bg-gray-100 text-gray-400"
+                }`}
+              >
                 {done ? <Check className="w-3.5 h-3.5" /> : step.id}
               </div>
-              <span className={`text-[10px] font-medium whitespace-nowrap ${active ? "text-gray-900" : "text-gray-400"}`}>
+              <span
+                className={`text-[10px] font-medium whitespace-nowrap ${active ? "text-gray-900" : "text-gray-400"}`}
+              >
                 {step.label}
               </span>
             </div>
             {i < EDIT_STEPS.length - 1 && (
-              <div className={`h-px w-10 mx-1 mb-4 ${done ? "bg-gray-900" : "bg-gray-200"}`} />
+              <div
+                className={`h-px w-10 mx-1 mb-4 ${done ? "bg-gray-900" : "bg-gray-200"}`}
+              />
             )}
           </div>
         );
@@ -148,7 +164,11 @@ function EditStepIndicator({ current }: { current: number }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export default function EditTourPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditTourPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const tourId = parseInt(id);
   const router = useRouter();
@@ -161,21 +181,40 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState<CreateVirtualTourRequest>({
-    title: "", description: "", location: "",
-    tourType: "360_image", embedUrl: "", status: "draft", isPublished: false,
+    title: "",
+    description: "",
+    location: "",
+    tourType: "360_image",
+    embedUrl: "",
+    status: "draft",
+    isPublished: false,
   });
 
   // Hotspots — carry _savedId so we know whether to create or update
-  const [hotspots, setHotspots] = useState<(CreateHotspotData & { _savedId?: number })[]>([]);
-  const [audioRegions, setAudioRegions] = useState<(CreateAudioRegionData & { _savedId?: number })[]>([]);
-  const [effects, setEffects] = useState<(CreateEffectData & { _savedId?: number })[]>([]);
+  const [hotspots, setHotspots] = useState<
+    (CreateHotspotData & { _savedId?: number })[]
+  >([]);
+  const [audioRegions, setAudioRegions] = useState<
+    (CreateAudioRegionData & { _savedId?: number })[]
+  >([]);
+  const [effects, setEffects] = useState<
+    (CreateEffectData & { _savedId?: number })[]
+  >([]);
 
   // File states (new uploads only — existing URLs stay on the server)
-  const [hotspotAudioFiles, setHotspotAudioFiles] = useState<(File | undefined)[]>([]);
-  const [hotspotImageFiles, setHotspotImageFiles] = useState<(File | undefined)[]>([]);
-  const [hotspotVideoFiles, setHotspotVideoFiles] = useState<(File | undefined)[]>([]);
+  const [hotspotAudioFiles, setHotspotAudioFiles] = useState<
+    (File | undefined)[]
+  >([]);
+  const [hotspotImageFiles, setHotspotImageFiles] = useState<
+    (File | undefined)[]
+  >([]);
+  const [hotspotVideoFiles, setHotspotVideoFiles] = useState<
+    (File | undefined)[]
+  >([]);
   const [audioFiles, setAudioFiles] = useState<(File | undefined)[]>([]);
-  const [effectSoundFiles, setEffectSoundFiles] = useState<(File | undefined)[]>([]);
+  const [effectSoundFiles, setEffectSoundFiles] = useState<
+    (File | undefined)[]
+  >([]);
 
   const [editingHotspot, setEditingHotspot] = useState<string | null>(null);
   const [editingAudio, setEditingAudio] = useState<string | null>(null);
@@ -224,12 +263,28 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
   // ── hotspot management ──
   const addHotspot = useCallback(() => {
     const newId = `new-${Date.now()}`;
-    setHotspots((p) => [...p, {
-      id: newId, type: "info", title: `Hotspot ${p.length + 1}`,
-      description: "", positionX: 0, positionY: 0, positionZ: 0,
-      pitch: 0, yaw: 0, icon: "", actionUrl: "", color: "", size: 1,
-      triggerDistance: 5, autoTrigger: false, showOnHover: false, order: p.length,
-    }]);
+    setHotspots((p) => [
+      ...p,
+      {
+        id: newId,
+        type: "info",
+        title: `Hotspot ${p.length + 1}`,
+        description: "",
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        pitch: 0,
+        yaw: 0,
+        icon: "",
+        actionUrl: "",
+        color: "",
+        size: 1,
+        triggerDistance: 5,
+        autoTrigger: false,
+        showOnHover: false,
+        order: p.length,
+      },
+    ]);
     setHotspotAudioFiles((p) => [...p, undefined]);
     setHotspotImageFiles((p) => [...p, undefined]);
     setHotspotVideoFiles((p) => [...p, undefined]);
@@ -244,20 +299,48 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
     });
   }, []);
 
-  const updateHotspotField = useCallback((id: string, field: keyof CreateHotspotData, value: string | number | boolean) => {
-    setHotspots((prev) => prev.map((h) => h.id === id ? { ...h, [field]: value } : h));
-  }, []);
+  const updateHotspotField = useCallback(
+    (
+      id: string,
+      field: keyof CreateHotspotData,
+      value: string | number | boolean,
+    ) => {
+      setHotspots((prev) =>
+        prev.map((h) => (h.id === id ? { ...h, [field]: value } : h)),
+      );
+    },
+    [],
+  );
 
   // ── audio region management ──
   const addAudioRegion = useCallback(() => {
     const newId = `new-${Date.now()}`;
-    setAudioRegions((p) => [...p, {
-      id: newId, title: `Audio Region ${p.length + 1}`, description: "",
-      regionType: "sphere", centerX: 0, centerY: 0, centerZ: 0,
-      radius: 10, width: 0, height: 0, depth: 0, volume: 0.8, loop: true,
-      fadeInDuration: 0, fadeOutDuration: 0, spatialAudio: true,
-      minDistance: 1, maxDistance: 50, autoPlay: true, playOnce: false, order: p.length,
-    }]);
+    setAudioRegions((p) => [
+      ...p,
+      {
+        id: newId,
+        title: `Audio Region ${p.length + 1}`,
+        description: "",
+        regionType: "sphere",
+        centerX: 0,
+        centerY: 0,
+        centerZ: 0,
+        radius: 10,
+        width: 0,
+        height: 0,
+        depth: 0,
+        volume: 0.8,
+        loop: true,
+        fadeInDuration: 0,
+        fadeOutDuration: 0,
+        spatialAudio: true,
+        minDistance: 1,
+        maxDistance: 50,
+        autoPlay: true,
+        playOnce: false,
+        order: p.length,
+      },
+    ]);
     setAudioFiles((p) => [...p, undefined]);
     setEditingAudio(newId);
   }, []);
@@ -270,20 +353,49 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
     });
   }, []);
 
-  const updateAudioRegionField = useCallback((id: string, field: keyof CreateAudioRegionData, value: string | number | boolean) => {
-    setAudioRegions((prev) => prev.map((a) => a.id === id ? { ...a, [field]: value } : a));
-  }, []);
+  const updateAudioRegionField = useCallback(
+    (
+      id: string,
+      field: keyof CreateAudioRegionData,
+      value: string | number | boolean,
+    ) => {
+      setAudioRegions((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, [field]: value } : a)),
+      );
+    },
+    [],
+  );
 
   // ── effect management ──
   const addEffect = useCallback(() => {
     const newId = `new-${Date.now()}`;
-    setEffects((p) => [...p, {
-      id: newId, effectType: "visual", effectName: "fog", triggerType: "on_enter",
-      positionX: 0, positionY: 0, positionZ: 0, pitch: 0, yaw: 0,
-      triggerDistance: 5, triggerDelay: 0, intensity: 0.5, duration: 0,
-      color: "", particleCount: 0, opacity: 1, size: 1, animationType: "",
-      animationSpeed: 1, title: "", description: "", order: p.length,
-    }]);
+    setEffects((p) => [
+      ...p,
+      {
+        id: newId,
+        effectType: "visual",
+        effectName: "fog",
+        triggerType: "on_enter",
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        pitch: 0,
+        yaw: 0,
+        triggerDistance: 5,
+        triggerDelay: 0,
+        intensity: 0.5,
+        duration: 0,
+        color: "",
+        particleCount: 0,
+        opacity: 1,
+        size: 1,
+        animationType: "",
+        animationSpeed: 1,
+        title: "",
+        description: "",
+        order: p.length,
+      },
+    ]);
     setEffectSoundFiles((p) => [...p, undefined]);
     setEditingEffect(newId);
   }, []);
@@ -296,23 +408,58 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
     });
   }, []);
 
-  const updateEffectField = useCallback((id: string, field: keyof CreateEffectData, value: string | number | boolean) => {
-    setEffects((prev) => prev.map((e) => e.id === id ? { ...e, [field]: value } : e));
-  }, []);
+  const updateEffectField = useCallback(
+    (
+      id: string,
+      field: keyof CreateEffectData,
+      value: string | number | boolean,
+    ) => {
+      setEffects((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
+      );
+    },
+    [],
+  );
 
   // ── file handlers ──
-  const handleHotspotFileUpload = useCallback((idx: number, file: File, type: "audio" | "image" | "video") => {
-    if (type === "audio") setHotspotAudioFiles((p) => { const f = [...p]; f[idx] = file; return f; });
-    else if (type === "image") setHotspotImageFiles((p) => { const f = [...p]; f[idx] = file; return f; });
-    else setHotspotVideoFiles((p) => { const f = [...p]; f[idx] = file; return f; });
-  }, []);
+  const handleHotspotFileUpload = useCallback(
+    (idx: number, file: File, type: "audio" | "image" | "video") => {
+      if (type === "audio")
+        setHotspotAudioFiles((p) => {
+          const f = [...p];
+          f[idx] = file;
+          return f;
+        });
+      else if (type === "image")
+        setHotspotImageFiles((p) => {
+          const f = [...p];
+          f[idx] = file;
+          return f;
+        });
+      else
+        setHotspotVideoFiles((p) => {
+          const f = [...p];
+          f[idx] = file;
+          return f;
+        });
+    },
+    [],
+  );
 
   const handleAudioFileUpload = useCallback((idx: number, file: File) => {
-    setAudioFiles((p) => { const f = [...p]; f[idx] = file; return f; });
+    setAudioFiles((p) => {
+      const f = [...p];
+      f[idx] = file;
+      return f;
+    });
   }, []);
 
   const handleEffectFileUpload = useCallback((idx: number, file: File) => {
-    setEffectSoundFiles((p) => { const f = [...p]; f[idx] = file; return f; });
+    setEffectSoundFiles((p) => {
+      const f = [...p];
+      f[idx] = file;
+      return f;
+    });
   }, []);
 
   // ── save all changes ──
@@ -332,70 +479,125 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
       });
 
       // 2. Delete removed hotspots
-      await Promise.all(deletedHotspotIds.map((id) => deleteHotspot.mutateAsync(id)));
+      await Promise.all(
+        deletedHotspotIds.map((id) => deleteHotspot.mutateAsync(id)),
+      );
       setDeletedHotspotIds([]);
 
       // 3. Create new / update existing hotspots
       await Promise.all(
         hotspots.map((h) => {
           const payload = {
-            type: h.type, title: h.title, description: h.description,
-            positionX: h.positionX, positionY: h.positionY, positionZ: h.positionZ,
-            pitch: h.pitch, yaw: h.yaw, icon: h.icon, actionUrl: h.actionUrl,
-            color: h.color, size: h.size, triggerDistance: h.triggerDistance,
-            autoTrigger: h.autoTrigger, showOnHover: h.showOnHover, order: h.order,
+            type: h.type,
+            title: h.title,
+            description: h.description,
+            positionX: h.positionX,
+            positionY: h.positionY,
+            positionZ: h.positionZ,
+            pitch: h.pitch,
+            yaw: h.yaw,
+            icon: h.icon,
+            actionUrl: h.actionUrl,
+            color: h.color,
+            size: h.size,
+            triggerDistance: h.triggerDistance,
+            autoTrigger: h.autoTrigger,
+            showOnHover: h.showOnHover,
+            order: h.order,
           };
           if (h._savedId) {
-            return updateHotspot.mutateAsync({ hotspotId: h._savedId, data: payload });
+            return updateHotspot.mutateAsync({
+              hotspotId: h._savedId,
+              data: payload,
+            });
           }
           return createHotspot.mutateAsync(payload as CreateHotspotData);
-        })
+        }),
       );
 
       // 4. Delete removed audio regions
-      await Promise.all(deletedAudioIds.map((id) => deleteAudioRegion.mutateAsync(id)));
+      await Promise.all(
+        deletedAudioIds.map((id) => deleteAudioRegion.mutateAsync(id)),
+      );
       setDeletedAudioIds([]);
 
       // 5. Create new / update existing audio regions
       await Promise.all(
         audioRegions.map((a) => {
           const payload = {
-            title: a.title, description: a.description, regionType: a.regionType,
-            centerX: a.centerX, centerY: a.centerY, centerZ: a.centerZ,
-            radius: a.radius, width: a.width, height: a.height, depth: a.depth,
-            volume: a.volume, loop: a.loop, fadeInDuration: a.fadeInDuration,
-            fadeOutDuration: a.fadeOutDuration, spatialAudio: a.spatialAudio,
-            minDistance: a.minDistance, maxDistance: a.maxDistance,
-            autoPlay: a.autoPlay, playOnce: a.playOnce, order: a.order,
+            title: a.title,
+            description: a.description,
+            regionType: a.regionType,
+            centerX: a.centerX,
+            centerY: a.centerY,
+            centerZ: a.centerZ,
+            radius: a.radius,
+            width: a.width,
+            height: a.height,
+            depth: a.depth,
+            volume: a.volume,
+            loop: a.loop,
+            fadeInDuration: a.fadeInDuration,
+            fadeOutDuration: a.fadeOutDuration,
+            spatialAudio: a.spatialAudio,
+            minDistance: a.minDistance,
+            maxDistance: a.maxDistance,
+            autoPlay: a.autoPlay,
+            playOnce: a.playOnce,
+            order: a.order,
           };
           if (a._savedId) {
-            return updateAudioRegion.mutateAsync({ audioRegionId: a._savedId, data: payload });
+            return updateAudioRegion.mutateAsync({
+              audioRegionId: a._savedId,
+              data: payload,
+            });
           }
-          return createAudioRegion.mutateAsync(payload as CreateAudioRegionData);
-        })
+          return createAudioRegion.mutateAsync(
+            payload as CreateAudioRegionData,
+          );
+        }),
       );
 
       // 6. Delete removed effects
-      await Promise.all(deletedEffectIds.map((id) => deleteEffect.mutateAsync(id)));
+      await Promise.all(
+        deletedEffectIds.map((id) => deleteEffect.mutateAsync(id)),
+      );
       setDeletedEffectIds([]);
 
       // 7. Create new / update existing effects
       await Promise.all(
         effects.map((e) => {
           const payload = {
-            effectType: e.effectType, effectName: e.effectName, triggerType: e.triggerType,
-            positionX: e.positionX, positionY: e.positionY, positionZ: e.positionZ,
-            pitch: e.pitch, yaw: e.yaw, triggerDistance: e.triggerDistance,
-            triggerDelay: e.triggerDelay, intensity: e.intensity, duration: e.duration,
-            color: e.color, particleCount: e.particleCount, opacity: e.opacity,
-            size: e.size, animationType: e.animationType, animationSpeed: e.animationSpeed,
-            title: e.title, description: e.description, order: e.order,
+            effectType: e.effectType,
+            effectName: e.effectName,
+            triggerType: e.triggerType,
+            positionX: e.positionX,
+            positionY: e.positionY,
+            positionZ: e.positionZ,
+            pitch: e.pitch,
+            yaw: e.yaw,
+            triggerDistance: e.triggerDistance,
+            triggerDelay: e.triggerDelay,
+            intensity: e.intensity,
+            duration: e.duration,
+            color: e.color,
+            particleCount: e.particleCount,
+            opacity: e.opacity,
+            size: e.size,
+            animationType: e.animationType,
+            animationSpeed: e.animationSpeed,
+            title: e.title,
+            description: e.description,
+            order: e.order,
           };
           if (e._savedId) {
-            return updateEffect.mutateAsync({ effectId: e._savedId, data: payload });
+            return updateEffect.mutateAsync({
+              effectId: e._savedId,
+              data: payload,
+            });
           }
           return createEffect.mutateAsync(payload as CreateEffectData);
-        })
+        }),
       );
 
       toast.success("Tour saved successfully!");
@@ -409,10 +611,13 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
 
   // ── existing media URL for visual editor ──
   const mediaUrl =
-    tour?.tourType === "360_image" ? (tour.image360Url ?? undefined) :
-    tour?.tourType === "360_video" ? (tour.video360Url ?? undefined) :
-    tour?.tourType === "3d_model"  ? (tour.model3dUrl ?? undefined) :
-    undefined;
+    tour?.tourType === "360_image"
+      ? (tour.image360Url ?? undefined)
+      : tour?.tourType === "360_video"
+        ? (tour.video360Url ?? undefined)
+        : tour?.tourType === "3d_model"
+          ? (tour.model3dUrl ?? undefined)
+          : undefined;
 
   // ── loading / error states ──────────────────────────────────────────────────
 
@@ -430,15 +635,22 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center px-4">
         <AlertTriangle className="w-10 h-10 text-amber-400" />
         <h2 className="text-lg font-semibold text-gray-900">Tour not found</h2>
-        <p className="text-sm text-gray-500">This tour may have been deleted or you don&apos;t have permission to edit it.</p>
-        <Link href="/dashboard/virtual-tour" className="mt-2 px-5 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors">
+        <p className="text-sm text-gray-500">
+          This tour may have been deleted or you don&apos;t have permission to
+          edit it.
+        </p>
+        <Link
+          href="/dashboard/virtual-tour"
+          className="mt-2 px-5 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
+        >
           Back to Tours
         </Link>
       </div>
     );
   }
 
-  const canSave = formData.title.trim() !== "" && formData.location.trim() !== "";
+  const canSave =
+    formData.title.trim() !== "" && formData.location.trim() !== "";
 
   // ── render ──────────────────────────────────────────────────────────────────
 
@@ -453,7 +665,9 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
           <ChevronLeft className="w-4 h-4" />
         </Link>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-400 font-medium">Virtual Tour Management</p>
+          <p className="text-xs text-gray-400 font-medium">
+            Virtual Tour Management
+          </p>
           <h1 className="text-xl font-bold text-gray-900 leading-tight truncate">
             Edit: {tour.title}
           </h1>
@@ -470,17 +684,29 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
       </div>
 
       {/* Status banner */}
-      <div className={`mb-5 px-4 py-3 rounded-xl border text-sm font-medium flex items-center gap-2 ${
-        tour.isPublished
-          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+      <div
+        className={`mb-5 px-4 py-3 rounded-xl border text-sm font-medium flex items-center gap-2 ${
+          tour.isPublished
+            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+            : tour.isArchived
+              ? "bg-gray-100 border-gray-200 text-gray-600"
+              : "bg-amber-50 border-amber-200 text-amber-700"
+        }`}
+      >
+        <span
+          className={`w-2 h-2 rounded-full shrink-0 ${
+            tour.isPublished
+              ? "bg-emerald-500"
+              : tour.isArchived
+                ? "bg-gray-400"
+                : "bg-amber-400"
+          }`}
+        />
+        {tour.isPublished
+          ? "This tour is live — changes save immediately."
           : tour.isArchived
-          ? "bg-gray-100 border-gray-200 text-gray-600"
-          : "bg-amber-50 border-amber-200 text-amber-700"
-      }`}>
-        <span className={`w-2 h-2 rounded-full shrink-0 ${
-          tour.isPublished ? "bg-emerald-500" : tour.isArchived ? "bg-gray-400" : "bg-amber-400"
-        }`} />
-        {tour.isPublished ? "This tour is live — changes save immediately." : tour.isArchived ? "This tour is archived." : "This tour is a draft — not visible to the public."}
+            ? "This tour is archived."
+            : "This tour is a draft — not visible to the public."}
       </div>
 
       {/* Step indicator */}
@@ -559,8 +785,18 @@ export default function EditTourPage({ params }: { params: Promise<{ id: string 
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Continue
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             ) : (

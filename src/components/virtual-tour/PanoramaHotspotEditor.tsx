@@ -80,6 +80,12 @@ export default function PanoramaHotspotEditor({
         maxHfov: 130,
       });
 
+      // Pannellum sometimes misses dimensions if the container just mounted —
+      // resize after layout settles to ensure the canvas fills the container.
+      const resizeTimer = setTimeout(() => {
+        try { viewerRef.current?.resize(); } catch { /* ignore */ }
+      }, 100);
+
       // Intercept clicks on the panorama container to get pitch/yaw
       const el = containerRef.current;
       const handleClick = (e: MouseEvent) => {
@@ -102,7 +108,7 @@ export default function PanoramaHotspotEditor({
       };
 
       el.addEventListener("click", handleClick);
-      return () => el.removeEventListener("click", handleClick);
+      return () => { el.removeEventListener("click", handleClick); clearTimeout(resizeTimer); };
     };
 
     const cleanup = init();
@@ -120,15 +126,15 @@ export default function PanoramaHotspotEditor({
   const isPlacing = !!activeMarkerId || activeMarkerId === null;
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden bg-gray-950 h-[220px] sm:h-[300px] md:h-[360px]">
+    <div className="relative w-full rounded-2xl overflow-hidden bg-gray-900 h-[220px] sm:h-[300px] md:h-[360px]">
       {/* Panorama */}
       <style>{`
-        /* hide default pannellum UI */
-        .pnlm-controls-container { display: none !important; }
-        .pnlm-load-box { background: rgba(0,0,0,0.8) !important; border-radius: 12px !important; }
-        /* cursor: crosshair when placing */
-        .pnlm-editor-placing .pnlm-render-container { cursor: crosshair !important; }
-        /* placed markers */
+        /* Scope all pannellum overrides inside .pnlm-hotspot-editor */
+        .pnlm-hotspot-editor .pnlm-controls-container { display: none !important; }
+        .pnlm-hotspot-editor .pnlm-load-box { background: rgba(0,0,0,0.8) !important; border-radius: 12px !important; }
+        .pnlm-hotspot-editor.pnlm-editor-placing .pnlm-render-container { cursor: crosshair !important; }
+        /* Contain pannellum — prevent it from escaping the wrapper */
+        .pnlm-hotspot-editor .pnlm-container { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; }
         .pnlm-editor-marker {
           width: 26px; height: 26px;
           border-radius: 50%;
@@ -150,8 +156,7 @@ export default function PanoramaHotspotEditor({
 
       <div
         ref={containerRef}
-        className={`w-full h-full${isPlacing ? " pnlm-editor-placing" : ""}`}
-        style={{ minHeight: "100%" }}
+        className={`pnlm-hotspot-editor w-full h-full${isPlacing ? " pnlm-editor-placing" : ""}`}
       />
 
       {/* Overlay markers rendered as Pannellum hot spots are CSS-based;
