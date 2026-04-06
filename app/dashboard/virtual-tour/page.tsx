@@ -376,7 +376,7 @@ export default function AdminDashboard() {
                               View Tour
                             </Link>
                             <Link
-                              href={`/dashboard/create?edit=${tour.id}`}
+                              href={`/dashboard/virtual-tour/edit/${tour.id}`}
                               className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 transition-colors text-gray-700 text-sm"
                             >
                               <Edit className="w-4 h-4" />

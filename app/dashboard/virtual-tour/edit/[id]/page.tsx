@@ -123,11 +123,19 @@ async function uploadAudioToCloudinary(file: File): Promise<string> {
   const base = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
   const sigRes = await fetch(
     `${base}/virtual-tours/upload-signature?tourType=audio`,
-    { headers: { Authorization: `Bearer ${document.cookie.match(/auth_token=([^;]+)/)?.[1] ?? ""}` } },
+    {
+      headers: {
+        Authorization: `Bearer ${document.cookie.match(/auth_token=([^;]+)/)?.[1] ?? ""}`,
+      },
+    },
   );
-  const sig = await sigRes.json() as {
-    apiKey: string; timestamp: number; signature: string;
-    folder: string; cloudName: string; resourceType: string;
+  const sig = (await sigRes.json()) as {
+    apiKey: string;
+    timestamp: number;
+    signature: string;
+    folder: string;
+    cloudName: string;
+    resourceType: string;
   };
   const fd = new FormData();
   fd.append("file", file);
@@ -139,7 +147,7 @@ async function uploadAudioToCloudinary(file: File): Promise<string> {
     `https://api.cloudinary.com/v1_1/${sig.cloudName}/${sig.resourceType}/upload`,
     { method: "POST", body: fd },
   );
-  const json = await res.json() as { secure_url: string };
+  const json = (await res.json()) as { secure_url: string };
   return json.secure_url;
 }
 
@@ -246,7 +254,9 @@ export default function EditTourPage({
   const [editingAudio, setEditingAudio] = useState<string | null>(null);
   const [editingEffect, setEditingEffect] = useState<string | null>(null);
 
-  const [backgroundAudioFile, setBackgroundAudioFile] = useState<File | null>(null);
+  const [backgroundAudioFile, setBackgroundAudioFile] = useState<File | null>(
+    null,
+  );
   const [backgroundAudioVolume, setBackgroundAudioVolume] = useState(0.5);
 
   // Track which _savedIds were deleted so we can call DELETE
@@ -741,7 +751,7 @@ export default function EditTourPage({
           }`}
         />
         {tour.isPublished
-          ? "This tour is live — changes save immediately."
+          ? "This tour is live changes save immediately."
           : tour.isArchived
             ? "This tour is archived."
             : "This tour is a draft — not visible to the public."}
