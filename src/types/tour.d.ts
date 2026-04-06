@@ -6,6 +6,8 @@ export interface CreateVirtualTourRequest {
   embedUrl?: string;
   status: "draft" | "published" | "archived";
   isPublished: boolean;
+  backgroundAudioUrl?: string;
+  backgroundAudioVolume?: number;
 }
 
 export interface CreateHotspotData {
@@ -107,6 +109,8 @@ export interface VirtualTour {
   hotspots: VirtualTourHotspot[];
   audioRegions: VirtualTourAudioRegion[];
   effects: VirtualTourEffect[];
+  backgroundAudioUrl: string | null;
+  backgroundAudioVolume: number;
   _count?: {
     hotspots: number;
     audioRegions: number;

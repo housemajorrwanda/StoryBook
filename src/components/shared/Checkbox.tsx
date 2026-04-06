@@ -25,7 +25,7 @@ export default function Checkbox({
   return (
     <label
       htmlFor={id}
-      className={`flex items-start gap-3 cursor-pointer group ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+      className={`relative flex items-start gap-3 cursor-pointer group ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
     >
       {/* Hidden native checkbox for a11y */}
       <input

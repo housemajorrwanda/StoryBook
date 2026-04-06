@@ -449,14 +449,14 @@ export const testimoniesService = {
     submissionType?: string;
     skip?: number;
     limit?: number;
-  }): Promise<{ data: Testimony[]; total: number; skip: number; limit: number }> {
+  }): Promise<{ data: Testimony[]; total: number; skip: number; limit: number; meta?: { total: number; skip: number; limit: number } }> {
     const params: Record<string, string | number> = {};
     if (filters?.search) params.search = filters.search;
     if (filters?.status) params.status = filters.status;
     if (filters?.submissionType) params.submissionType = filters.submissionType;
-    params.skip = filters?.skip ?? 0;
-    params.limit = filters?.limit ?? 20;
-    const response = await axiosInstance.get<{ data: Testimony[]; total: number; skip: number; limit: number }>(
+    params.skip = Number.isFinite(filters?.skip) ? (filters!.skip as number) : 0;
+    params.limit = Number.isFinite(filters?.limit) ? (filters!.limit as number) : 20;
+    const response = await axiosInstance.get<{ data: Testimony[]; total: number; skip: number; limit: number; meta?: { total: number; skip: number; limit: number } }>(
       "/testimonies",
       { params },
     );

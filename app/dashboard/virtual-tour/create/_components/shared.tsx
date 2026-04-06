@@ -62,6 +62,7 @@ export function FileUpload({
   hint,
   currentFile,
   maxSizeMb,
+  id: idProp,
 }: {
   onFileSelect: (file: File) => void;
   accept: string;
@@ -69,8 +70,10 @@ export function FileUpload({
   hint?: string;
   currentFile?: File;
   maxSizeMb?: number;
+  id?: string;
 }) {
-  const inputId = `file-${label.replace(/\s+/g, "-")}`;
+  const generatedId = `file-${label.replace(/\s+/g, "-")}`;
+  const inputId = idProp ?? generatedId;
   const tooLarge = currentFile && maxSizeMb ? currentFile.size > maxSizeMb * 1024 * 1024 : false;
 
   return (

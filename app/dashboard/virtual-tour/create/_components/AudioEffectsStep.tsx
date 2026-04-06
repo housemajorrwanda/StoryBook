@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, X, Volume2, Zap, MapPin } from "lucide-react";
+import { Plus, X, Volume2, Zap, MapPin, Music } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Select, Checkbox } from "@/components/shared";
 import { CreateAudioRegionData, CreateEffectData } from "@/types/tour";
@@ -91,7 +91,7 @@ function AudioRegionsSection({
               </div>
 
               {editingAudio === region.id && (
-                <div className="border-t border-gray-100 p-5 space-y-4 bg-gray-50/50">
+                <div className="border-t border-gray-100 p-5 space-y-4 bg-gray-50/50" onClick={(e) => e.stopPropagation()}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Title">
                       <input
@@ -115,6 +115,7 @@ function AudioRegionsSection({
 
                   <Field label="Audio File">
                     <FileUpload
+                      id={`audio-region-${region.id ?? index}`}
                       onFileSelect={(f) => onFileUpload(index, f)}
                       accept="audio/*"
                       label="Upload audio file"
@@ -134,7 +135,7 @@ function AudioRegionsSection({
                         title="Volume between 0 and 1"
                         placeholder="0.8"
                         value={region.volume}
-                        onChange={(e) => onUpdate(region.id!, "volume", parseFloat(e.target.value))}
+                        onChange={(e) => onUpdate(region.id!, "volume", parseFloat(e.target.value) || 0)}
                         className={inputCls}
                       />
                     </Field>
@@ -145,7 +146,7 @@ function AudioRegionsSection({
                         title="Radius in metres"
                         placeholder="10"
                         value={region.radius}
-                        onChange={(e) => onUpdate(region.id!, "radius", parseFloat(e.target.value))}
+                        onChange={(e) => onUpdate(region.id!, "radius", parseFloat(e.target.value) || 0)}
                         className={inputCls}
                       />
                     </Field>
@@ -156,7 +157,7 @@ function AudioRegionsSection({
                         title="Fade in duration in seconds"
                         placeholder="0"
                         value={region.fadeInDuration}
-                        onChange={(e) => onUpdate(region.id!, "fadeInDuration", parseFloat(e.target.value))}
+                        onChange={(e) => onUpdate(region.id!, "fadeInDuration", parseFloat(e.target.value) || 0)}
                         className={inputCls}
                       />
                     </Field>
@@ -383,7 +384,7 @@ function EffectsSection({
               </div>
 
               {editingEffect === effect.id && (
-                <div className="border-t border-gray-100 p-5 space-y-4 bg-gray-50/50">
+                <div className="border-t border-gray-100 p-5 space-y-4 bg-gray-50/50" onClick={(e) => e.stopPropagation()}>
                   {/* Placement hint */}
                   {hasMedia && (
                     <div className="flex items-center gap-2 px-3 py-2 bg-pink-50 border border-pink-100 rounded-lg text-xs text-pink-700">
@@ -437,7 +438,7 @@ function EffectsSection({
                         step="0.1"
                         title="Effect intensity"
                         value={effect.intensity}
-                        onChange={(e) => onUpdate(effect.id!, "intensity", parseFloat(e.target.value))}
+                        onChange={(e) => onUpdate(effect.id!, "intensity", parseFloat(e.target.value) || 0)}
                         className="w-full mt-2"
                       />
                     </Field>
@@ -453,7 +454,7 @@ function EffectsSection({
                           title="Pitch angle in degrees"
                           placeholder="0"
                           value={effect.pitch ?? 0}
-                          onChange={(e) => onUpdate(effect.id!, "pitch", parseFloat(e.target.value))}
+                          onChange={(e) => onUpdate(effect.id!, "pitch", parseFloat(e.target.value) || 0)}
                           className={`${inputCls} font-mono text-xs`}
                         />
                       </Field>
@@ -464,7 +465,7 @@ function EffectsSection({
                           title="Yaw angle in degrees"
                           placeholder="0"
                           value={effect.yaw ?? 0}
-                          onChange={(e) => onUpdate(effect.id!, "yaw", parseFloat(e.target.value))}
+                          onChange={(e) => onUpdate(effect.id!, "yaw", parseFloat(e.target.value) || 0)}
                           className={`${inputCls} font-mono text-xs`}
                         />
                       </Field>
@@ -474,6 +475,7 @@ function EffectsSection({
                   {effect.effectType === "sound" && (
                     <Field label="Sound File">
                       <FileUpload
+                        id={`effect-sound-${effect.id ?? index}`}
                         onFileSelect={(f) => onFileUpload(index, f)}
                         accept="audio/*"
                         label="Upload sound file"
@@ -502,11 +504,86 @@ function EffectsSection({
   );
 }
 
+// ─── Background Audio ─────────────────────────────────────────────────────────
+
+interface BackgroundAudioSectionProps {
+  backgroundAudioFile: File | null;
+  backgroundAudioVolume: number;
+  onFileSelect: (file: File | null) => void;
+  onVolumeChange: (vol: number) => void;
+}
+
+function BackgroundAudioSection({
+  backgroundAudioFile,
+  backgroundAudioVolume,
+  onFileSelect,
+  onVolumeChange,
+}: BackgroundAudioSectionProps) {
+  return (
+    <Section
+      title="Background Audio"
+      description="Optional ambient audio that plays in the background throughout the tour. Can be muted by visitors."
+    >
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+          <Music className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-700">
+            Background audio loops automatically and includes a mute/unmute button for visitors.
+          </p>
+        </div>
+        <Field label="Audio File">
+          <FileUpload
+            id="bg-audio-file"
+            onFileSelect={(f) => onFileSelect(f ?? null)}
+            accept="audio/*"
+            label={backgroundAudioFile ? backgroundAudioFile.name : "Upload background audio"}
+            hint="MP3, WAV, OGG — max 20 MB"
+            currentFile={backgroundAudioFile ?? undefined}
+            maxSizeMb={20}
+          />
+          {backgroundAudioFile && (
+            <button
+              type="button"
+              onClick={() => onFileSelect(null)}
+              className="mt-2 text-xs text-gray-400 hover:text-red-500 underline underline-offset-2 transition-colors"
+            >
+              Remove audio
+            </button>
+          )}
+        </Field>
+        {backgroundAudioFile && (
+          <Field label={`Volume: ${Math.round(backgroundAudioVolume * 100)}%`}>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={backgroundAudioVolume}
+              onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+              title="Background audio volume"
+              className="w-full accent-gray-900"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>Quiet</span>
+              <span>Loud</span>
+            </div>
+          </Field>
+        )}
+      </div>
+    </Section>
+  );
+}
+
 // ─── Combined export ──────────────────────────────────────────────────────────
 
 export interface AudioEffectsStepProps {
   tourType: string;
   mediaUrl?: string;
+
+  backgroundAudioFile: File | null;
+  backgroundAudioVolume: number;
+  onBackgroundAudioFileSelect: (file: File | null) => void;
+  onBackgroundAudioVolumeChange: (vol: number) => void;
 
   audioRegions: CreateAudioRegionData[];
   audioFiles: (File | undefined)[];
@@ -529,6 +606,8 @@ export interface AudioEffectsStepProps {
 
 export function AudioEffectsStep({
   tourType, mediaUrl,
+  backgroundAudioFile, backgroundAudioVolume,
+  onBackgroundAudioFileSelect, onBackgroundAudioVolumeChange,
   audioRegions, audioFiles, editingAudio, onSetEditingAudio,
   onAddAudioRegion, onRemoveAudioRegion, onUpdateAudioRegion, onAudioFileUpload,
   effects, effectSoundFiles, editingEffect, onSetEditingEffect,
@@ -536,6 +615,12 @@ export function AudioEffectsStep({
 }: AudioEffectsStepProps) {
   return (
     <div className="space-y-5">
+      <BackgroundAudioSection
+        backgroundAudioFile={backgroundAudioFile}
+        backgroundAudioVolume={backgroundAudioVolume}
+        onFileSelect={onBackgroundAudioFileSelect}
+        onVolumeChange={onBackgroundAudioVolumeChange}
+      />
       <AudioRegionsSection
         audioRegions={audioRegions}
         audioFiles={audioFiles}

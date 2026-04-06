@@ -74,12 +74,16 @@ export default function TourViewerPage({
 
   const [selectedHotspot, setSelectedHotspot] = useState<VirtualTourHotspot | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  // Start muted so autoPlay isn't blocked by browsers; visitor unmutes intentionally
+  const [bgMuted, setBgMuted] = useState(true);
+  const [bgUnmutedOnce, setBgUnmutedOnce] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentYaw, setCurrentYaw] = useState(0);
   const [controlsVisible, setControlsVisible] = useState(true);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const bgAudioRef = useRef<HTMLAudioElement>(null);
 
   // Spatial audio
   useSpatialAudio(tour?.audioRegions ?? [], audioEnabled);
@@ -127,6 +131,13 @@ export default function TourViewerPage({
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
+
+  // Set background audio volume once it's available
+  useEffect(() => {
+    if (bgAudioRef.current && tour?.backgroundAudioVolume != null) {
+      bgAudioRef.current.volume = tour.backgroundAudioVolume;
+    }
+  }, [tour?.backgroundAudioVolume]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
 
@@ -217,6 +228,17 @@ export default function TourViewerPage({
         )}
       </div>
 
+      {/* ── Background audio ───────────────────────────────────────────── */}
+      {tour.backgroundAudioUrl && (
+        <audio
+          ref={bgAudioRef}
+          src={tour.backgroundAudioUrl}
+          loop
+          autoPlay
+          muted={bgMuted}
+        />
+      )}
+
       {/* ── Effects overlay ────────────────────────────────────────────── */}
       {tour.effects.length > 0 && (
         <EffectsLayer effects={tour.effects} audioEnabled={audioEnabled} />
@@ -296,7 +318,7 @@ export default function TourViewerPage({
       {/* ── Compass HUD (360 tours only) ───────────────────────────────── */}
       {is360 && (
         <div
-          className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-30 transition-all duration-500 ${
+          className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pr-14 transition-all duration-500 ${
             controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
           }`}
         >
@@ -520,6 +542,34 @@ export default function TourViewerPage({
           </div>
         </div>
       </div>
+
+      {/* ── Background audio mute button (always visible) ─────────────── */}
+      {tour.backgroundAudioUrl && (
+        <div className="absolute bottom-8 right-5 z-40 flex flex-col items-end gap-2">
+          {/* "Tap to hear" nudge — shown until visitor unmutes once */}
+          {bgMuted && !bgUnmutedOnce && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full text-white text-xs font-medium border border-white/10 animate-pulse pointer-events-none">
+              <Music className="w-3 h-3 shrink-0" />
+              Tap to hear background audio
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setBgMuted((p) => !p);
+              setBgUnmutedOnce(true);
+            }}
+            className={`w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center text-white transition-all border shadow-lg ${
+              bgMuted
+                ? "bg-white/10 border-white/20 hover:bg-white/20"
+                : "bg-white/25 border-white/30 hover:bg-white/35"
+            }`}
+            title={bgMuted ? "Unmute background audio" : "Mute background audio"}
+          >
+            {bgMuted ? <VolumeX className="w-4 h-4" /> : <Music className="w-4 h-4" />}
+          </button>
+        </div>
+      )}
 
       {/* Click-outside overlay to close info panel */}
       {showInfoPanel && (

@@ -161,6 +161,8 @@ export default function CreateTour() {
   const [effectSoundFiles, setEffectSoundFiles] = useState<
     (File | undefined)[]
   >([]);
+  const [backgroundAudioFile, setBackgroundAudioFile] = useState<File | null>(null);
+  const [backgroundAudioVolume, setBackgroundAudioVolume] = useState(0.5);
   const [editingHotspot, setEditingHotspot] = useState<string | null>(null);
   const [editingAudio, setEditingAudio] = useState<string | null>(null);
   const [editingEffect, setEditingEffect] = useState<string | null>(null);
@@ -375,6 +377,14 @@ export default function CreateTour() {
         fileName = result.fileName;
       }
 
+      // Phase 1b: upload background audio if provided
+      let bgAudioUrl: string | undefined;
+      if (backgroundAudioFile) {
+        const sig = await fetchUploadSignature("audio");
+        const result = await uploadToCloudinaryWithProgress(backgroundAudioFile, sig, () => {});
+        bgAudioUrl = result.secure_url;
+      }
+
       // Phase 2: create tour with URL (instant JSON request)
       setSubmitPhase("saving");
       await createTourMutation.mutateAsync({
@@ -387,6 +397,7 @@ export default function CreateTour() {
         ...(fileName ? { fileName } : {}),
         status: formData.status,
         isPublished: formData.isPublished,
+        ...(bgAudioUrl ? { backgroundAudioUrl: bgAudioUrl, backgroundAudioVolume } : {}),
         ...(hotspots.length > 0
           ? { hotspots: hotspots.map((h, i) => ({ ...h, order: i })) }
           : {}),
@@ -589,6 +600,10 @@ export default function CreateTour() {
           <AudioEffectsStep
             tourType={formData.tourType}
             mediaUrl={mediaPreviewUrl}
+            backgroundAudioFile={backgroundAudioFile}
+            backgroundAudioVolume={backgroundAudioVolume}
+            onBackgroundAudioFileSelect={setBackgroundAudioFile}
+            onBackgroundAudioVolumeChange={setBackgroundAudioVolume}
             audioRegions={audioRegions}
             audioFiles={audioFiles}
             editingAudio={editingAudio}

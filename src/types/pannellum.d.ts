@@ -29,6 +29,7 @@ export interface PannellumViewerBase {
   getYaw: () => number;
   getPitch: () => number;
   setYaw: (yaw: number) => void;
+  resize: () => void;
   mouseEventToCoords: (e: MouseEvent) => [number, number];
   on: (event: string, handler: () => void) => void;
 }

@@ -52,7 +52,8 @@ export const TESTIMONY_KEYS = {
   transcript: (id: number) => [...TESTIMONY_KEYS.transcripts(), id] as const,
   analytics: () => [...TESTIMONY_KEYS.all, "analytics"] as const,
   mostConnected: () => [...TESTIMONY_KEYS.all, "most-connected"] as const,
-  adminList: (filters: string) => [...TESTIMONY_KEYS.all, "admin-list", { filters }] as const,
+  adminList: (filters: string) =>
+    [...TESTIMONY_KEYS.all, "admin-list", { filters }] as const,
 };
 
 type TestimoniesPage = {
@@ -318,7 +319,10 @@ export function useTranscript(
 }
 
 // Admin analytics — GET /testimonies/admin/analytics
-export function useTestimonyAnalytics(): UseQueryResult<TestimonyAnalytics, Error> {
+export function useTestimonyAnalytics(): UseQueryResult<
+  TestimonyAnalytics,
+  Error
+> {
   return useQuery({
     queryKey: TESTIMONY_KEYS.analytics(),
     queryFn: () => testimoniesService.getAnalytics(),
@@ -328,7 +332,10 @@ export function useTestimonyAnalytics(): UseQueryResult<TestimonyAnalytics, Erro
 }
 
 // Most-connected testimonies
-export function useMostConnected(): UseQueryResult<MostConnectedTestimony[], Error> {
+export function useMostConnected(): UseQueryResult<
+  MostConnectedTestimony[],
+  Error
+> {
   return useQuery({
     queryKey: TESTIMONY_KEYS.mostConnected(),
     queryFn: () => testimoniesService.getMostConnected(),
@@ -347,11 +354,17 @@ export function useAdminTestimonies(filters?: {
   return useInfiniteQuery({
     queryKey: TESTIMONY_KEYS.adminList(JSON.stringify(filters ?? {})),
     queryFn: ({ pageParam = 0 }) =>
-      testimoniesService.getAdminTestimonies({ ...filters, skip: pageParam as number, limit: filters?.limit ?? 20 }),
+      testimoniesService.getAdminTestimonies({
+        ...filters,
+        skip: pageParam as number,
+        limit: filters?.limit ?? 20,
+      }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
-      const nextSkip = lastPage.skip + lastPage.data.length;
-      return nextSkip >= lastPage.total ? undefined : nextSkip;
+      const total = lastPage.meta?.total ?? lastPage.total ?? 0;
+      const currentSkip = lastPage.meta?.skip ?? lastPage.skip ?? 0;
+      const nextSkip = currentSkip + lastPage.data.length;
+      return nextSkip >= total ? undefined : nextSkip;
     },
     staleTime: 30_000,
   });
@@ -361,8 +374,13 @@ export function useAdminTestimonies(filters?: {
 export function useUpdateTestimonyStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: number; status: "approved" | "rejected" }) =>
-      testimoniesService.updateTestimonyStatus(id, status),
+    mutationFn: ({
+      id,
+      status,
+    }: {
+      id: number;
+      status: "approved" | "rejected";
+    }) => testimoniesService.updateTestimonyStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TESTIMONY_KEYS.all });
       toast.success("Testimony status updated");
