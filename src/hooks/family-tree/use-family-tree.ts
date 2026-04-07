@@ -151,3 +151,14 @@ export function useDeleteFamilyRelation(treeId: number) {
     onError: () => toast.error('Failed to remove relation'),
   });
 }
+
+// ── Duplicate detection ───────────────────────────────────────────────────────
+
+export function useSearchFamilyMembers(name: string, enabled = true) {
+  return useQuery({
+    queryKey: ['family-members-search', name],
+    queryFn: () => familyTreeService.searchMembersByName(name),
+    enabled: enabled && name.trim().length >= 2,
+    staleTime: 30_000,
+  });
+}

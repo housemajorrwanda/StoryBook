@@ -3,7 +3,6 @@
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import toast from "react-hot-toast";
 import { ChevronLeft, Plus, Eye, Globe, Lock, X, Loader2, Users } from "lucide-react";
 import {
   useFamilyTree,
@@ -16,49 +15,44 @@ import {
 } from "@/hooks/family-tree/use-family-tree";
 import {
   FamilyMember,
-  Gender,
   RelationType,
   CreateFamilyMemberRequest,
   UpdateFamilyMemberRequest,
 } from "@/types/family-tree";
 import FamilyTreeCanvas from "@/components/family-tree/FamilyTreeCanvas";
 import MemberPanel from "@/components/family-tree/MemberPanel";
+import AddMemberModal, { MemberFormData, EMPTY_MEMBER_FORM } from "@/components/family-tree/AddMemberModal";
+import { RWANDA_LOCATIONS } from "@/lib/rwanda-locations";
 import { ErrorState } from "@/components/shared";
 import PageLayout from "@/layout/PageLayout";
 import { isAuthenticated } from "@/lib/decodeToken";
+import toast from "react-hot-toast";
 
-interface MemberFormState {
-  name: string;
-  photoUrl: string;
-  birthDate: string;
-  deathDate: string;
-  bio: string;
-  gender: Gender | "";
-  isAlive: boolean;
-  testimonyId: string;
+function findProvince(district: string): string {
+  for (const [prov, dists] of Object.entries(RWANDA_LOCATIONS)) {
+    if (district in dists) return prov;
+  }
+  return "";
 }
 
-const EMPTY_FORM: MemberFormState = {
-  name: "",
-  photoUrl: "",
-  birthDate: "",
-  deathDate: "",
-  bio: "",
-  gender: "",
-  isAlive: true,
-  testimonyId: "",
-};
-
-function memberToForm(m: FamilyMember): MemberFormState {
+function memberToForm(m: FamilyMember): MemberFormData {
+  const district = m.district ?? "";
   return {
     name: m.name,
     photoUrl: m.photoUrl ?? "",
+    photoUrls: m.photoUrls ?? [],
     birthDate: m.birthDate ?? "",
     deathDate: m.deathDate ?? "",
     bio: m.bio ?? "",
-    gender: (m.gender as Gender) ?? "",
+    gender: (m.gender as MemberFormData["gender"]) ?? "",
     isAlive: m.isAlive,
     testimonyId: m.testimonyId?.toString() ?? "",
+    province: district ? findProvince(district) : "",
+    district,
+    sector: m.sector ?? "",
+    cell: m.cell ?? "",
+    relativeOfId: "",
+    relativeOfType: "parent",
   };
 }
 
@@ -86,7 +80,7 @@ export default function EditFamilyTreePage({
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
-  const [memberForm, setMemberForm] = useState<MemberFormState>(EMPTY_FORM);
+  const [editingFormData, setEditingFormData] = useState<MemberFormData | undefined>(undefined);
 
   const [showRelationForm, setShowRelationForm] = useState(false);
   const [relFrom, setRelFrom] = useState("");
@@ -98,14 +92,14 @@ export default function EditFamilyTreePage({
 
   const openAddMember = () => {
     setEditingMemberId(null);
-    setMemberForm(EMPTY_FORM);
+    setEditingFormData(undefined);
     setShowMemberForm(true);
     setSelectedMember(null);
   };
 
   const openEditMember = (m: FamilyMember) => {
     setEditingMemberId(m.id);
-    setMemberForm(memberToForm(m));
+    setEditingFormData(memberToForm(m));
     setShowMemberForm(true);
     setSelectedMember(null);
   };
@@ -113,47 +107,67 @@ export default function EditFamilyTreePage({
   const closeMemberForm = () => {
     setShowMemberForm(false);
     setEditingMemberId(null);
+    setEditingFormData(undefined);
   };
 
-  const handleMemberSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload: CreateFamilyMemberRequest = {
-      name: memberForm.name.trim(),
-      photoUrl: memberForm.photoUrl.trim() || undefined,
-      birthDate: memberForm.birthDate.trim() || undefined,
-      deathDate: memberForm.deathDate.trim() || undefined,
-      bio: memberForm.bio.trim() || undefined,
-      gender: (memberForm.gender as Gender) || undefined,
-      isAlive: memberForm.isAlive,
-      testimonyId: memberForm.testimonyId ? parseInt(memberForm.testimonyId) : undefined,
-    };
-    if (editingMemberId) {
-      await updateMemberMutation.mutateAsync({ memberId: editingMemberId, data: payload as UpdateFamilyMemberRequest });
-    } else {
-      await addMemberMutation.mutateAsync(payload);
+  const handleMemberSubmit = async (
+    payload: CreateFamilyMemberRequest,
+    relativeOf?: { memberId: number; relationType: RelationType },
+  ) => {
+    try {
+      if (editingMemberId) {
+        await updateMemberMutation.mutateAsync({ memberId: editingMemberId, data: payload as UpdateFamilyMemberRequest });
+      } else {
+        const newMember = await addMemberMutation.mutateAsync(payload);
+        if (relativeOf) {
+          try {
+            await addRelationMutation.mutateAsync({
+              fromMemberId: newMember.id,
+              toMemberId: relativeOf.memberId,
+              relationType: relativeOf.relationType,
+            });
+          } catch {
+            toast.error("Member saved, but relation could not be created. You can add it manually.");
+          }
+        }
+      }
+      closeMemberForm();
+    } catch {
+      toast.error("Failed to save member. Please try again.");
     }
-    closeMemberForm();
   };
 
   const handleDeleteMember = async (memberId: number) => {
     if (!confirm("Remove this member? Their relations will also be removed.")) return;
-    await deleteMemberMutation.mutateAsync(memberId);
-    setSelectedMember(null);
+    try {
+      await deleteMemberMutation.mutateAsync(memberId);
+      setSelectedMember(null);
+    } catch {
+      toast.error("Failed to remove member. Please try again.");
+    }
   };
 
   const handleAddRelation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!relFrom || !relTo || relFrom === relTo) { toast.error("Select two different members"); return; }
-    await addRelationMutation.mutateAsync({ fromMemberId: parseInt(relFrom), toMemberId: parseInt(relTo), relationType: relType });
-    setShowRelationForm(false);
-    setRelFrom(""); setRelTo("");
+    try {
+      await addRelationMutation.mutateAsync({ fromMemberId: parseInt(relFrom), toMemberId: parseInt(relTo), relationType: relType });
+      setShowRelationForm(false);
+      setRelFrom(""); setRelTo("");
+    } catch {
+      toast.error("Failed to add connection. Please try again.");
+    }
   };
 
   const saveTitleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleEdit.trim()) return;
-    await updateTreeMutation.mutateAsync({ title: titleEdit.trim() });
-    setShowTitleEdit(false);
+    try {
+      await updateTreeMutation.mutateAsync({ title: titleEdit.trim() });
+      setShowTitleEdit(false);
+    } catch {
+      toast.error("Failed to rename tree. Please try again.");
+    }
   };
 
   const togglePublic = () => {
@@ -181,6 +195,8 @@ export default function EditFamilyTreePage({
     );
   }
 
+  const isSavingMember = addMemberMutation.isPending || updateMemberMutation.isPending;
+
   return (
     <PageLayout variant="default">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -201,7 +217,7 @@ export default function EditFamilyTreePage({
                   autoFocus
                   value={titleEdit}
                   onChange={(e) => setTitleEdit(e.target.value)}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 max-w-[200px] sm:max-w-xs"
                 />
                 <button type="submit" className="px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg">Save</button>
                 <button type="button" onClick={() => setShowTitleEdit(false)} className="p-1.5 text-gray-400 hover:text-gray-700">
@@ -261,7 +277,7 @@ export default function EditFamilyTreePage({
         </div>
 
         {/* Canvas + Members list */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_220px] lg:grid-cols-[1fr_300px] gap-5">
           <div className="space-y-4">
             <FamilyTreeCanvas
               members={tree.members}
@@ -287,7 +303,7 @@ export default function EditFamilyTreePage({
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
               Members ({tree.members.length})
             </p>
-            <div className="space-y-2 max-h-[180px] sm:max-h-[300px] lg:max-h-[440px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[160px] sm:max-h-[260px] md:max-h-[360px] lg:max-h-[440px] overflow-y-auto pr-1">
               {tree.members.map((m) => {
                 const initials = m.name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
                 const isSelected = selectedMember?.id === m.id;
@@ -330,10 +346,10 @@ export default function EditFamilyTreePage({
                 const from = tree.members.find((m) => m.id === rel.fromMemberId);
                 const to = tree.members.find((m) => m.id === rel.toMemberId);
                 return (
-                  <div key={rel.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs text-gray-700 border border-gray-200">
-                    <span className="font-medium">{from?.name ?? "?"}</span>
+                  <div key={rel.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs text-gray-700 border border-gray-200 max-w-full">
+                    <span className="font-medium max-w-[80px] truncate">{from?.name ?? "?"}</span>
                     <span className="text-gray-400">{rel.relationType}</span>
-                    <span className="font-medium">{to?.name ?? "?"}</span>
+                    <span className="font-medium max-w-[80px] truncate">{to?.name ?? "?"}</span>
                     <button type="button" onClick={() => deleteRelationMutation.mutate(rel.id)}
                       className="ml-0.5 text-gray-400 hover:text-red-500 transition-colors" title="Remove relation">
                       <X className="w-3 h-3" />
@@ -357,103 +373,16 @@ export default function EditFamilyTreePage({
           />
         )}
 
-        {/* Member form modal */}
-        {showMemberForm && (
-          <>
-            <div className="fixed inset-0 z-30 bg-black/30 backdrop-blur-[1px]" onClick={closeMemberForm} />
-            <div className="fixed inset-x-0 bottom-0 sm:inset-x-4 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 z-40 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl sm:max-w-md sm:mx-auto overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h2 className="text-base font-bold text-gray-900">{editingMemberId ? "Edit Member" : "Add Member"}</h2>
-                <button type="button" onClick={closeMemberForm} title="Close" aria-label="Close" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <form onSubmit={handleMemberSubmit} className="px-5 py-4 space-y-4 overflow-y-auto max-h-[80vh]">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Full Name <span className="text-red-500">*</span></label>
-                  <input type="text" required value={memberForm.name}
-                    onChange={(e) => setMemberForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="e.g. Jean-Paul Habimana"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="member-gender" className="block text-xs font-semibold text-gray-600 mb-1">Gender</label>
-                    <select id="member-gender" value={memberForm.gender}
-                      onChange={(e) => setMemberForm((f) => ({ ...f, gender: e.target.value as Gender | "" }))}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900">
-                      <option value="">Unknown</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div className="flex items-end pb-0.5">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <span className="text-xs font-semibold text-gray-600">Living</span>
-                      <button type="button" aria-label={memberForm.isAlive ? "Mark as deceased" : "Mark as living"}
-                        onClick={() => setMemberForm((f) => ({ ...f, isAlive: !f.isAlive }))}
-                        className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${memberForm.isAlive ? "bg-emerald-500" : "bg-gray-300"}`}>
-                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${memberForm.isAlive ? "translate-x-5" : ""}`} />
-                      </button>
-                    </label>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Birth Year/Date</label>
-                    <input type="text" value={memberForm.birthDate}
-                      onChange={(e) => setMemberForm((f) => ({ ...f, birthDate: e.target.value }))}
-                      placeholder="e.g. 1952"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
-                  </div>
-                  {!memberForm.isAlive && (
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Death Year/Date</label>
-                      <input type="text" value={memberForm.deathDate}
-                        onChange={(e) => setMemberForm((f) => ({ ...f, deathDate: e.target.value }))}
-                        placeholder="e.g. 2010"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Photo URL</label>
-                  <input type="url" value={memberForm.photoUrl}
-                    onChange={(e) => setMemberForm((f) => ({ ...f, photoUrl: e.target.value }))}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Bio / Notes</label>
-                  <textarea value={memberForm.bio}
-                    onChange={(e) => setMemberForm((f) => ({ ...f, bio: e.target.value }))}
-                    placeholder="Brief biography or notes about this person"
-                    rows={3}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Link Testimony (ID)</label>
-                  <input type="number" value={memberForm.testimonyId}
-                    onChange={(e) => setMemberForm((f) => ({ ...f, testimonyId: e.target.value }))}
-                    placeholder="Testimony ID (optional)"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <button type="submit"
-                    disabled={!memberForm.name.trim() || addMemberMutation.isPending || updateMemberMutation.isPending}
-                    className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50">
-                    {(addMemberMutation.isPending || updateMemberMutation.isPending) ? "Saving…" : editingMemberId ? "Save Changes" : "Add Member"}
-                  </button>
-                  <button type="button" onClick={closeMemberForm}
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </>
-        )}
+        {/* Add/Edit Member modal */}
+        <AddMemberModal
+          open={showMemberForm}
+          editingId={editingMemberId}
+          initialData={editingFormData ?? EMPTY_MEMBER_FORM}
+          isSaving={isSavingMember}
+          existingMembers={tree.members}
+          onClose={closeMemberForm}
+          onSubmit={handleMemberSubmit}
+        />
 
         {/* Relation form modal */}
         {showRelationForm && (

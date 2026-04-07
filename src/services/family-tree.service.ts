@@ -4,6 +4,7 @@ import {
   FamilyMember,
   FamilyRelation,
   FamilyTreesPublicResponse,
+  MemberSearchResult,
   CreateFamilyTreeRequest,
   UpdateFamilyTreeRequest,
   CreateFamilyMemberRequest,
@@ -77,6 +78,15 @@ class FamilyTreeService {
 
   async deleteRelation(treeId: number, relationId: number): Promise<void> {
     await axiosInstance.delete(`/family-trees/${treeId}/relations/${relationId}`);
+  }
+
+  // ── Duplicate detection ────────────────────────────────────────────────────
+
+  async searchMembersByName(name: string, limit = 10): Promise<MemberSearchResult[]> {
+    const res = await axiosInstance.get<MemberSearchResult[]>('/family-trees/members/search', {
+      params: { name, limit },
+    });
+    return res.data;
   }
 }
 

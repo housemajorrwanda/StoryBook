@@ -11,15 +11,37 @@ export interface FamilyMember {
   id: number;
   name: string;
   photoUrl: string | null;
+  photoUrls: string[];
   birthDate: string | null;
   deathDate: string | null;
   bio: string | null;
   gender: Gender | null;
   isAlive: boolean;
+  district: string | null;
+  sector: string | null;
+  cell: string | null;
+  village: string | null;
   testimonyId: number | null;
   testimony: FamilyMemberTestimony | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MemberSearchResult {
+  id: number;
+  name: string;
+  photoUrl: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  district: string | null;
+  sector: string | null;
+  cell: string | null;
+  village: string | null;
+  familyTree: {
+    id: number;
+    title: string;
+    user: { id: number; fullName: string | null };
+  };
 }
 
 export interface FamilyRelation {
@@ -72,23 +94,33 @@ export interface UpdateFamilyTreeRequest {
 export interface CreateFamilyMemberRequest {
   name: string;
   photoUrl?: string;
+  photoUrls?: string[];
   birthDate?: string;
   deathDate?: string;
   bio?: string;
   gender?: Gender;
   isAlive?: boolean;
   testimonyId?: number;
+  district?: string;
+  sector?: string;
+  cell?: string;
+  village?: string;
 }
 
 export interface UpdateFamilyMemberRequest {
   name?: string;
   photoUrl?: string;
+  photoUrls?: string[];
   birthDate?: string;
   deathDate?: string;
   bio?: string;
   gender?: Gender;
   isAlive?: boolean;
   testimonyId?: number | null;
+  district?: string;
+  sector?: string;
+  cell?: string;
+  village?: string;
 }
 
 export interface CreateFamilyRelationRequest {

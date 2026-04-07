@@ -99,12 +99,12 @@ export default function PublicFamilyTreePage({
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Tree header */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start sm:items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
               <TreePine className="w-7 h-7 text-emerald-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{tree.title}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{tree.title}</h1>
               {tree.user?.fullName && (
                 <p className="text-sm text-gray-500 mt-0.5">
                   Created by {tree.user.fullName}
@@ -116,14 +116,14 @@ export default function PublicFamilyTreePage({
           {/* Stats */}
           <div className="sm:ml-auto flex items-center gap-4">
             <div className="text-center">
-              <p className="text-xl font-bold text-gray-900">{memberCount}</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{memberCount}</p>
               <p className="text-xs text-gray-400 flex items-center gap-1">
                 <Users className="w-3 h-3" /> Members
               </p>
             </div>
             <div className="w-px h-8 bg-gray-200" />
             <div className="text-center">
-              <p className="text-xl font-bold text-gray-900">{generationCount}</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{generationCount}</p>
               <p className="text-xs text-gray-400 flex items-center gap-1">
                 <Calendar className="w-3 h-3" /> Generations
               </p>
@@ -158,7 +158,7 @@ export default function PublicFamilyTreePage({
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
               All Members
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {tree.members.map((m) => {
                 const initials = m.name
                   .split(" ")
@@ -180,19 +180,13 @@ export default function PublicFamilyTreePage({
                     }`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : m.gender === "male"
-                          ? "bg-blue-100 text-blue-600"
-                          : m.gender === "female"
-                          ? "bg-pink-100 text-pink-600"
-                          : "bg-gray-100 text-gray-600"
+                      className={`w-11 h-11 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
+                        isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {m.photoUrl ? (
+                      {(m.photoUrls?.[0] ?? m.photoUrl) ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={m.photoUrl} alt={m.name} className="w-10 h-10 rounded-xl object-cover" />
+                        <img src={(m.photoUrls?.[0] ?? m.photoUrl)!} alt={m.name} className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl object-cover" />
                       ) : initials}
                     </div>
                     <div className="flex-1 min-w-0">

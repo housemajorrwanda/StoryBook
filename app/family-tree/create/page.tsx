@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { useCreateFamilyTree } from "@/hooks/family-tree/use-family-tree";
+import { useCreateFamilyTree, useMyFamilyTrees } from "@/hooks/family-tree/use-family-tree";
 import PageLayout from "@/layout/PageLayout";
 import { isAuthenticated } from "@/lib/decodeToken";
 
 export default function CreateFamilyTreePage() {
   const router = useRouter();
   const createMutation = useCreateFamilyTree();
+  const { data: myTrees, isLoading: treesLoading } = useMyFamilyTrees();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -21,6 +22,13 @@ export default function CreateFamilyTreePage() {
       router.replace("/login");
     }
   }, [router]);
+
+  // If user already has a tree, redirect to edit it — one tree per user
+  useEffect(() => {
+    if (!treesLoading && myTrees && myTrees.length > 0) {
+      router.replace(`/family-tree/edit/${myTrees[0].id}`);
+    }
+  }, [treesLoading, myTrees, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +95,8 @@ export default function CreateFamilyTreePage() {
             <button
               type="button"
               onClick={() => setIsPublic((p) => !p)}
+              title={isPublic ? "Make private" : "Make public"}
+              aria-label={isPublic ? "Make private" : "Make public"}
               className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
                 isPublic ? "bg-gray-900" : "bg-gray-300"
               }`}
@@ -101,10 +111,10 @@ export default function CreateFamilyTreePage() {
 
           <button
             type="submit"
-            disabled={!title.trim() || createMutation.isPending}
+            disabled={!title.trim() || createMutation.isPending || treesLoading}
             className="w-full py-3 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {createMutation.isPending ? "Creating…" : "Create & Add Members →"}
+            {treesLoading ? "Checking…" : createMutation.isPending ? "Creating…" : "Create & Add Members →"}
           </button>
         </form>
       </div>
