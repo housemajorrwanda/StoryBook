@@ -7,7 +7,7 @@ import {
   useLayoutEffect,
   type ReactElement,
 } from "react";
-import { FamilyMember, FamilyRelation, RelationType } from "@/types/family-tree";
+import { FamilyMember, FamilyRelation } from "@/types/family-tree";
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
@@ -94,10 +94,10 @@ function buildLayout(members: FamilyMember[], relations: FamilyRelation[]): Node
 // ── Gender palette ────────────────────────────────────────────────────────────
 
 const GENDER_PALETTE: Record<string, { bg: string; accent: string; text: string; initBg: string; initText: string }> = {
-  male:    { bg: "#eff6ff", accent: "#3b82f6", text: "#1e40af", initBg: "#dbeafe", initText: "#1d4ed8" },
-  female:  { bg: "#fdf2f8", accent: "#ec4899", text: "#9d174d", initBg: "#fce7f3", initText: "#be185d" },
-  other:   { bg: "#f5f3ff", accent: "#8b5cf6", text: "#5b21b6", initBg: "#ede9fe", initText: "#6d28d9" },
-  unknown: { bg: "#f9fafb", accent: "#6b7280", text: "#374151", initBg: "#f3f4f6", initText: "#4b5563" },
+  male:    { bg: "#f9fafb", accent: "#374151", text: "#111827", initBg: "#e5e7eb", initText: "#1f2937" },
+  female:  { bg: "#f9fafb", accent: "#4b5563", text: "#111827", initBg: "#e5e7eb", initText: "#1f2937" },
+  other:   { bg: "#f9fafb", accent: "#6b7280", text: "#374151", initBg: "#e5e7eb", initText: "#374151" },
+  unknown: { bg: "#f9fafb", accent: "#9ca3af", text: "#374151", initBg: "#f3f4f6", initText: "#6b7280" },
 };
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -196,15 +196,15 @@ export default function FamilyTreeCanvas({
   // ── Empty state ───────────────────────────────────────────────────────────
   if (!members.length) {
     return (
-      <div className="flex flex-col items-center justify-center h-72 rounded-2xl border-2 border-dashed border-emerald-100 bg-gradient-to-b from-emerald-50/40 to-white gap-4">
+      <div className="flex flex-col items-center justify-center h-72 rounded-2xl border-2 border-dashed border-gray-200 bg-gradient-to-b from-gray-50/60 to-white gap-4">
         <div className="relative">
-          <div className="w-16 h-16 rounded-full bg-white border-2 border-emerald-100 shadow-sm flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-white border-2 border-gray-200 shadow-sm flex items-center justify-center">
             <svg viewBox="0 0 32 32" className="w-8 h-8" fill="none">
-              <circle cx="16" cy="8" r="5" stroke="#10b981" strokeWidth="2"/>
-              <circle cx="7" cy="22" r="4" stroke="#6ee7b7" strokeWidth="1.5"/>
-              <circle cx="25" cy="22" r="4" stroke="#6ee7b7" strokeWidth="1.5"/>
-              <line x1="16" y1="13" x2="7" y2="18" stroke="#a7f3d0" strokeWidth="1.5"/>
-              <line x1="16" y1="13" x2="25" y2="18" stroke="#a7f3d0" strokeWidth="1.5"/>
+              <circle cx="16" cy="8" r="5" stroke="#6b7280" strokeWidth="2"/>
+              <circle cx="7" cy="22" r="4" stroke="#9ca3af" strokeWidth="1.5"/>
+              <circle cx="25" cy="22" r="4" stroke="#9ca3af" strokeWidth="1.5"/>
+              <line x1="16" y1="13" x2="7" y2="18" stroke="#d1d5db" strokeWidth="1.5"/>
+              <line x1="16" y1="13" x2="25" y2="18" stroke="#d1d5db" strokeWidth="1.5"/>
             </svg>
           </div>
         </div>
@@ -257,16 +257,15 @@ export default function FamilyTreeCanvas({
         </g>
       );
     } else if (rel.relationType === "spouse") {
-      // Horizontal heart connector between spouses
+      // Horizontal connector between spouses
       const x1 = from.x + NW;
       const x2 = to.x;
       const y  = from.y + NH / 2;
       const mx = (x1 + x2) / 2;
       edges.push(
         <g key={`e-${rel.id}`}>
-          <line x1={x1} y1={y} x2={x2} y2={y} stroke="#f9a8d4" strokeWidth={2} strokeDasharray="5 3" strokeLinecap="round" />
-          {/* Heart symbol */}
-          <text x={mx} y={y + 5} textAnchor="middle" fontSize={13} fill="#ec4899" opacity={0.8}>♥</text>
+          <line x1={x1} y1={y} x2={x2} y2={y} stroke="#9ca3af" strokeWidth={2} strokeDasharray="5 3" strokeLinecap="round" />
+          <text x={mx} y={y + 5} textAnchor="middle" fontSize={11} fill="#6b7280" opacity={0.8}>spouse</text>
         </g>
       );
     } else if (rel.relationType === "sibling") {
@@ -276,8 +275,8 @@ export default function FamilyTreeCanvas({
       edges.push(
         <g key={`e-${rel.id}`}>
           <path d={`M ${x1} ${from.y} Q ${x1} ${y} ${(x1+x2)/2} ${y} Q ${x2} ${y} ${x2} ${to.y}`}
-            fill="none" stroke="#fbbf24" strokeWidth={2} strokeDasharray="5 3" strokeLinecap="round" />
-          <text x={(x1+x2)/2} y={y - 4} textAnchor="middle" fontSize={9} fill="#d97706" fontWeight={600} opacity={0.8}>sibling</text>
+            fill="none" stroke="#9ca3af" strokeWidth={2} strokeDasharray="5 3" strokeLinecap="round" />
+          <text x={(x1+x2)/2} y={y - 4} textAnchor="middle" fontSize={9} fill="#6b7280" fontWeight={600} opacity={0.8}>sibling</text>
         </g>
       );
     }
@@ -323,11 +322,11 @@ export default function FamilyTreeCanvas({
           fill={pal.accent} opacity={isSelected ? 0.5 : 0.25} />
 
         {/* Avatar */}
-        {m.photoUrl ? (
+        {(m.photoUrls?.[0] ?? m.photoUrl) ? (
           <>
             <clipPath id={`c-${node.id}`}><circle cx={32} cy={NH / 2 + 3} r={22} /></clipPath>
             <circle cx={32} cy={NH / 2 + 3} r={23} fill={isSelected ? "rgba(255,255,255,0.2)" : pal.initBg} />
-            <image href={m.photoUrl} x={10} y={NH / 2 - 19}
+            <image href={(m.photoUrls?.[0] ?? m.photoUrl)!} x={10} y={NH / 2 - 19}
               width={44} height={44} clipPath={`url(#c-${node.id})`}>
               <title>{m.name}</title>
             </image>
@@ -382,7 +381,7 @@ export default function FamilyTreeCanvas({
   return (
     <div ref={containerRef}
       className="relative w-full overflow-hidden rounded-2xl border border-gray-200 select-none"
-      style={{ height: "clamp(300px, 60vh, 560px)", background: "linear-gradient(160deg,#f0fdf4 0%,#f9fafb 40%,#eff6ff 100%)" }}
+      style={{ height: "clamp(260px, 52vh, 560px)", background: "linear-gradient(160deg,#f9fafb 0%,#ffffff 50%,#f3f4f6 100%)" }}
     >
       {/* Subtle dot-grid background */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40" xmlns="http://www.w3.org/2000/svg">
@@ -395,17 +394,17 @@ export default function FamilyTreeCanvas({
       </svg>
 
       {/* Controls */}
-      <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex flex-col gap-1.5">
         <button type="button" onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))}
-          className="w-8 h-8 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white shadow-sm text-lg leading-none font-light transition-all hover:scale-105 active:scale-95">
+          className="w-9 h-9 sm:w-8 sm:h-8 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white shadow-sm text-lg leading-none font-light transition-all hover:scale-105 active:scale-95">
           +
         </button>
         <button type="button" onClick={() => setZoom((z) => Math.max(0.2, z - 0.15))}
-          className="w-8 h-8 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white shadow-sm text-lg leading-none font-light transition-all hover:scale-105 active:scale-95">
+          className="w-9 h-9 sm:w-8 sm:h-8 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-white shadow-sm text-lg leading-none font-light transition-all hover:scale-105 active:scale-95">
           −
         </button>
         <button type="button" onClick={fitToView} title="Fit to view"
-          className="w-8 h-8 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:bg-white shadow-sm transition-all hover:scale-105 active:scale-95">
+          className="w-9 h-9 sm:w-8 sm:h-8 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:bg-white shadow-sm transition-all hover:scale-105 active:scale-95">
           <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M1 5V2h3M12 2h3v3M15 11v3h-3M4 14H1v-3"/>
           </svg>
@@ -414,7 +413,7 @@ export default function FamilyTreeCanvas({
 
       {/* Hint badge */}
       <div className="absolute top-3 left-3 z-10 pointer-events-none">
-        <div className="flex items-center gap-1.5 text-[10px] font-medium text-gray-500 bg-white/80 backdrop-blur-sm px-2.5 py-1.5 rounded-full border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-1.5 text-[11px] sm:text-[10px] font-medium text-gray-500 bg-white/80 backdrop-blur-sm px-2.5 py-1.5 rounded-full border border-gray-100 shadow-sm">
           <svg viewBox="0 0 16 16" className="w-3 h-3 shrink-0" fill="currentColor">
             <path d="M8 0a8 8 0 100 16A8 8 0 008 0zm.75 11.5h-1.5v-5h1.5v5zm0-6.5h-1.5V3.5h1.5V5z"/>
           </svg>
@@ -426,7 +425,7 @@ export default function FamilyTreeCanvas({
       {(() => {
         const maxGen = nodes.length ? Math.round(Math.max(...nodes.map((n) => n.y)) / (NH + VGAP)) + 1 : 0;
         return maxGen > 1 ? (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none hidden sm:block">
             <span className="text-[10px] font-semibold text-gray-500 bg-white/85 backdrop-blur-sm px-2.5 py-1 rounded-full border border-gray-100 shadow-sm">
               {maxGen} generations
             </span>
@@ -468,13 +467,15 @@ export default function FamilyTreeCanvas({
       </svg>
 
       {/* Legend */}
-      <div className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5 pointer-events-none">
+      <div className="absolute bottom-3 left-3 z-10 hidden sm:flex flex-wrap gap-1.5 pointer-events-none">
         <div className="flex items-center gap-1.5 text-[10px] font-medium text-gray-500 bg-white/85 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-100 shadow-sm">
           <span className="w-3 h-0.5 bg-gray-300 inline-block rounded" />
           parent/child
         </div>
         <div className="flex items-center gap-1.5 text-[10px] font-medium text-gray-500 bg-white/85 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-100 shadow-sm">
-          <span className="text-pink-400 text-[10px] leading-none">♥</span>
+          <svg width="12" height="4" viewBox="0 0 12 4" className="shrink-0">
+            <line x1="0" y1="2" x2="12" y2="2" stroke="#9ca3af" strokeWidth="2" strokeDasharray="3 2" strokeLinecap="round" />
+          </svg>
           spouse
         </div>
         <div className="flex items-center gap-1.5 text-[10px] font-medium text-gray-500 bg-white/85 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-100 shadow-sm">

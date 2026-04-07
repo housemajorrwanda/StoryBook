@@ -22,6 +22,16 @@ export default function MyFamilyTreesPage() {
     }
   }, [router]);
 
+  // One-tree-per-user: redirect straight to edit if they already have a tree
+  // and are coming from /family-tree/create
+  useEffect(() => {
+    if (!isLoading && trees && trees.length === 1) {
+      const fromCreate = typeof window !== "undefined" &&
+        document.referrer.includes("/family-tree/create");
+      if (fromCreate) router.replace(`/family-tree/edit/${trees[0].id}`);
+    }
+  }, [isLoading, trees, router]);
+
   const handleDelete = (tree: FamilyTree) => {
     if (confirm(`Delete "${tree.title}"? This cannot be undone.`)) {
       deleteMutation.mutate(tree.id);
@@ -81,7 +91,7 @@ export default function MyFamilyTreesPage() {
           <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-2xl">
             <TreePine className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h2 className="text-lg font-semibold text-gray-800 mb-1">No family trees yet</h2>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
               Create your first tree to start mapping your family history.
             </p>
             <Link
@@ -100,7 +110,7 @@ export default function MyFamilyTreesPage() {
             {trees.map((tree) => (
               <div
                 key={tree.id}
-                className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all"
+                className="bg-white border border-gray-100 rounded-2xl p-3 sm:p-4 md:p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all"
               >
                 {/* Icon */}
                 <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
@@ -121,7 +131,7 @@ export default function MyFamilyTreesPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-xs text-gray-400">
                     <span className="flex items-center gap-1">
                       <Users className="w-3 h-3" />
                       {tree._count?.members ?? tree.members?.length ?? 0} members
@@ -136,7 +146,7 @@ export default function MyFamilyTreesPage() {
                     <Link
                       href={`/family-tree/${tree.id}`}
                       title="View public page"
-                      className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                      className="hidden sm:inline-flex p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
                     >
                       <Eye className="w-4 h-4" />
                     </Link>
@@ -158,7 +168,7 @@ export default function MyFamilyTreesPage() {
                   </button>
                   <Link
                     href={`/family-tree/edit/${tree.id}`}
-                    className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Link>
